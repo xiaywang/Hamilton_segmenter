@@ -51,6 +51,8 @@ int main(){
 	SampleCount = 0 ;
 
 	// Read data from MIT/BIH file until there is none left.
+	
+	FILE * fp;
 
 	for(i=1; i<LENGTH; i++)
 		{
