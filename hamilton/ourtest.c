@@ -1,4 +1,5 @@
 #define SAVEFILE 0
+#define PRINT 0
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -52,7 +53,7 @@ MAINTYPE main()
 
 			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
 
-#ifdef SAVEFILE
+#if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
 			fprintf(fp, "%d,\n", ecg);
 			fclose(fp);
@@ -64,10 +65,11 @@ MAINTYPE main()
 			if(delay != 0)
 				{
 				DetectionTime = SampleCount - delay ;
-
+#if PRINT
 				printf("DetectionTime %d\n", DetectionTime);
+#endif
 
-#ifdef SAVEFILE
+#if SAVEFILE
 				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
 				fprintf(fp, "%ld,\n", DetectionTime);
 				fclose(fp);
