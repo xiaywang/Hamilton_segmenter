@@ -18,7 +18,7 @@ CC = gcc #$(CFLAGS)
 ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
  postclas.o analbeat.o qrsfilt.o
 
-all:		ourtest bxbep
+all:		ourtest
 
 ourtest:	$(ETOBJS) qrsdet.o
 	$(CC) -o ourtest $(ETOBJS) qrsdet.o -lwfdb
