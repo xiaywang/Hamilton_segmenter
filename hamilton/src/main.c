@@ -56,22 +56,23 @@ int main(){
 		{
 		++SampleCount ;
 
-		ecg = ecg_data[i]*1000;
+		//ecg = ecg_data[i]*1000;
 
 		//printf("%d\n", ecg);
 
-		NextSample(&ecg,1,InputFileSampleFrequency,SAMPLE_RATE,0);
+		//NextSample(&ecg,1,InputFileSampleFrequency,SAMPLE_RATE,0);
 
 		//printf("ecg %d\n", ecg*1000);
 
 		// Set baseline to 0 and resolution to 5 mV/lsb (200 units/mV)
 
-		lTemp = ecg-ADCZero ;
-		lTemp *= 200 ;			lTemp /= ADCUnit ;			ecg = lTemp ;
+		//lTemp = ecg-ADCZero ;
+		//lTemp *= 200 ;			lTemp /= ADCUnit ;			ecg = lTemp ;
 
 		// Pass sample to beat detection and classification.
-		ecg = ecg_data[i]*1000;
+		//ecg = ecg_data[i]*1000;
 		//printf("ecg %d\n", ecg);
+		ecg = ecg_data[i];
 		delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
 		printf("delay %d\n", delay);
 		//printf("ecg %d and samplecount %d, delay %d\n",ecg, SampleCount, delay);
@@ -82,13 +83,17 @@ int main(){
 		if(delay != 0)
 			{
 			DetectionTime = SampleCount - delay ;
+			
+			fp = fopen("DetectionTime100.csv", "a+");
+			fprintf(fp, "%ld,\n", DetectionTime);
+			fclose(fp);
 
 			// Convert sample count to input file sample
 			// rate.
 
-			DetectionTime *= InputFileSampleFrequency ;
-			DetectionTime /= SAMPLE_RATE ;
-			printf("det time %ld\n", DetectionTime) ;
+			//DetectionTime *= InputFileSampleFrequency ;
+			//DetectionTime /= SAMPLE_RATE ;
+			//printf("det time %ld\n", DetectionTime) ;
 			//annot.anntyp = beatType ;
 			//annot.aux = NULL ;
 			//putann(0,&annot) ;
