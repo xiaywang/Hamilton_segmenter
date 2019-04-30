@@ -43,7 +43,7 @@ following beat is detected.
 ****************************************************************/
 
 #include "bdac.h"
-#include "ecgcodes.h"
+#include <wfdb/ecgcodes.h>
 
 // External Prototypes.
 
