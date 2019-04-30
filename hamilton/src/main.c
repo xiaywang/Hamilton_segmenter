@@ -76,7 +76,7 @@ int main(){
 		//printf("ecg %d\n", ecg);
 		ecg = ecg_data[i];
 		delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
-		printf("delay %d\n", delay);
+		//printf("delay %d\n", delay);
 		//printf("ecg %d and samplecount %d, delay %d\n",ecg, SampleCount, delay);
 
 		// If a beat was detected, annotate the beat location
