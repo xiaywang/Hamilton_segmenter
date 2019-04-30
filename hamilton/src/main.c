@@ -41,7 +41,7 @@ int main(){
 
 	ecg = ecg_data[0];
 
-	NextSample(&ecg,1,InputFileSampleFrequency,SAMPLE_RATE,1) ;
+	//NextSample(&ecg,1,InputFileSampleFrequency,SAMPLE_RATE,1) ;
 
 	//printf("2 here?\n");
 
