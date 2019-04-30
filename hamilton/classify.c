@@ -57,7 +57,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 *******************************************************************************/
 
-#include "ecgcodes.h"
+#include <wfdb/ecgcodes.h>
 #include <stdlib.h>	// For abs()
 #include <stdio.h>
 #include "qrsdet.h"	// For base sample rate.

@@ -28,6 +28,7 @@ MA 02143 USA).  For updates to this software, please visit our website
   __________________________________________________________________________
 
 	This file includes QRSFilt() and associated filtering files used for QRS
+
 	detection.  Only QRSFilt() and deriv1() are called by the QRS detector
 	other functions can be hidden.
 	Revisions:
@@ -84,12 +85,10 @@ int QRSFilter(int datum,int init)
 *	Note that the filter delay is (LPBUFFER_LGTH/2)-1
 *
 **************************************************************************/
-
-
 int lpfilt( int datum ,int init)
 	{
 	static long y1 = 0, y2 = 0 ;
-	int data[LPBUFFER_LGTH], ptr = 0 ; //static
+	static int data[LPBUFFER_LGTH], ptr = 0 ;
 	long y0 ;
 	int output, halfPtr ;
 	if(init)
@@ -124,7 +123,7 @@ int lpfilt( int datum ,int init)
 int hpfilt( int datum, int init )
 	{
 	static long y=0 ;
-	int data[HPBUFFER_LGTH], ptr = 0 ; //static
+        static int data[HPBUFFER_LGTH], ptr = 0 ;
 	int z, halfPtr ;
 	if(init)
 		{
@@ -153,7 +152,7 @@ int hpfilt( int datum, int init )
 *****************************************************************************/
 int deriv1(int x, int init)
 	{
-	int derBuff[DERIV_LENGTH], derI = 0 ; //static
+	static int derBuff[DERIV_LENGTH], derI = 0 ;
 	int y ;
 	if(init != 0)
 		{
@@ -170,7 +169,7 @@ int deriv1(int x, int init)
 	}
 int deriv2(int x, int init)
 	{
-	int derBuff[DERIV_LENGTH], derI = 0 ; //static
+        static int derBuff[DERIV_LENGTH], derI = 0 ;
 	int y ;
 	if(init != 0)
 		{
@@ -194,7 +193,7 @@ int deriv2(int x, int init)
 int mvwint(int datum, int init)
 	{
 	static long sum = 0 ;
-	int data[WINDOW_WIDTH], ptr = 0 ; //static
+        static int data[WINDOW_WIDTH], ptr = 0 ;
 	int output;
 	if(init)
 		{

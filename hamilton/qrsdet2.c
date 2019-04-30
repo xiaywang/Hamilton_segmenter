@@ -1,11 +1,11 @@
 /*****************************************************************************
-FILE:  qrsdet.cpp
+FILE:  qrsdet2.cpp
 AUTHOR:	Patrick S. Hamilton
-REVISED:	12/04/2000
+REVISED:	7/08/2002
   ___________________________________________________________________________
 
-qrsdet.cpp: A QRS detector.
-Copywrite (C) 2000 Patrick S. Hamilton
+qrsdet2.cpp: A QRS detector.
+Copywrite (C) 2002 Patrick S. Hamilton
 
 This file is free software; you can redistribute it and/or modify it under
 the terms of the GNU Library General Public License as published by the Free
@@ -65,8 +65,9 @@ Returns:
 
 #include <math.h>
 #include "qrsdet.h"
-#define PRE_BLANK	MS200
 
+#define PRE_BLANK	MS195
+#define MIN_PEAK_AMP	7 // Prevents detections of peaks smaller than 150 uV.
 
 // External Prototypes.
 
@@ -76,14 +77,11 @@ int deriv1( int x0, int init ) ;
 // Local Prototypes.
 
 int Peak( int datum, int init ) ;
-int median(int *array, int datnum) ;
-int thresh(int qmedian, int nmedian) ;
+int mean(int *array, int datnum) ;
+int thresh(int qmean, int nmean) ;
 int BLSCheck(int *dBuf,int dbPtr,int *maxder) ;
 
-int earlyThresh(int qmedian, int nmedian) ;
-
-
-double TH = 0.475  ;
+double TH = .3125 ;
 
 int DDBuffer[DER_DELAY], DDPtr ;	/* Buffer holding derivative data. */
 int Dly  = 0 ;
@@ -95,12 +93,12 @@ int QRSDet( int datum, int init )
 	static int det_thresh, qpkcnt = 0 ;
 	static int qrsbuf[8], noise[8], rrbuf[8] ;
 	static int rsetBuff[8], rsetCount = 0 ;
-	static int nmedian, qmedian, rrmedian ;
+	static int nmean, qmean, rrmean ;
 	static int count, sbpeak = 0, sbloc, sbcount = MS1500 ;
 	static int maxder, lastmax ;
 	static int initBlank, initMax ;
 	static int preBlankCnt, tempPeak ;
-
+	
 	int fdatum, QrsDelay = 0 ;
 	int i, newPeak, aPeak ;
 
@@ -121,18 +119,14 @@ int QRSDet( int datum, int init )
 		Peak(0,1) ;
 		}
 
-	//printf("not filtered data %d\n", datum);
-
 	fdatum = QRSFilter(datum,0) ;	/* Filter data. */
-
-	//printf("%d\n", fdatum);
 
 
 	/* Wait until normal detector is ready before calling early detections. */
 
 	aPeak = Peak(fdatum,0) ;
-
-	//printf("%d\n", aPeak);
+	if(aPeak < MIN_PEAK_AMP)
+		aPeak = 0 ;
 
 	// Hold any peak that is detected for 200 ms
 	// in case a bigger one comes along.  There
@@ -162,18 +156,9 @@ int QRSDet( int datum, int init )
 			newPeak = tempPeak ;
 		}
 
-/*	newPeak = 0 ;
-	if((aPeak != 0) && (preBlankCnt == 0))
-		newPeak = aPeak ;
-	else if(preBlankCnt != 0) --preBlankCnt ; */
-
-
-
 	/* Save derivative of raw signal for T-wave and baseline
 	   shift discrimination. */
-
-	//printf("%d\n", newPeak);
-
+	
 	DDBuffer[DDPtr] = deriv1( datum, 0 ) ;
 	if(++DDPtr == DER_DELAY)
 		DDPtr = 0 ;
@@ -193,11 +178,11 @@ int QRSDet( int datum, int init )
 			++qpkcnt ;
 			if(qpkcnt == 8)
 				{
-				qmedian = median( qrsbuf, 8 ) ;
-				nmedian = 0 ;
-				rrmedian = MS1000 ;
+				qmean = mean( qrsbuf, 8 ) ;
+				nmean = 0 ;
+				rrmean = MS1000 ;
 				sbcount = MS1500+MS150 ;
-				det_thresh = thresh(qmedian,nmedian) ;
+				det_thresh = thresh(qmean,nmean) ;
 				}
 			}
 		if( newPeak > initMax )
@@ -209,12 +194,12 @@ int QRSDet( int datum, int init )
 		++count ;
 		if(newPeak > 0)
 			{
-
-
+			
+			
 			/* Check for maximum derivative and matching minima and maxima
 			   for T-wave and baseline shift rejection.  Only consider this
 			   peak if it doesn't seem to be a base line shift. */
-
+			   
 			if(!BLSCheck(DDBuffer, DDPtr, &maxder))
 				{
 
@@ -226,12 +211,12 @@ int QRSDet( int datum, int init )
 					{
 					memmove(&qrsbuf[1], qrsbuf, MEMMOVELEN) ;
 					qrsbuf[0] = newPeak ;
-					qmedian = median(qrsbuf,8) ;
-					det_thresh = thresh(qmedian,nmedian) ;
+					qmean = mean(qrsbuf,8) ;
+					det_thresh = thresh(qmean,nmean) ;
 					memmove(&rrbuf[1], rrbuf, MEMMOVELEN) ;
 					rrbuf[0] = count - WINDOW_WIDTH ;
-					rrmedian = median(rrbuf,8) ;
-					sbcount = rrmedian + (rrmedian >> 1) + WINDOW_WIDTH ;
+					rrmean = mean(rrbuf,8) ;
+					sbcount = rrmean + (rrmean >> 1) + WINDOW_WIDTH ;
 					count = WINDOW_WIDTH ;
 
 					sbpeak = 0 ;
@@ -240,8 +225,6 @@ int QRSDet( int datum, int init )
 					maxder = 0 ;
 					QrsDelay =  WINDOW_WIDTH + FILTER_DELAY ;
 					initBlank = initMax = rsetCount = 0 ;
-
-			//		preBlankCnt = PRE_BLANK ;
 					}
 
 				// If a peak isn't a QRS update noise buffer and estimate.
@@ -252,8 +235,8 @@ int QRSDet( int datum, int init )
 					{
 					memmove(&noise[1],noise,MEMMOVELEN) ;
 					noise[0] = newPeak ;
-					nmedian = median(noise,8) ;
-					det_thresh = thresh(qmedian,nmedian) ;
+					nmean = mean(noise,8) ;
+					det_thresh = thresh(qmean,nmean) ;
 
 					// Don't include early peaks (which might be T-waves)
 					// in the search back process.  A T-wave can mask
@@ -267,7 +250,7 @@ int QRSDet( int datum, int init )
 					}
 				}
 			}
-
+		
 		/* Test for search back condition.  If a QRS is found in  */
 		/* search back update the QRS buffer and det_thresh.      */
 
@@ -275,17 +258,18 @@ int QRSDet( int datum, int init )
 			{
 			memmove(&qrsbuf[1],qrsbuf,MEMMOVELEN) ;
 			qrsbuf[0] = sbpeak ;
-			qmedian = median(qrsbuf,8) ;
-			det_thresh = thresh(qmedian,nmedian) ;
+			qmean = mean(qrsbuf,8) ;
+			det_thresh = thresh(qmean,nmean) ;
 			memmove(&rrbuf[1],rrbuf,MEMMOVELEN) ;
 			rrbuf[0] = sbloc ;
-			rrmedian = median(rrbuf,8) ;
-			sbcount = rrmedian + (rrmedian >> 1) + WINDOW_WIDTH ;
+			rrmean = mean(rrbuf,8) ;
+			sbcount = rrmean + (rrmean >> 1) + WINDOW_WIDTH ;
 			QrsDelay = count = count - sbloc ;
 			QrsDelay += FILTER_DELAY ;
 			sbpeak = 0 ;
 			lastmax = maxder ;
 			maxder = 0 ;
+
 			initBlank = initMax = rsetCount = 0 ;
 			}
 		}
@@ -312,13 +296,12 @@ int QRSDet( int datum, int init )
 					qrsbuf[i] = rsetBuff[i] ;
 					noise[i] = 0 ;
 					}
-				qmedian = median( rsetBuff, 8 ) ;
-				nmedian = 0 ;
-				rrmedian = MS1000 ;
+				qmean = mean( rsetBuff, 8 ) ;
+				nmean = 0 ;
+				rrmean = MS1000 ;
 				sbcount = MS1500+MS150 ;
-				det_thresh = thresh(qmedian,nmedian) ;
+				det_thresh = thresh(qmean,nmean) ;
 				initBlank = initMax = rsetCount = 0 ;
-            sbpeak = 0 ;
 				}
 			}
 		if( newPeak > initMax )
@@ -330,7 +313,7 @@ int QRSDet( int datum, int init )
 
 /**************************************************************
 * peak() takes a datum as input and returns a peak height
-* when the signal returns to half its peak height, or
+* when the signal returns to half its peak height, or 
 **************************************************************/
 
 int Peak( int datum, int init )
@@ -340,7 +323,7 @@ int Peak( int datum, int init )
 
 	if(init)
 		max = timeSinceMax = 0 ;
-
+		
 	if(timeSinceMax > 0)
 		++timeSinceMax ;
 
@@ -371,27 +354,11 @@ int Peak( int datum, int init )
 	}
 
 /********************************************************************
-median returns the median of an array of integers.  It uses a slow
+mean returns the mean of an array of integers.  It uses a slow
 sort algorithm, but these arrays are small, so it hardly matters.
 ********************************************************************/
 
-int median(int *array, int datnum)
-	{
-	int i, j, k, temp, sort[20] ;
-	for(i = 0; i < datnum; ++i)
-		sort[i] = array[i] ;
-	for(i = 0; i < datnum; ++i)
-		{
-		temp = sort[i] ;
-		for(j = 0; (temp < sort[j]) && (j < i) ; ++j) ;
-		for(k = i - 1 ; k >= j ; --k)
-			sort[k+1] = sort[k] ;
-		sort[j] = temp ;
-		}
-	return(sort[datnum>>1]) ;
-	}
-/*
-int median(int *array, int datnum)
+int mean(int *array, int datnum)
 	{
 	long sum ;
 	int i ;
@@ -400,23 +367,23 @@ int median(int *array, int datnum)
 		sum += array[i] ;
 	sum /= datnum ;
 	return(sum) ;
-	} */
+	}
 
 /****************************************************************************
- thresh() calculates the detection threshold from the qrs median and noise
- median estimates.
+ thresh() calculates the detection threshold from the qrs mean and noise
+ mean estimates.
 ****************************************************************************/
 
-int thresh(int qmedian, int nmedian)
+int thresh(int qmean, int nmean)
 	{
 	int thrsh, dmed ;
 	double temp ;
-	dmed = qmedian - nmedian ;
-/*	thrsh = nmedian + (dmed>>2) + (dmed>>3) + (dmed>>4); */
+	dmed = qmean - nmean ;
+/*	thrsh = nmean + (dmed>>2) + (dmed>>3) + (dmed>>4); */
 	temp = dmed ;
 	temp *= TH ;
 	dmed = temp ;
-	thrsh = nmedian + dmed ; /* dmed * THRESHOLD */
+	thrsh = nmean + dmed ; /* dmed * THRESHOLD */
 	return(thrsh) ;
 	}
 
@@ -430,8 +397,6 @@ int BLSCheck(int *dBuf,int dbPtr,int *maxder)
 	{
 	int max, min, maxt, mint, t, x ;
 	max = min = 0 ;
-
-	return(0) ;
 
 	for(t = 0; t < MS220; ++t)
 		{
@@ -452,15 +417,16 @@ int BLSCheck(int *dBuf,int dbPtr,int *maxder)
 
 	*maxder = max ;
 	min = -min ;
-
+	
 	/* Possible beat if a maximum and minimum pair are found
 		where the interval between them is less than 150 ms. */
-
+	   
 	if((max > (min>>3)) && (min > (max>>3)) &&
 		(abs(maxt - mint) < MS150))
 		return(0) ;
-
+		
 	else
 		return(1) ;
 	}
+
 
