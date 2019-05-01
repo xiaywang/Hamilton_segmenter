@@ -1,5 +1,5 @@
-#define SAVEFILE 1
-#define PRINT 1
+#define SAVEFILE 0
+#define PRINT 0
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -28,7 +28,7 @@ MAINTYPE main()
 	int i, ecg, delay;
 
 	unsigned char byte ;
-	long SampleCount = 0, lTemp, DetectionTime ;
+	long SampleCount = 0, lTemp, DetectionTime;
 	int beatType, beatMatch ;
 
 

@@ -115,7 +115,7 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 	// QRS complex.
 
 	i = FIDMARK-BEAT_MS150 ;
-	maxSlope = maxSlope = beat[i] - beat[i-1] ;
+	maxSlope = beat[i] - beat[i-1] ;
 	maxSlopeI = minSlopeI = i ;
 
 	for(; i < FIDMARK+BEAT_MS150; ++i)
@@ -144,9 +144,9 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 
 		// Search back from the maximum slope point for the QRS onset.
 
-	for(i = maxSlopeI;
-		(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i);
-	*onset = i-1 ;
+		for(i = maxSlopeI;
+			(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i) ;
+		*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
 
@@ -172,7 +172,7 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 
 		for(i = minSlopeI;
 			(i < BEATLGTH) && ((beat[i] - beat[i-1]) < (minSlope >>2)); ++i);
-			*offset = i ;
+		*offset = i ;
 
 		// Make sure this wasn't just an inflection.
 
@@ -211,7 +211,7 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 
 		for(i = minSlopeI;
 			(i > 0) && ((beat[i]-beat[i-1]) < (minSlope >> 2)); --i) ;
-			*onset = i-1 ;
+		*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
 
