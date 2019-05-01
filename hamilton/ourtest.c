@@ -1,4 +1,4 @@
-#define SAVEFILE 0
+#define SAVEFILE 1
 #define PRINT 0
 
 #include "stdio.h"
@@ -23,8 +23,8 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 #endif
 
 MAINTYPE main()
-	{
-//	char record[10], fname[20] ;
+	{	  
+
 	int i, ecg, delay;
 
 	unsigned char byte ;
@@ -39,6 +39,12 @@ MAINTYPE main()
 		SampleCount = 0 ;
 
 		FILE *fp;
+		fp = fopen("./to_plot/100.csv", "w");
+		fprintf(fp, "ecg_data\n");
+		fclose(fp);
+		fp = fopen("./to_plot/DetectionTime100.csv", "w");
+		fprintf(fp, "DetectionTime\n");
+		fclose(fp);
 
 		// Read data from MIT/BIH file until there is none left.
 
@@ -55,7 +61,7 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%d,\n", ecg);
+			fprintf(fp, "%d\n", ecg);
 			fclose(fp);
 #endif
 
@@ -71,7 +77,7 @@ MAINTYPE main()
 
 #if SAVEFILE
 				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
-				fprintf(fp, "%ld,\n", DetectionTime);
+				fprintf(fp, "%ld\n", DetectionTime);
 				fclose(fp);
 #endif
 

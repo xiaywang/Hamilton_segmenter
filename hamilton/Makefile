@@ -21,7 +21,7 @@ ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
 all:		ourtest
 
 ourtest:	$(ETOBJS) qrsdet.o
-	$(CC) -o ourtest $(ETOBJS) qrsdet.o -lwfdb
+	$(CC) -o ourtest $(ETOBJS) qrsdet.o
 
 bdac.o:		bdac.c bdac.h qrsdet.h
 	$(CC) -c bdac.c
@@ -57,3 +57,8 @@ qrsdet2.o:	qrsdet2.c qrsdet.h
 
 clean:
 	rm -f *.o *~ ourtest
+	rm -f ./to_plot/*
+
+run:
+	./ourtest
+	python compare_result.py
