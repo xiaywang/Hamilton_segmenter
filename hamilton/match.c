@@ -76,7 +76,7 @@ some level of encapsulation:
 ******************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
-#include <wfdb/ecgcodes.h>
+#include "ecgcodes.h"
 
 #include "bdac.h"
 #define MATCH_LENGTH	BEAT_MS300	// Number of points used for beat matching.
