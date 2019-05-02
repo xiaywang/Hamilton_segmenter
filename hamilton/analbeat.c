@@ -144,9 +144,9 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 
 		// Search back from the maximum slope point for the QRS onset.
 
-		for(i = maxSlopeI;
-			(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i) ;
-			*onset = i-1 ;
+	for(i = maxSlopeI;
+		(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i);
+	*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
 

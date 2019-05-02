@@ -2,6 +2,10 @@
 # Created by https://www.gitignore.io/api/git,vim,emacs,linux,macos,windows,eclipse,sublimetext,visualstudio,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=git,vim,emacs,linux,macos,windows,eclipse,sublimetext,visualstudio,visualstudiocode
 
+###Notch filter###
+*.o
+*.s
+
 ### Eclipse ###
 .metadata
 bin/

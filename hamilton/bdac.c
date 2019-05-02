@@ -129,7 +129,7 @@ int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 	int fidAdj ;
 	int tempBeat[(SAMPLE_RATE/BEAT_SAMPLE_RATE)*BEATLGTH] ;
 
-	FILE *fp;
+  //	FILE *fp;
 
 	// Store new sample in the circular buffer.
 

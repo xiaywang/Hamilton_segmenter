@@ -1,5 +1,5 @@
 #define SAVEFILE 1
-#define PRINT 0
+#define PRINT 1
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -39,7 +39,7 @@ MAINTYPE main()
 
 		ResetBDAC() ;
 		SampleCount = 0 ;
-
+#if SAVEFILE
 		FILE *fp;
 		fp = fopen("./to_plot/100.csv", "w");
 		fprintf(fp, "ecg_data\n");
@@ -47,7 +47,7 @@ MAINTYPE main()
 		fp = fopen("./to_plot/DetectionTime100.csv", "w");
 		fprintf(fp, "DetectionTime\n");
 		fclose(fp);
-
+#endif
 		// Read data from MIT/BIH file until there is none left.
 
 		while(SampleCount < N_DATA)

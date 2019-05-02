@@ -12,8 +12,8 @@
 # See '00README' in this directory for further information.
 
 # CC is the name of your ANSI/ISO C compiler (might be 'cc' on some platforms).
-#CFLAGS = -std=c11 -O3
-CC = gcc #$(CFLAGS)
+CFLAGS = -O3 # -std=c11
+CC = gcc $(CFLAGS)
 
 ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
  postclas.o analbeat.o qrsfilt.o
@@ -51,13 +51,10 @@ qrsfilt.o:	qrsfilt.c qrsdet.h
 qrsdet.o:	qrsdet.c qrsdet.h
 	$(CC) -c qrsdet.c
 
-qrsdet2.o:	qrsdet2.c qrsdet.h
-	$(CC) -c qrsdet2.c
-
 
 clean:
 	rm -f *.o *~ ourtest
-	rm -f ./to_plot/*
+	rm -f ./to_plot/*.csv
 
 run:
 	./ourtest
