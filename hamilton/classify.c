@@ -112,6 +112,9 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define DM_BUFFER_LENGTH	180
 #define IRREG_RR_LIMIT	60
 
+
+//profiling counter
+extern long double_add_count;
 // Local prototypes.
 
 int HFNoiseCheck(int *beat) ;

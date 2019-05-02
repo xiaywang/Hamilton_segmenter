@@ -1,5 +1,5 @@
-#define SAVEFILE 1
-#define PRINT 1
+#define SAVEFILE 0
+#define PRINT 0
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -24,6 +24,8 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 
 long int_add_count = 0;
 long double_add_count=0;
+long double_div_count =0;
+long double_mul_count =0;
 MAINTYPE main()
 	{	  
 
@@ -49,7 +51,8 @@ MAINTYPE main()
 		fclose(fp);
 #endif
 		// Read data from MIT/BIH file until there is none left.
-
+		//for (int pc=0; pc<10000*100; pc++)
+		SampleCount =0;
 		while(SampleCount < N_DATA)
 			{
 			++SampleCount ;
@@ -88,9 +91,10 @@ MAINTYPE main()
 				}
 
 			}
+		
 
 
-	printf("total add count: %ld\n", int_add_count);	
+	printf("total double_mul_count: %ld, double_div_count: %ld, double_add_count: %ld\n", double_mul_count, double_div_count, double_add_count);	
 	}
 
 

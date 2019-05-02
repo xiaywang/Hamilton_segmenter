@@ -84,7 +84,7 @@ int earlyThresh(int qmedian, int nmedian) ;
 
 // profiling variables 
 extern long int_add_count;
-
+extern long double_add_count;
 double TH = 0.475  ;
 
 int DDBuffer[DER_DELAY], DDPtr ;	/* Buffer holding derivative data. */

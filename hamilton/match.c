@@ -77,6 +77,8 @@ some level of encapsulation:
 #include <stdlib.h>
 #include <stdio.h>
 #include "ecgcodes.h"
+#include "tsc_x86.h"
+#include "stdafx.h"
 
 #include "bdac.h"
 #define MATCH_LENGTH	BEAT_MS300	// Number of points used for beat matching.
@@ -84,13 +86,22 @@ some level of encapsulation:
 											// beat types might be combined.
 #define COMBINE_LIMIT	0.8		// Limit used for deciding whether two types
 											// can be combined.
+//#define COUNT_FLOPS
+#define COUNT_MEM
 
 #define MATCH_START	(FIDMARK-(MATCH_LENGTH/2))	// Starting point for beat matching
 #define MATCH_END	(FIDMARK+(MATCH_LENGTH/2))		// End point for beat matching.
 #define MAXPREV	8	// Number of preceeding beats used as beat features.
 #define MAX_SHIFT	BEAT_MS40
 
+
+//profiling 
+extern long double_add_count;
+extern long double_div_count;
+extern long double_mul_count;
 // Local prototypes.
+
+long num_bytes;
 
 int NoiseCheck(int *beat) ;
 double CompareBeats(int *beat1, int *beat2, int *shiftAdj) ;
@@ -159,13 +170,155 @@ void ResetMatch(void)
 
 double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 	{
-	int i, max, min, magSum, shift ;
-	long beatDiff, meanDiff, minDiff, minShift ;
-	double metric, scaleFactor, tempD ;
+	long start = start_tsc();
+	num_bytes = 0;
+	double_div_count =0;
+	double_mul_count = 0;
+	double_add_count = 0;
+	int i, max, min, magSum, shift, pc ;
+	long beatDiff, meanDiff, minDiff, minShift, minShift_orig;
+	double metric, scaleFactor, tempD, metric_orig;
+
 
 	// Calculate the magnitude of each beat.
 
 	max = min = beat1[MATCH_START] ;
+
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+	for(i = MATCH_START+1; i < MATCH_END; ++i)
+		if(beat1[i] > max){
+			max = beat1[i] ;
+			#ifdef COUNT_MEM
+				num_bytes++;
+			#endif
+		}		
+		else if(beat1[i] < min)
+			{min = beat1[i] ;
+			#ifdef COUNT_MEM
+				num_bytes++;
+			#endif
+			}
+
+	magSum = max - min ;
+
+	i = MATCH_START ;
+	max = min = beat2[i] ;
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+	for(i = MATCH_START+1; i < MATCH_END; ++i)
+		if(beat2[i] > max)
+		{	
+			max = beat2[i] ;
+			#ifdef COUNT_MEM
+				num_bytes++;
+			#endif
+			}	
+		else if(beat2[i] < min)
+		{
+			min = beat2[i] ;
+			#ifdef COUNT_MEM
+				num_bytes++;
+			#endif
+		}
+	// magSum += max - min ;
+	scaleFactor = magSum ;
+	scaleFactor /= max-min ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
+	magSum *= 2;
+
+	// Calculate the sum of the point-by-point
+	// absolute differences for five possible shifts.
+
+	for(shift = -MAX_SHIFT; shift <= MAX_SHIFT; ++shift)
+		{
+		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0;
+			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
+			{
+			tempD = beat2[i+shift] ;
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+			tempD *= scaleFactor ;
+#ifdef COUNT_FLOPS
+			double_mul_count++;
+#endif			
+			meanDiff += beat1[i]- tempD ; // beat2[i+shift] ;
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+#ifdef COUNT_FLOPS
+			double_add_count++;
+#endif
+			}
+		meanDiff /= MATCH_LENGTH ;
+
+		for(i = FIDMARK-(MATCH_LENGTH>>1), beatDiff = 0;
+			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
+			{
+			tempD = beat2[i+shift] ;
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+			tempD *= scaleFactor ;
+#ifdef COUNT_FLOPS
+			double_mul_count++;
+#endif
+			beatDiff += abs(beat1[i] - meanDiff- tempD) ; // beat2[i+shift]  ) ;
+#ifdef COUNT_MEM
+	num_bytes++;
+#endif
+#ifdef COUNT_FLOPS
+			double_add_count++;
+#endif
+			}
+
+
+		if(shift == -MAX_SHIFT)
+			{
+			minDiff = beatDiff ;
+			minShift = -MAX_SHIFT ;
+			}
+		else if(beatDiff < minDiff)
+			{
+			minDiff = beatDiff ;
+			minShift = shift ;
+			}
+		}
+
+	metric = minDiff ;
+	*shiftAdj = minShift ;
+	metric /= magSum ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
+	// Metric scales inversely with match length.
+	// algorithm was originally tuned with a match
+	// length of 30.
+
+	metric *= 30 ;
+#ifdef COUNT_FLOPS
+	double_mul_count++;
+#endif
+	metric /= MATCH_LENGTH ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
+
+	//long end = stop_tsc(start);
+	//printf("CompareBeats: double_mul_count: %ld, double_div_count: %ld, double_add_count: %ld\n", double_mul_count, double_div_count, double_add_count);	
+	//printf("cycles: %ld\n", end);
+	//printf("CompareBeats Performance: cycles:%ld, double_mul_count/cycles: %d, double_div_count/cycles: %ld, double_add_count/cycles: %ld\n", end,double_mul_count/end, double_div_count/end, double_add_count/end);	
+	metric_orig = metric;
+	minShift_orig = minShift;
+
+	for (pc = 0; pc < 1000000; pc++)
+	{
+			max = min = beat1[MATCH_START] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat1[i] > max)
 			max = beat1[i] ;
@@ -185,7 +338,10 @@ double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 	// magSum += max - min ;
 	scaleFactor = magSum ;
 	scaleFactor /= max-min ;
-	magSum *= 2 ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
+	magSum *= 2;
 
 	// Calculate the sum of the point-by-point
 	// absolute differences for five possible shifts.
@@ -197,7 +353,14 @@ double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 			{
 			tempD = beat2[i+shift] ;
 			tempD *= scaleFactor ;
+
+#ifdef COUNT_FLOPS
+			double_mul_count++;
+#endif
 			meanDiff += beat1[i]- tempD ; // beat2[i+shift] ;
+#ifdef COUNT_FLOPS
+			double_add_count++;
+#endif
 			}
 		meanDiff /= MATCH_LENGTH ;
 
@@ -206,7 +369,13 @@ double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 			{
 			tempD = beat2[i+shift] ;
 			tempD *= scaleFactor ;
+#ifdef COUNT_FLOPS
+			double_mul_count++;
+#endif
 			beatDiff += abs(beat1[i] - meanDiff- tempD) ; // beat2[i+shift]  ) ;
+#ifdef COUNT_FLOPS
+			double_add_count++;
+#endif
 			}
 
 
@@ -225,14 +394,43 @@ double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 	metric = minDiff ;
 	*shiftAdj = minShift ;
 	metric /= magSum ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
 
 	// Metric scales inversely with match length.
 	// algorithm was originally tuned with a match
 	// length of 30.
 
 	metric *= 30 ;
+#ifdef COUNT_FLOPS
+	double_mul_count++;
+#endif
 	metric /= MATCH_LENGTH ;
-	return(metric) ;
+#ifdef COUNT_FLOPS
+	double_div_count++;
+#endif
+	}
+	long end = stop_tsc(start);
+	int num_runs = pc+2;
+	int avg_cycle = end/(pc+2);
+
+	double_mul_count = 541 * (num_runs);
+	double_add_count = 540 * (num_runs);
+	double_div_count = 3 *(num_runs);
+	long total_flops = double_div_count+double_mul_count+double_add_count;
+	double flops_per_cycle = (double)total_flops/(double)end;
+	double mul_flops_per_cycle = (double)double_mul_count/(double)end;
+	double div_flops_per_cycle = (double)double_div_count/(double)end;
+	double add_flops_per_cycle = (double)double_add_count/(double)end;
+	long total_bytes = num_bytes *(num_runs) * 4;
+	double flops_per_byte = (double)total_flops/(double)total_bytes;
+	printf("CompareBeats Performance: total cycles:%ld, total num of runs: %d, total num of flops: %ld, total num of bytes: %ld, average cycles:%d, flops/cycles: %f, flops/bytes: %f, double_mul_count/cycles: %f, double_div_count/cycles: %f, double_add_count/cycles: %f\n", 
+		end, num_runs, total_flops, total_bytes, avg_cycle, flops_per_cycle, flops_per_byte, mul_flops_per_cycle, div_flops_per_cycle, add_flops_per_cycle);	
+
+
+	*shiftAdj = minShift_orig;
+	return(metric_orig) ;
 	}
 
 /***************************************************************************
@@ -503,6 +701,7 @@ void BestMorphMatch(int *newBeat,int *matchType,double *matchIndex, double *mi2,
 
 	for(type = 0; type < TypeCount; ++type)
 		{
+
 		beatDiff = CompareBeats(&BeatTemplates[type][0],newBeat,&shift) ;
 		if(type == 0)
 			{
