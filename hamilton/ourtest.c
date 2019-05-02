@@ -22,6 +22,8 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 #define MAINTYPE void
 #endif
 
+long int_add_count = 0;
+long double_add_count=0;
 MAINTYPE main()
 	{	  
 
@@ -51,11 +53,12 @@ MAINTYPE main()
 		while(SampleCount < N_DATA)
 			{
 			++SampleCount ;
-
+			int_add_count += 1;
 
 			// Pass sample to beat detection and classification.
 
 			ecg = ecg_data[SampleCount-1];
+			int_add_count ++;
 
 			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
 
@@ -71,6 +74,7 @@ MAINTYPE main()
 			if(delay != 0)
 				{
 				DetectionTime = SampleCount - delay ;
+				int_add_count ++;
 #if PRINT
 				printf("DetectionTime %d\n", DetectionTime);
 #endif
@@ -86,7 +90,7 @@ MAINTYPE main()
 			}
 
 
-		
+	printf("total add count: %ld\n", int_add_count);	
 	}
 
 

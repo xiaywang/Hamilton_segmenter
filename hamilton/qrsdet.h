@@ -1,5 +1,14 @@
 /*****************************************************************************
-FILE:  qrsdet.hAUTHOR:	Patrick S. HamiltonREVISED:	4/16/2002  ___________________________________________________________________________qrsdet.h QRS detector parameter definitionsCopywrite (C) 2000 Patrick S. HamiltonThis file is free software; you can redistribute it and/or modify it underthe terms of the GNU Library General Public License as published by the Free
+FILE:  qrsdet.h
+AUTHOR:	Patrick S. Hamilton
+REVISED:	4/16/2002
+  ___________________________________________________________________________
+
+qrsdet.h QRS detector parameter definitions
+Copywrite (C) 2000 Patrick S. Hamilton
+
+This file is free software; you can redistribute it and/or modify it under
+the terms of the GNU Library General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your option) any
 later version.
 
@@ -49,4 +58,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define HPBUFFER_LGTH 25//MS125
 
 #define WINDOW_WIDTH	16//MS80			// Moving window integration width.
-#define	FILTER_DELAY (int) (((double) DERIV_LENGTH/2) + ((double) LPBUFFER_LGTH/2 - 1) + (((double) HPBUFFER_LGTH-1)/2) + PRE_BLANK)  // filter delays plus 200 ms blanking delay#define DER_DELAY	WINDOW_WIDTH + FILTER_DELAY + MS100
+#define	FILTER_DELAY (int) (((double) DERIV_LENGTH/2) + ((double) LPBUFFER_LGTH/2 - 1) + (((double) HPBUFFER_LGTH-1)/2) + PRE_BLANK)  // filter delays plus 200 ms blanking delay
+#define DER_DELAY	WINDOW_WIDTH + FILTER_DELAY + MS100
+
+

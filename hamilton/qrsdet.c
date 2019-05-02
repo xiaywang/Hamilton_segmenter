@@ -82,6 +82,8 @@ int BLSCheck(int *dBuf,int dbPtr,int *maxder) ;
 
 int earlyThresh(int qmedian, int nmedian) ;
 
+// profiling variables 
+extern long int_add_count;
 
 double TH = 0.475  ;
 

@@ -94,7 +94,7 @@ int InitBeatFlag = 1 ;
 	ResetBDAC() resets static variables required for beat detection and
 	classification.
 *******************************************************************************/
-
+extern long int_add_count;
 void ResetBDAC(void)
 	{
 	int dummy ;
@@ -136,7 +136,7 @@ int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 	ECGBuffer[ECGBufferIndex] = ecgSample ;
 	if(++ECGBufferIndex == ECG_BUFFER_LENGTH)
 		ECGBufferIndex = 0 ;
-
+		int_add_count++;
 	// Increment RRInterval count.
 
 	++RRCount ;

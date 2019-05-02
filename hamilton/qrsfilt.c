@@ -43,6 +43,8 @@ int hpfilt( int datum, int init ) ;
 int deriv1( int x0, int init ) ;
 int deriv2( int x0, int init ) ;
 int mvwint(int datum, int init) ;
+
+extern long int_add_count;
 /******************************************************************************
 * Syntax:
 *	int QRSFilter(int datum, int init) ;
@@ -101,6 +103,8 @@ int lpfilt( int datum ,int init)
 	halfPtr = ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
 	if(halfPtr < 0)							// to x[n-6].
 		halfPtr += LPBUFFER_LGTH ;
+
+		int_add_count++;
 	y0 = (y1 << 1) - y2 + datum - (data[halfPtr] << 1) + data[ptr] ;
 	y2 = y1;
 	y1 = y0;
@@ -134,8 +138,11 @@ int hpfilt( int datum, int init )
 		}
 	y += datum - data[ptr];
 	halfPtr = ptr-(HPBUFFER_LGTH/2) ;
+	int_add_count++;
+
 	if(halfPtr < 0)
 		halfPtr += HPBUFFER_LGTH ;
+		int_add_count++;
 	z = data[halfPtr] - (y / HPBUFFER_LGTH);
 	data[ptr] = datum ;
 	if(++ptr == HPBUFFER_LGTH)

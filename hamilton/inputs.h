@@ -15,7 +15,7 @@ This file defines the set of records that 'easytest' processes and that
 
 #ifdef PHYSIOBANK
 #define ECG_DB_PATH	". http://www.physionet.org/physiobank/database/mitdb"
-int Records[] = {100};//100,101,102,103,104,105,106,107,118,119,
+int Records[] = {100}//,101,102,103,104,105,106,107,118,119,
 //200,201,202,203,205,207,208,209,210,212,213,214,215,217,219};
 #endif
 
