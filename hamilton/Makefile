@@ -54,7 +54,7 @@ qrsdet.o:	qrsdet.c qrsdet.h
 
 clean:
 	rm -f *.o *~ ourtest
-	rm -f ./to_plot/*
+	rm -f ./to_plot/*.csv
 
 run:
 	./ourtest
