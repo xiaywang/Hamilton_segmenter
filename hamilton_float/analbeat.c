@@ -41,9 +41,15 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define ISO_LENGTH2	BEAT_MS80
 #define ISO_LIMIT	20
 
+#ifdef OPERATION_COUNTER
+extern long int float_add_counter;
+extern long int float_mul_counter;
+extern long int float_div_counter;
+#endif
+
 // Local prototypes.
 
-int IsoCheck(int *data, int isoLength);
+int IsoCheck(float *data, int isoLength);
 
 /****************************************************************
 	IsoCheck determines whether the amplitudes of a run
@@ -51,7 +57,7 @@ int IsoCheck(int *data, int isoLength);
 	the run can be considered isoelectric.
 *****************************************************************/
 
-int IsoCheck(int *data, int isoLength)
+int IsoCheck(float *data, int isoLength)
 	{
 	int i, max, min ;
 
@@ -63,7 +69,7 @@ int IsoCheck(int *data, int isoLength)
 			min = data[i] ;
 		}
 
-	if(max - min < ISO_LIMIT)
+	if(max - min < (float)ISO_LIMIT)
 		return(1) ;
    return(0) ;
 	}
@@ -82,13 +88,15 @@ int IsoCheck(int *data, int isoLength)
 
 #define INF_CHK_N	BEAT_MS40
 
-void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
+void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 	int *beatBegin, int *beatEnd, int *amp)
 	{
-	int maxSlope = 0, maxSlopeI, minSlope = 0, minSlopeI  ;
-	int maxV, minV ;
+	float maxSlope = 0.0f, minSlope = 0.0f;
+	int maxSlopeI, minSlopeI;
+	float maxV, minV ;
 	int isoStart, isoEnd ;
-	int slope, i ;
+	float slope;
+	int i ;
 
 	// Search back from the fiducial mark to find the isoelectric
 	// region preceeding the QRS complex.
@@ -116,11 +124,17 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 
 	i = FIDMARK-BEAT_MS150 ;
 	maxSlope = maxSlope = beat[i] - beat[i-1] ;
+	#ifdef OPERATION_COUNTER 
+		float_add_counter++;
+	#endif
 	maxSlopeI = minSlopeI = i ;
 
 	for(; i < FIDMARK+BEAT_MS150; ++i)
 		{
 		slope = beat[i] - beat[i-1] ;
+		#ifdef OPERATION_COUNTER 
+			float_add_counter++;
+		#endif
 		if(slope > maxSlope)
 			{
 			maxSlope = slope ;
@@ -138,22 +152,39 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 	if(maxSlope > -minSlope)
 		maxSlope = -minSlope ;
 	else minSlope = -maxSlope ;
+	#ifdef OPERATION_COUNTER 
+		float_add_counter += 2; // because it is once for the if and once in the if
+	#endif
 
 	if(maxSlopeI < minSlopeI)
 		{
 
 		// Search back from the maximum slope point for the QRS onset.
 
-	for(i = maxSlopeI;
-		(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i);
+	for(i = maxSlopeI;(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope/4.0f)); --i){
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+		#endif
+		}
 	*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
 
-		for(; (i > *onset-INF_CHK_N) && ((beat[i]-beat[i-1]) <= (maxSlope >>2)); --i) ;
+		for(; (i > *onset-INF_CHK_N) && ((beat[i]-beat[i-1]) <= (maxSlope/4.0f)); --i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
+
 		if(i > *onset-INF_CHK_N)
 			{
-			for(;(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope >> 2)); --i) ;
+			for(;(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope/4.0f)); --i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*onset = i-1 ;
 			}
 		i = *onset+1 ;
@@ -161,25 +192,50 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 		// Check to see if a large negative slope follows an inflection.
 		// If so, extend the onset a little more.
 
-		for(;(i > *onset-INF_CHK_N) && ((beat[i-1]-beat[i]) < (maxSlope>>2)); --i);
+		for(;(i > *onset-INF_CHK_N) && ((beat[i-1]-beat[i]) < (maxSlope/4.0f)); --i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
+
 		if(i > *onset-INF_CHK_N)
 			{
-			for(; (i > 0) && ((beat[i-1]-beat[i]) > (maxSlope>>2)); --i) ;
+			for(; (i > 0) && ((beat[i-1]-beat[i]) > (maxSlope/4.0f)); --i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*onset = i-1 ;
 			}
 
 		// Search forward from minimum slope point for QRS offset.
 
-		for(i = minSlopeI;
-			(i < BEATLGTH) && ((beat[i] - beat[i-1]) < (minSlope >>2)); ++i);
+		for(i = minSlopeI; (i < BEATLGTH) && ((beat[i] - beat[i-1]) < (minSlope /4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 			*offset = i ;
 
 		// Make sure this wasn't just an inflection.
 
-		for(; (i < *offset+INF_CHK_N) && ((beat[i]-beat[i-1]) >= (minSlope>>2)); ++i) ;
+		for(; (i < *offset+INF_CHK_N) && ((beat[i]-beat[i-1]) >= (minSlope/4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i < *offset+INF_CHK_N)
 			{
-			for(;(i < BEATLGTH) && ((beat[i]-beat[i-1]) < (minSlope >>2)); ++i) ;
+			for(;(i < BEATLGTH) && ((beat[i]-beat[i-1]) < (minSlope /4.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*offset = i ;
 			}
 		i = *offset ;
@@ -187,63 +243,120 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 		// Check to see if there is a significant upslope following
 		// the end of the down slope.
 
-		for(;(i < *offset+BEAT_MS40) && ((beat[i-1]-beat[i]) > (minSlope>>2)); ++i);
+		for(;(i < *offset+BEAT_MS40) && ((beat[i-1]-beat[i]) > (minSlope/4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i < *offset+BEAT_MS40)
 			{
-			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) < (minSlope>>2)); ++i) ;
+			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) < (minSlope/4.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*offset = i ;
 
 			// One more search motivated by PVC shape in 123.
 
-			for(; (i < *offset+BEAT_MS60) && (beat[i]-beat[i-1] > (minSlope>>2)); ++i) ;
+			for(; (i < *offset+BEAT_MS60) && (beat[i]-beat[i-1] > (minSlope/4.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			if(i < *offset + BEAT_MS60)
 				{
-				for(;(i < BEATLGTH) && (beat[i]-beat[i-1] < (minSlope>>2)); ++i) ;
+				for(;(i < BEATLGTH) && (beat[i]-beat[i-1] < (minSlope/4.0f)); ++i){
+					#ifdef OPERATION_COUNTER
+						float_div_counter++;
+						float_add_counter++;
+					#endif
+				}
 				*offset = i ;
 				}
 			}
 		}
-
 	else
 		{
 
 		// Search back from the minimum slope point for the QRS onset.
 
-		for(i = minSlopeI;
-			(i > 0) && ((beat[i]-beat[i-1]) < (minSlope >> 2)); --i) ;
+		for(i = minSlopeI;(i > 0) && ((beat[i]-beat[i-1]) < (minSlope/4.0f)); --i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
 
-		for(; (i > *onset-INF_CHK_N) && ((beat[i]-beat[i-1]) >= (minSlope>>2)); --i) ;
+		for(; (i > *onset-INF_CHK_N) && ((beat[i]-beat[i-1]) >= (minSlope/4.0f)); --i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i > *onset-INF_CHK_N)
 			{
-			for(; (i > 0) && ((beat[i]-beat[i-1]) < (minSlope>>2));--i) ;
+			for(; (i > 0) && ((beat[i]-beat[i-1]) < (minSlope/4.0f));--i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*onset = i-1 ;
 			}
 		i = *onset+1 ;
 
 		// Check for significant positive slope after a turning point.
 
-		for(;(i > *onset-INF_CHK_N) && ((beat[i-1]-beat[i]) > (minSlope>>2)); --i);
+		for(;(i > *onset-INF_CHK_N) && ((beat[i-1]-beat[i]) > (minSlope/4.0f)); --i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i > *onset-INF_CHK_N)
 			{
-			for(; (i > 0) && ((beat[i-1]-beat[i]) < (minSlope>>2)); --i) ;
+			for(; (i > 0) && ((beat[i-1]-beat[i]) < (minSlope/4.0f)); --i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif	
+			}
 			*onset = i-1 ;
 			}
 
 		// Search forward from maximum slope point for QRS offset.
 
-		for(i = maxSlopeI;
-			(i < BEATLGTH) && ((beat[i] - beat[i-1]) > (maxSlope >>2)); ++i) ;
+		for(i = maxSlopeI;(i < BEATLGTH) && ((beat[i] - beat[i-1]) > (maxSlope/4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		*offset = i ;
 
 		// Check to see if this was just a brief inflection.
 
-		for(; (i < *offset+INF_CHK_N) && ((beat[i] - beat[i-1]) <= (maxSlope >> 2)); ++i) ;
+		for(; (i < *offset+INF_CHK_N) && ((beat[i] - beat[i-1]) <= (maxSlope/4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i < *offset+INF_CHK_N)
 			{
-			for(;(i < BEATLGTH) && ((beat[i] - beat[i-1]) > (maxSlope >>2)); ++i) ;
+			for(;(i < BEATLGTH) && ((beat[i] - beat[i-1]) > (maxSlope/4.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*offset = i ;
 			}
 		i = *offset ;
@@ -251,10 +364,20 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 		// Check to see if there is a significant downslope following
 		// the end of the up slope.
 
-		for(;(i < *offset+BEAT_MS40) && ((beat[i-1]-beat[i]) < (maxSlope>>2)); ++i);
+		for(;(i < *offset+BEAT_MS40) && ((beat[i-1]-beat[i]) < (maxSlope/4.0f)); ++i){
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+			#endif
+		}
 		if(i < *offset+BEAT_MS40)
 			{
-			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) > (maxSlope>>2)); ++i) ;
+			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) > (maxSlope/4.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+			}
 			*offset = i ;
 			}
 		}
@@ -292,7 +415,12 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 	// If the offset is significantly below the onset and the offset is
 	// on a negative slope, add the next up slope to the width.
 
-	if((beat[*onset]-beat[*offset] > ((maxV-minV)>>2)+((maxV-minV)>>3)))
+	#ifdef OPERATION_COUNTER
+		float_div_counter+=2;
+		float_add_counter++;
+	#endif
+
+	if((beat[*onset]-beat[*offset] > ((maxV-minV)/4.0f)+((maxV-minV)/8.0f)))
 		{
 
 		// Find the maximum slope between the finish and the end of the buffer.
@@ -306,14 +434,20 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 				maxSlope = slope ;
 				maxSlopeI = i ;
 				}
+			#ifdef OPERATION_COUNTER
+				float_add_counter+=2;
+			#endif
 			}
 
 		// Find the new offset.
 
-		if(maxSlope > 0)
-			{
-			for(i = maxSlopeI;
-				(i < BEATLGTH) && (beat[i]-beat[i-1] > (maxSlope>>1)); ++i) ;
+		if(maxSlope > 0){
+			for(i = maxSlopeI;(i < BEATLGTH) && (beat[i]-beat[i-1] > (maxSlope/2.0f)); ++i){
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+				#endif
+				}
 			*offset = i ;
 			}
 		}
@@ -374,5 +508,9 @@ void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 		else if(beat[i] < minV)
 			minV = beat[i] ;
 	*amp = maxV-minV ;
+
+	#ifdef OPERATION_COUNTER
+		float_add_counter++;
+	#endif
 
 	}
