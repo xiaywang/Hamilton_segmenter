@@ -6,6 +6,12 @@
 
 #include "ecg_data.h"
 
+#include "tsc_x86.h"
+
+#define OPERATION_COUNTER
+long int float_add_counter = 0;
+long int float_mul_counter = 0;
+long int float_div_counter = 0;
 
 // External function prototypes.
 void ResetBDAC(void) ;
@@ -72,7 +78,7 @@ MAINTYPE main()
 				{
 				DetectionTime = SampleCount - delay ;
 #if PRINT
-				printf("DetectionTime %d\n", DetectionTime);
+				printf("DetectionTime %li\n", DetectionTime);
 #endif
 
 #if SAVEFILE
@@ -85,8 +91,12 @@ MAINTYPE main()
 
 			}
 
-
-		
+	#ifdef OPERATION_COUNTER
+			printf("float adds: %li\n", float_add_counter);
+			printf("float mult: %li\n", float_mul_counter);
+			printf("float div: %li\n", float_div_counter);
+			printf("float total: %li\n", float_div_counter+float_mul_counter+float_add_counter);
+	#endif	
 	}
 
 

@@ -41,6 +41,8 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define ISO_LENGTH2	BEAT_MS80
 #define ISO_LIMIT	20
 
+#include "tsc_x86.h"
+
 #ifdef OPERATION_COUNTER
 extern long int float_add_counter;
 extern long int float_mul_counter;
