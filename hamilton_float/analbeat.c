@@ -60,21 +60,21 @@ int IsoCheck(float *data, int isoLength);
 *****************************************************************/
 
 int IsoCheck(float *data, int isoLength)
-	{
-	int i, max, min ;
-
+{
+	int i ;
+	float max, min;
 	for(i = 1, max=min = data[0]; i < isoLength; ++i)
-		{
+	{
 		if(data[i] > max)
 			max = data[i] ;
 		else if(data[i] < min)
 			min = data[i] ;
-		}
+	}
 
 	if(max - min < (float)ISO_LIMIT)
 		return(1) ;
-   return(0) ;
-	}
+  	return(0) ;
+}
 
 /**********************************************************************
 	AnalyzeBeat takes a beat buffer as input and returns (via pointers)
