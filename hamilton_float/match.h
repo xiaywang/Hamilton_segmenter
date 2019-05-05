@@ -28,9 +28,9 @@ MA 02143 USA).  For updates to this software, please visit our website
 (http://www.eplimited.com).
 ******************************************************************************/
 
-int NewBeatType(int *beat) ;
-void BestMorphMatch(int *newBeat,int *matchType,double *matchIndex, double *mi2, int *shiftAdj) ;
-void UpdateBeatType(int matchType,int *newBeat, double mi2, int shiftAdj) ;
+int NewBeatType(float *beat) ;
+void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi2, int *shiftAdj) ;
+void UpdateBeatType(int matchType,float *newBeat, double mi2, int shiftAdj) ;
 int GetTypesCount(void) ;
 int GetBeatTypeCount(int type) ;
 int IsTypeIsolated(int type) ;
@@ -48,6 +48,6 @@ int GetBeatAmp(int type) ;
 int MinimumBeatVariation(int type) ;
 int GetBeatCenter(int type) ;
 int WideBeatVariation(int type) ;
-double DomCompare2(int *newBeat, int domType) ;
+double DomCompare2(float *newBeat, int domType) ;
 double DomCompare(int newType, int domType) ;
 
