@@ -71,6 +71,10 @@ int IsoCheck(float *data, int isoLength)
 			min = data[i] ;
 	}
 
+	#ifdef OPERATION_COUNTER 
+		float_add_counter++;
+	#endif
+		
 	if(max - min < (float)ISO_LIMIT)
 		return(1) ;
   	return(0) ;
