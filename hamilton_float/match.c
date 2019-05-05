@@ -102,16 +102,16 @@ extern long int float_div_counter;
 
 // Local prototypes.
 
-int NoiseCheck(int *beat) ;
-double CompareBeats(int *beat1, int *beat2, int *shiftAdj) ;
-double CompareBeats2(int *beat1, int *beat2, int *shiftAdj) ;
-void UpdateBeat(int *aveBeat, int *newBeat, int shift) ;
+int NoiseCheck(float *beat) ;
+double CompareBeats(float *beat1, float *beat2, int *shiftAdj) ;
+double CompareBeats2(float *beat1, float *beat2, int *shiftAdj) ;
+void UpdateBeat(float *aveBeat, float *newBeat, int shift) ;
 void BeatCopy(int srcBeat, int destBeat) ;
 int MinimumBeatVariation(int type) ;
 
 // External prototypes.
 
-void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
+void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 	int *beatBegin, int *beatEnd, int *amp) ;
 void AdjustDomData(int oldType, int newType) ;
 void CombineDomData(int oldType, int newType) ;
@@ -925,7 +925,7 @@ int WideBeatVariation(int type)
 		#ifdef OPERATION_COUNTER 
 		float_add_counter++;
 		#endif
-		
+
 		aveMI += MIs[type][i] ;
 	}
 	
