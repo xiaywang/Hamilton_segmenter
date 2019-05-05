@@ -35,11 +35,20 @@ This file contains functions for evaluating the noise content of a beat.
 #include <stdlib.h>
 #include "qrsdet.h"
 
+#include "tsc_x86.h"
+
+#ifdef OPERATION_COUNTER
+	extern long int float_add_counter;
+	extern long int float_mul_counter;
+	extern long int float_div_counter;
+#endif
+
 #define NB_LENGTH	MS1500
 #define NS_LENGTH	MS50
 
-int NoiseBuffer[NB_LENGTH], NBPtr = 0 ;
-int NoiseEstimate ;
+float NoiseBuffer[NB_LENGTH];
+int NBPtr = 0 ;
+float NoiseEstimate ;
 
 /************************************************************************
 	GetNoiseEstimate() allows external access the present noise estimate.
@@ -72,10 +81,11 @@ int GetNoiseEstimate()
 
 ***********************************************************************/
 
-int NoiseCheck(int datum, int delay, int RR, int beatBegin, int beatEnd)
+int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 	{
 	int ptr, i;
-	int ncStart, ncEnd, ncMax, ncMin ;
+	int ncStart, ncEnd;
+	float ncMax, ncMin ;
 	double noiseIndex ;
 
 	NoiseBuffer[NBPtr] = datum ;
@@ -123,6 +133,11 @@ int NoiseCheck(int datum, int delay, int RR, int beatBegin, int beatEnd)
 		noiseIndex = (ncMax-ncMin) ;
 		noiseIndex /= (ncStart-ncEnd) ;
 		NoiseEstimate = noiseIndex * 10 ;
+		#ifdef OPERATION_COUNTER
+			float_add_counter += 2; // also counting the (ncStart-ncEnd) as it is at some point converted to float and could be before computation
+			float_mul_counter += 1;
+			float_div_counter += 1;
+		#endif
 		}
 	else
 		NoiseEstimate = 0 ;
