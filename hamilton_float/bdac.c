@@ -68,15 +68,23 @@ Functions in bdac.cpp require functions in the following files:
 											// can occur before there is enough data
 											// to classify the first beat in the que.
 
+#include "tsc_x86.h"
+
+#ifdef OPERATION_COUNTER
+extern long int float_add_counter;
+extern long int float_mul_counter;
+extern long int float_div_counter;
+#endif
+
 // Internal function prototypes.
 
-void DownSampleBeat(int *beatOut, int *beatIn) ;
+void DownSampleBeat(float *beatOut, float *beatIn) ;
 
 // External function prototypes.
 
-int QRSDet( int datum, int init ) ;
-int NoiseCheck(int datum, int delay, int RR, int beatBegin, int beatEnd) ;
-int Classify(int *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj, int init) ;
+int QRSDet( float datum, int init ) ;
+int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd) ;
+int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj, int init) ;
 int GetDominantType(void) ;
 int GetBeatEnd(int type) ;
 int GetBeatBegin(int type) ;
@@ -84,10 +92,10 @@ int gcd(int x, int y) ;
 
 // Global Variables
 
-int ECGBuffer[ECG_BUFFER_LENGTH], ECGBufferIndex = 0 ;  // Circular data buffer.
-int BeatBuffer[BEATLGTH] ;
+float ECGBuffer[ECG_BUFFER_LENGTH];  // Circular data buffer.
+float BeatBuffer[BEATLGTH] ;
 int BeatQue[BEAT_QUE_LENGTH], BeatQueCount = 0 ;  // Buffer of detection delays.
-int RRCount = 0 ;
+int RRCount = 0, ECGBufferIndex = 0  ;
 int InitBeatFlag = 1 ;
 
 /******************************************************************************
@@ -96,14 +104,14 @@ int InitBeatFlag = 1 ;
 *******************************************************************************/
 
 void ResetBDAC(void)
-	{
+{
 	int dummy ;
-	QRSDet(0,1) ;	// Reset the qrs detector
+	QRSDet(0.0,1) ;	// Reset the qrs detector
 	RRCount = 0 ;
 	Classify(BeatBuffer,0,0,&dummy,&dummy,1) ;
 	InitBeatFlag = 1 ;
-   BeatQueCount = 0 ;	// Flush the beat que.
-	}
+	BeatQueCount = 0 ;	// Flush the beat que.
+}
 
 /*****************************************************************************
 Syntax:
@@ -121,13 +129,13 @@ Returns
 	classified.  If a beat has been classified, BeatDetectAndClassify returns
 	the number of samples since the approximate location of the R-wave.
 ****************************************************************************/
-int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
-	{
+int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
+{
 	int detectDelay, rr, i, j ;
 	int noiseEst = 0, beatBegin, beatEnd ;
 	int domType ;
 	int fidAdj ;
-	int tempBeat[(SAMPLE_RATE/BEAT_SAMPLE_RATE)*BEATLGTH] ;
+	float tempBeat[(SAMPLE_RATE/BEAT_SAMPLE_RATE)*BEATLGTH] ;
 
   //	FILE *fp;
 
@@ -250,12 +258,18 @@ int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 		fidAdj = -MS80 ;
 
 	return(detectDelay-fidAdj) ;
-	}
+}
 
-void DownSampleBeat(int *beatOut, int *beatIn)
-	{
+void DownSampleBeat(float *beatOut, float *beatIn)
+{
 	int i ;
 
 	for(i = 0; i < BEATLGTH; ++i)
-		beatOut[i] = (beatIn[i<<1]+beatIn[(i<<1)+1])>>1 ;
+	{
+		beatOut[i] = (beatIn[i*2]+beatIn[(i*2)+1])/2 ;
+		#ifdef OPERATION_COUNTER 
+		float_add_counter++;
+		float_div_counter++;
+		#endif
 	}
+}

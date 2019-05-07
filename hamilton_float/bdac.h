@@ -34,6 +34,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define BEAT_MS20		((int) (20/BEAT_MS_PER_SAMPLE + 0.5))
 #define BEAT_MS40		((int) (40/BEAT_MS_PER_SAMPLE + 0.5))
 #define BEAT_MS50		((int) (50/BEAT_MS_PER_SAMPLE + 0.5))
+#define BEAT_MS50_FLOAT	((float) (50/BEAT_MS_PER_SAMPLE + 0.5))
 #define BEAT_MS60		((int) (60/BEAT_MS_PER_SAMPLE + 0.5))
 #define BEAT_MS70		((int) (70/BEAT_MS_PER_SAMPLE + 0.5))
 #define BEAT_MS80		((int) (80/BEAT_MS_PER_SAMPLE + 0.5))

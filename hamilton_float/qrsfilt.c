@@ -103,6 +103,7 @@ float lpfilt( float datum ,int init)
 	int halfPtr;
 	float y0;
 	float output;
+
 	if(init)
 		{
 		for(ptr = 0; ptr < LPBUFFER_LGTH; ++ptr)
