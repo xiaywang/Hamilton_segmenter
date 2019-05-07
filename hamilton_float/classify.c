@@ -616,7 +616,7 @@ int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
 	if(reset != 0)
 	{
 		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-		{morphType
+		{
 			DMBeatTypes[i] = -1 ;
 			DMBeatClasses[i] = 0 ;
 		}
