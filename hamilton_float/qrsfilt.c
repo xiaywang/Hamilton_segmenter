@@ -99,8 +99,8 @@ float lpfilt( float datum ,int init)
 	static float y1 = 0, y2 = 0 ; // this was long, might need to make it double if precision is off
 	static float data[LPBUFFER_LGTH];
 	int ptr = 0 ;
-	float y0 ;
-	int output, halfPtr ;
+	float y0, output;
+	int halfPtr ;
 	if(init)
 		{
 		for(ptr = 0; ptr < LPBUFFER_LGTH; ++ptr)
