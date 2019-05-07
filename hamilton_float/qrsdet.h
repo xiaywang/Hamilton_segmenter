@@ -47,7 +47,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define MS100	((int) (100/MS_PER_SAMPLE + 0.5))
 #define MS125	((int) (125/MS_PER_SAMPLE + 0.5))
 #define MS150	((int) (150/MS_PER_SAMPLE + 0.5))
-#define MS1500_FLOAT	((float) (150.0/MS_PER_SAMPLE_FLOAT + 0.5))
+#define MS150_FLOAT	((float) (150.0/MS_PER_SAMPLE_FLOAT + 0.5))
 
 #define MS160	((int) (160/MS_PER_SAMPLE + 0.5))
 #define MS175	((int) (175/MS_PER_SAMPLE + 0.5))
