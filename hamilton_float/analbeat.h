@@ -27,5 +27,5 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 // External prototypes for analbeat.cpp
 
-void AnalyzeBeat(int *beat, int *onset, int *offset,
+void AnalyzeBeat(float *beat, int *onset, int *offset,
 	int *isoLevel, int *beatBegin, int *beatEnd, int *amp) ;
