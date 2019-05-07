@@ -87,7 +87,7 @@ some level of encapsulation:
 #define COMBINE_LIMIT	0.8		// Limit used for deciding whether two types
 											// can be combined.
 //#define COUNT_FLOPS
-#define COUNT_MEM
+//#define COUNT_MEM
 
 #define MATCH_START	(FIDMARK-(MATCH_LENGTH/2))	// Starting point for beat matching
 #define MATCH_END	(FIDMARK+(MATCH_LENGTH/2))		// End point for beat matching.
@@ -313,124 +313,10 @@ double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 	//printf("CompareBeats: double_mul_count: %ld, double_div_count: %ld, double_add_count: %ld\n", double_mul_count, double_div_count, double_add_count);	
 	//printf("cycles: %ld\n", end);
 	//printf("CompareBeats Performance: cycles:%ld, double_mul_count/cycles: %d, double_div_count/cycles: %ld, double_add_count/cycles: %ld\n", end,double_mul_count/end, double_div_count/end, double_add_count/end);	
-	metric_orig = metric;
-	minShift_orig = minShift;
+	
+	
 
-	for (pc = 0; pc < 1000000; pc++)
-	{
-			max = min = beat1[MATCH_START] ;
-	for(i = MATCH_START+1; i < MATCH_END; ++i)
-		if(beat1[i] > max)
-			max = beat1[i] ;
-		else if(beat1[i] < min)
-			min = beat1[i] ;
-
-	magSum = max - min ;
-
-	i = MATCH_START ;
-	max = min = beat2[i] ;
-	for(i = MATCH_START+1; i < MATCH_END; ++i)
-		if(beat2[i] > max)
-			max = beat2[i] ;
-		else if(beat2[i] < min)
-			min = beat2[i] ;
-
-	// magSum += max - min ;
-	scaleFactor = magSum ;
-	scaleFactor /= max-min ;
-#ifdef COUNT_FLOPS
-	double_div_count++;
-#endif
-	magSum *= 2;
-
-	// Calculate the sum of the point-by-point
-	// absolute differences for five possible shifts.
-
-	for(shift = -MAX_SHIFT; shift <= MAX_SHIFT; ++shift)
-		{
-		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0;
-			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
-			{
-			tempD = beat2[i+shift] ;
-			tempD *= scaleFactor ;
-
-#ifdef COUNT_FLOPS
-			double_mul_count++;
-#endif
-			meanDiff += beat1[i]- tempD ; // beat2[i+shift] ;
-#ifdef COUNT_FLOPS
-			double_add_count++;
-#endif
-			}
-		meanDiff /= MATCH_LENGTH ;
-
-		for(i = FIDMARK-(MATCH_LENGTH>>1), beatDiff = 0;
-			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
-			{
-			tempD = beat2[i+shift] ;
-			tempD *= scaleFactor ;
-#ifdef COUNT_FLOPS
-			double_mul_count++;
-#endif
-			beatDiff += abs(beat1[i] - meanDiff- tempD) ; // beat2[i+shift]  ) ;
-#ifdef COUNT_FLOPS
-			double_add_count++;
-#endif
-			}
-
-
-		if(shift == -MAX_SHIFT)
-			{
-			minDiff = beatDiff ;
-			minShift = -MAX_SHIFT ;
-			}
-		else if(beatDiff < minDiff)
-			{
-			minDiff = beatDiff ;
-			minShift = shift ;
-			}
-		}
-
-	metric = minDiff ;
-	*shiftAdj = minShift ;
-	metric /= magSum ;
-#ifdef COUNT_FLOPS
-	double_div_count++;
-#endif
-
-	// Metric scales inversely with match length.
-	// algorithm was originally tuned with a match
-	// length of 30.
-
-	metric *= 30 ;
-#ifdef COUNT_FLOPS
-	double_mul_count++;
-#endif
-	metric /= MATCH_LENGTH ;
-#ifdef COUNT_FLOPS
-	double_div_count++;
-#endif
-	}
-	long end = stop_tsc(start);
-	int num_runs = pc+2;
-	int avg_cycle = end/(pc+2);
-
-	double_mul_count = 541 * (num_runs);
-	double_add_count = 540 * (num_runs);
-	double_div_count = 3 *(num_runs);
-	long total_flops = double_div_count+double_mul_count+double_add_count;
-	double flops_per_cycle = (double)total_flops/(double)end;
-	double mul_flops_per_cycle = (double)double_mul_count/(double)end;
-	double div_flops_per_cycle = (double)double_div_count/(double)end;
-	double add_flops_per_cycle = (double)double_add_count/(double)end;
-	long total_bytes = num_bytes *(num_runs) * 4;
-	double flops_per_byte = (double)total_flops/(double)total_bytes;
-	printf("CompareBeats Performance: total cycles:%ld, total num of runs: %d, total num of flops: %ld, total num of bytes: %ld, average cycles:%d, flops/cycles: %f, flops/bytes: %f, double_mul_count/cycles: %f, double_div_count/cycles: %f, double_add_count/cycles: %f\n", 
-		end, num_runs, total_flops, total_bytes, avg_cycle, flops_per_cycle, flops_per_byte, mul_flops_per_cycle, div_flops_per_cycle, add_flops_per_cycle);	
-
-
-	*shiftAdj = minShift_orig;
-	return(metric_orig) ;
+	return(metric) ;
 	}
 
 /***************************************************************************
