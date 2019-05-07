@@ -1,5 +1,14 @@
 /*****************************************************************************
-FILE:  qrsdet.hAUTHOR:	Patrick S. HamiltonREVISED:	4/16/2002  ___________________________________________________________________________qrsdet.h QRS detector parameter definitionsCopywrite (C) 2000 Patrick S. HamiltonThis file is free software; you can redistribute it and/or modify it underthe terms of the GNU Library General Public License as published by the Free
+FILE:  qrsdet.h
+AUTHOR:	Patrick S. Hamilton
+REVISED:	4/16/2002
+  ___________________________________________________________________________
+
+qrsdet.h QRS detector parameter definitions
+Copywrite (C) 2000 Patrick S. Hamilton
+
+This file is free software; you can redistribute it and/or modify it under
+the terms of the GNU Library General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your option) any
 later version.
 
@@ -24,7 +33,12 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 
 #define SAMPLE_RATE	200	/* Sample rate in Hz. */
+#define SAMPLE_RATE_FLOAT	(float)200	/* Sample rate in Hz. */
+
+
 #define MS_PER_SAMPLE	( (1000/ SAMPLE_RATE))
+#define MS_PER_SAMPLE_FLOAT	( (1000.0/ (float)SAMPLE_RATE))
+
 #define MS10	((int) (10/ MS_PER_SAMPLE + 0.5))
 #define MS25	((int) (25/MS_PER_SAMPLE + 0.5))
 #define MS30	((int) (30/MS_PER_SAMPLE + 0.5))
@@ -33,6 +47,8 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define MS100	((int) (100/MS_PER_SAMPLE + 0.5))
 #define MS125	((int) (125/MS_PER_SAMPLE + 0.5))
 #define MS150	((int) (150/MS_PER_SAMPLE + 0.5))
+#define MS1500_FLOAT	((float) (150.0/MS_PER_SAMPLE_FLOAT + 0.5))
+
 #define MS160	((int) (160/MS_PER_SAMPLE + 0.5))
 #define MS175	((int) (175/MS_PER_SAMPLE + 0.5))
 #define MS195	((int) (195/MS_PER_SAMPLE + 0.5))
@@ -43,10 +59,20 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define MS360	((int) (360/MS_PER_SAMPLE + 0.5))
 #define MS450	((int) (450/MS_PER_SAMPLE + 0.5))
 #define MS1000	SAMPLE_RATE
+#define MS1000_FLOAT	SAMPLE_RATE_FLOAT
+
+
 #define MS1500	((int) (1500/MS_PER_SAMPLE))
+#define MS1500_FLOAT	( (1500.0/MS_PER_SAMPLE_FLOAT))
+
 #define DERIV_LENGTH	2//MS10
 #define LPBUFFER_LGTH 10//((int) (2*MS25))
 #define HPBUFFER_LGTH 25//MS125
 
 #define WINDOW_WIDTH	16//MS80			// Moving window integration width.
-#define	FILTER_DELAY (int) (((double) DERIV_LENGTH/2) + ((double) LPBUFFER_LGTH/2 - 1) + (((double) HPBUFFER_LGTH-1)/2) + PRE_BLANK)  // filter delays plus 200 ms blanking delay#define DER_DELAY	WINDOW_WIDTH + FILTER_DELAY + MS100
+#define WINDOW_WIDTH_FLOAT	16.0//MS80			// Moving window integration width.
+
+#define	FILTER_DELAY (int) (((double) DERIV_LENGTH/2) + ((double) LPBUFFER_LGTH/2 - 1) + (((double) HPBUFFER_LGTH-1)/2) + PRE_BLANK)  // filter delays plus 200 ms blanking delay
+#define DER_DELAY	WINDOW_WIDTH + FILTER_DELAY + MS100
+
+
