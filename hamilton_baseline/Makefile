@@ -23,7 +23,7 @@ all:		ourtest
 ourtest:	$(ETOBJS) qrsdet.o
 	$(CC) -o ourtest $(ETOBJS) qrsdet.o
 
-bdac.o:		bdac.c bdac.h qrsdet.h
+bdac.o:		bdac.c bdac.h qrsdet.h tsc_x86.h
 	$(CC) -c bdac.c
 
 classify.o:	classify.c qrsdet.h bdac.h match.h rythmchk.h analbeat.h \
@@ -36,7 +36,7 @@ rythmchk.o:	rythmchk.c qrsdet.h
 noisechk.o:	noisechk.c qrsdet.h
 	$(CC) -c noisechk.c
 
-match.o:	match.c bdac.h tsc_x86.h
+match.o:	match.c bdac.h #tsc_x86.h
 	$(CC) -c match.c
 
 postclas.o:	postclas.c bdac.h

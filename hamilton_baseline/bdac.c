@@ -56,8 +56,10 @@ Functions in bdac.cpp require functions in the following files:
 *******************************************************************************/
 #include "qrsdet.h"	// For base SAMPLE_RATE
 #include "bdac.h"
-
-#include "stdio.h"
+#include "tsc_x86.h"
+// #ifndef DEBUG_FUNC
+// 	#define DEBUG_FUNC
+// #endif
 
 #define ECG_BUFFER_LENGTH	1000	// Should be long enough for a beat
 											// plus extra space to accommodate
@@ -149,12 +151,15 @@ int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 	// Run the sample through the QRS detector.
 
 	detectDelay = QRSDet(ecgSample,0) ;
+	
 
 		
 	if(detectDelay != 0)
 		{
 		  //printf("here\n");
-
+#ifdef DEBUG_FUNC
+		 printf("detectDelay is non-zero: %d\n", detectDelay);
+#endif
                 //fp = fopen("./to_plot/QRSDetDelay100.csv", "a+");
                 //fprintf(fp, "%d,\n", detectDelay);
 	        //fclose(fp);

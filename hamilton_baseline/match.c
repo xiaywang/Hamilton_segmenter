@@ -77,7 +77,7 @@ some level of encapsulation:
 #include <stdlib.h>
 #include <stdio.h>
 #include "ecgcodes.h"
-#include "tsc_x86.h"
+//#include "tsc_x86.h"
 #include "stdafx.h"
 
 #include "bdac.h"
