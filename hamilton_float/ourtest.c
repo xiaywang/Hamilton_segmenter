@@ -31,8 +31,8 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 MAINTYPE main()
 	{	  
 
-	int i, ecg, delay;
-
+	int i, delay;
+	float ecg;
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
 	int beatType, beatMatch ;
