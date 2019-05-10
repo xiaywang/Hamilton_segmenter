@@ -1,0 +1,601 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1200" height="278" onload="init(evt)" viewBox="0 0 1200 278" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+	}
+
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom();
+			zoom(target);
+		}
+		else if (e.target.id == "unzoom") unzoom();
+		else if (e.target.id == "search") search_prompt();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+	}, false)
+
+	// functions
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+		return;
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		// Fit in full text width
+		if (/^ *$/.test(txt) || t.getSubStringLength(0, txt.length) < w)
+			return;
+
+		for (var x = txt.length - 2; x > 0; x--) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+	}
+	function unzoom() {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			update_text(el[i]);
+		}
+	}
+
+	// search
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)", "");
+			if (term != null) {
+				search(term)
+			}
+		} else {
+			reset_search();
+			searching = 0;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		var re = new RegExp(term);
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1200.0" height="278.0" fill="url(#background)"  />
+<text id="title" x="600.00" y="24" >Flame Graph</text>
+<text id="details" x="10.00" y="261" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1090.00" y="24" >Search</text>
+<text id="matched" x="1090.00" y="261" > </text>
+<g id="frames">
+<g >
+<title>BestMorphMatch (4 samples, 0.07%)</title><rect x="85.4" y="197" width="0.8" height="15.0" fill="rgb(217,191,22)" rx="2" ry="2" />
+<text  x="88.41" y="207.5" ></text>
+</g>
+<g >
+<title>BeatDetectAndClassify (101 samples, 1.71%)</title><rect x="65.3" y="197" width="20.1" height="15.0" fill="rgb(235,212,9)" rx="2" ry="2" />
+<text  x="68.26" y="207.5" ></text>
+</g>
+<g >
+<title>GetBeatEnd (1 samples, 0.02%)</title><rect x="552.0" y="197" width="0.2" height="15.0" fill="rgb(250,137,41)" rx="2" ry="2" />
+<text  x="555.02" y="207.5" ></text>
+</g>
+<g >
+<title>MinimumBeatVariation (1 samples, 0.02%)</title><rect x="568.6" y="197" width="0.2" height="15.0" fill="rgb(232,127,0)" rx="2" ry="2" />
+<text  x="571.58" y="207.5" ></text>
+</g>
+<g >
+<title>HFNoiseCheck (80 samples, 1.35%)</title><rect x="552.6" y="197" width="16.0" height="15.0" fill="rgb(228,26,30)" rx="2" ry="2" />
+<text  x="555.62" y="207.5" ></text>
+</g>
+<g >
+<title>CompareBeats (70 samples, 1.18%)</title><rect x="933.1" y="181" width="13.9" height="15.0" fill="rgb(247,60,17)" rx="2" ry="2" />
+<text  x="936.05" y="191.5" ></text>
+</g>
+<g >
+<title>QRSDet (447 samples, 7.56%)</title><rect x="584.5" y="197" width="89.2" height="15.0" fill="rgb(222,182,19)" rx="2" ry="2" />
+<text  x="587.54" y="207.5" >QRSDet</text>
+</g>
+<g >
+<title>call_timer_fn (1 samples, 0.02%)</title><rect x="812.8" y="101" width="0.2" height="15.0" fill="rgb(218,128,32)" rx="2" ry="2" />
+<text  x="815.76" y="111.5" ></text>
+</g>
+<g >
+<title>NoiseCheck (76 samples, 1.28%)</title><rect x="568.8" y="197" width="15.1" height="15.0" fill="rgb(242,150,49)" rx="2" ry="2" />
+<text  x="571.78" y="207.5" ></text>
+</g>
+<g >
+<title>PostClassify (3 samples, 0.05%)</title><rect x="583.9" y="197" width="0.6" height="15.0" fill="rgb(212,23,50)" rx="2" ry="2" />
+<text  x="586.94" y="207.5" ></text>
+</g>
+<g >
+<title>apic_timer_interrupt (1 samples, 0.02%)</title><rect x="85.2" y="181" width="0.2" height="15.0" fill="rgb(244,171,3)" rx="2" ry="2" />
+<text  x="88.21" y="191.5" ></text>
+</g>
+<g >
+<title>__softirqentry_text_start (1 samples, 0.02%)</title><rect x="85.2" y="133" width="0.2" height="15.0" fill="rgb(208,14,31)" rx="2" ry="2" />
+<text  x="88.21" y="143.5" ></text>
+</g>
+<g >
+<title>BestMorphMatch (4 samples, 0.07%)</title><rect x="925.5" y="181" width="0.8" height="15.0" fill="rgb(251,228,7)" rx="2" ry="2" />
+<text  x="928.47" y="191.5" ></text>
+</g>
+<g >
+<title>ourtest (5,915 samples, 100.00%)</title><rect x="10.0" y="213" width="1180.0" height="15.0" fill="rgb(218,12,23)" rx="2" ry="2" />
+<text  x="13.00" y="223.5" >ourtest</text>
+</g>
+<g >
+<title>AnalyzeBeat (40 samples, 0.68%)</title><rect x="813.8" y="181" width="7.9" height="15.0" fill="rgb(235,131,43)" rx="2" ry="2" />
+<text  x="816.76" y="191.5" ></text>
+</g>
+<g >
+<title>GetDominantType (2 samples, 0.03%)</title><rect x="552.2" y="197" width="0.4" height="15.0" fill="rgb(244,187,26)" rx="2" ry="2" />
+<text  x="555.22" y="207.5" ></text>
+</g>
+<g >
+<title>TempClass (4 samples, 0.07%)</title><rect x="813.0" y="197" width="0.8" height="15.0" fill="rgb(248,77,20)" rx="2" ry="2" />
+<text  x="815.96" y="207.5" ></text>
+</g>
+<g >
+<title>__softirqentry_text_start (1 samples, 0.02%)</title><rect x="925.3" y="117" width="0.2" height="15.0" fill="rgb(230,113,39)" rx="2" ry="2" />
+<text  x="928.27" y="127.5" ></text>
+</g>
+<g >
+<title>CompareBeats (1 samples, 0.02%)</title><rect x="551.8" y="197" width="0.2" height="15.0" fill="rgb(217,179,4)" rx="2" ry="2" />
+<text  x="554.82" y="207.5" ></text>
+</g>
+<g >
+<title>UpdateBeatType (68 samples, 1.15%)</title><rect x="1113.0" y="181" width="13.6" height="15.0" fill="rgb(205,10,32)" rx="2" ry="2" />
+<text  x="1116.00" y="191.5" ></text>
+</g>
+<g >
+<title>__softirqentry_text_start (1 samples, 0.02%)</title><rect x="812.8" y="133" width="0.2" height="15.0" fill="rgb(205,96,8)" rx="2" ry="2" />
+<text  x="815.76" y="143.5" ></text>
+</g>
+<g >
+<title>run_timer_softirq (1 samples, 0.02%)</title><rect x="812.8" y="117" width="0.2" height="15.0" fill="rgb(209,93,30)" rx="2" ry="2" />
+<text  x="815.76" y="127.5" ></text>
+</g>
+<g >
+<title>Classify (6 samples, 0.10%)</title><rect x="86.2" y="197" width="1.2" height="15.0" fill="rgb(217,126,8)" rx="2" ry="2" />
+<text  x="89.21" y="207.5" ></text>
+</g>
+<g >
+<title>uhci_hub_status_data (1 samples, 0.02%)</title><rect x="812.8" y="53" width="0.2" height="15.0" fill="rgb(236,182,24)" rx="2" ry="2" />
+<text  x="815.76" y="63.5" ></text>
+</g>
+<g >
+<title>smp_apic_timer_interrupt (1 samples, 0.02%)</title><rect x="85.2" y="165" width="0.2" height="15.0" fill="rgb(206,77,33)" rx="2" ry="2" />
+<text  x="88.21" y="175.5" ></text>
+</g>
+<g >
+<title>[unknown] (1,723 samples, 29.13%)</title><rect x="813.8" y="197" width="343.7" height="15.0" fill="rgb(216,28,3)" rx="2" ry="2" />
+<text  x="816.76" y="207.5" >[unknown]</text>
+</g>
+<g >
+<title>irq_exit (1 samples, 0.02%)</title><rect x="812.8" y="149" width="0.2" height="15.0" fill="rgb(207,64,26)" rx="2" ry="2" />
+<text  x="815.76" y="159.5" ></text>
+</g>
+<g >
+<title>NoiseCheck (179 samples, 3.03%)</title><rect x="948.6" y="181" width="35.7" height="15.0" fill="rgb(243,48,26)" rx="2" ry="2" />
+<text  x="951.61" y="191.5" >Noi..</text>
+</g>
+<g >
+<title>apic_timer_interrupt (1 samples, 0.02%)</title><rect x="812.8" y="181" width="0.2" height="15.0" fill="rgb(244,185,27)" rx="2" ry="2" />
+<text  x="815.76" y="191.5" ></text>
+</g>
+<g >
+<title>rh_timer_func (1 samples, 0.02%)</title><rect x="812.8" y="85" width="0.2" height="15.0" fill="rgb(247,198,31)" rx="2" ry="2" />
+<text  x="815.76" y="95.5" ></text>
+</g>
+<g >
+<title>deriv1 (130 samples, 2.20%)</title><rect x="1163.9" y="197" width="25.9" height="15.0" fill="rgb(207,83,38)" rx="2" ry="2" />
+<text  x="1166.87" y="207.5" >d..</text>
+</g>
+<g >
+<title>QRSFilter (297 samples, 5.02%)</title><rect x="1051.6" y="181" width="59.2" height="15.0" fill="rgb(223,130,29)" rx="2" ry="2" />
+<text  x="1054.55" y="191.5" >QRSFil..</text>
+</g>
+<g >
+<title>all (5,915 samples, 100%)</title><rect x="10.0" y="229" width="1180.0" height="15.0" fill="rgb(249,175,40)" rx="2" ry="2" />
+<text  x="13.00" y="239.5" ></text>
+</g>
+<g >
+<title>QRSFilter (698 samples, 11.80%)</title><rect x="673.7" y="197" width="139.3" height="15.0" fill="rgb(217,22,12)" rx="2" ry="2" />
+<text  x="676.71" y="207.5" >QRSFilter</text>
+</g>
+<g >
+<title>_raw_spin_unlock_irqrestore (1 samples, 0.02%)</title><rect x="812.8" y="37" width="0.2" height="15.0" fill="rgb(249,205,42)" rx="2" ry="2" />
+<text  x="815.76" y="47.5" ></text>
+</g>
+<g >
+<title>irq_exit (1 samples, 0.02%)</title><rect x="551.8" y="149" width="0.2" height="15.0" fill="rgb(213,206,1)" rx="2" ry="2" />
+<text  x="554.82" y="159.5" ></text>
+</g>
+<g >
+<title>HFNoiseCheck (7 samples, 0.12%)</title><rect x="947.2" y="181" width="1.4" height="15.0" fill="rgb(249,229,5)" rx="2" ry="2" />
+<text  x="950.22" y="191.5" ></text>
+</g>
+<g >
+<title>apic_timer_interrupt (1 samples, 0.02%)</title><rect x="551.8" y="181" width="0.2" height="15.0" fill="rgb(222,225,33)" rx="2" ry="2" />
+<text  x="554.82" y="191.5" ></text>
+</g>
+<g >
+<title>GetBeatCenter (1 samples, 0.02%)</title><rect x="947.0" y="181" width="0.2" height="15.0" fill="rgb(233,13,39)" rx="2" ry="2" />
+<text  x="950.02" y="191.5" ></text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (35 samples, 0.59%)</title><rect x="1126.6" y="181" width="6.9" height="15.0" fill="rgb(222,60,5)" rx="2" ry="2" />
+<text  x="1129.56" y="191.5" ></text>
+</g>
+<g >
+<title>smp_apic_timer_interrupt (1 samples, 0.02%)</title><rect x="551.8" y="165" width="0.2" height="15.0" fill="rgb(254,74,45)" rx="2" ry="2" />
+<text  x="554.82" y="175.5" ></text>
+</g>
+<g >
+<title>call_timer_fn (1 samples, 0.02%)</title><rect x="551.8" y="101" width="0.2" height="15.0" fill="rgb(254,221,27)" rx="2" ry="2" />
+<text  x="554.82" y="111.5" ></text>
+</g>
+<g >
+<title>smp_apic_timer_interrupt (1 samples, 0.02%)</title><rect x="812.8" y="165" width="0.2" height="15.0" fill="rgb(230,54,49)" rx="2" ry="2" />
+<text  x="815.76" y="175.5" ></text>
+</g>
+<g >
+<title>irq_exit (1 samples, 0.02%)</title><rect x="925.3" y="133" width="0.2" height="15.0" fill="rgb(222,87,5)" rx="2" ry="2" />
+<text  x="928.27" y="143.5" ></text>
+</g>
+<g >
+<title>usb_hcd_poll_rh_status (1 samples, 0.02%)</title><rect x="812.8" y="69" width="0.2" height="15.0" fill="rgb(217,154,41)" rx="2" ry="2" />
+<text  x="815.76" y="79.5" ></text>
+</g>
+<g >
+<title>apic_timer_interrupt (1 samples, 0.02%)</title><rect x="925.3" y="165" width="0.2" height="15.0" fill="rgb(223,55,46)" rx="2" ry="2" />
+<text  x="928.27" y="175.5" ></text>
+</g>
+<g >
+<title>BeatDetectAndClassify (520 samples, 8.79%)</title><rect x="821.7" y="181" width="103.8" height="15.0" fill="rgb(226,111,13)" rx="2" ry="2" />
+<text  x="824.74" y="191.5" >BeatDetectAn..</text>
+</g>
+<g >
+<title>irq_exit (1 samples, 0.02%)</title><rect x="85.2" y="149" width="0.2" height="15.0" fill="rgb(230,113,2)" rx="2" ry="2" />
+<text  x="88.21" y="159.5" ></text>
+</g>
+<g >
+<title>CompareBeats (2,151 samples, 36.37%)</title><rect x="87.4" y="197" width="429.1" height="15.0" fill="rgb(239,164,47)" rx="2" ry="2" />
+<text  x="90.40" y="207.5" >CompareBeats</text>
+</g>
+<g >
+<title>usb_hcd_poll_rh_status (1 samples, 0.02%)</title><rect x="551.8" y="69" width="0.2" height="15.0" fill="rgb(227,87,1)" rx="2" ry="2" />
+<text  x="554.82" y="79.5" ></text>
+</g>
+<g >
+<title>QRSDet (337 samples, 5.70%)</title><rect x="984.3" y="181" width="67.3" height="15.0" fill="rgb(212,67,1)" rx="2" ry="2" />
+<text  x="987.32" y="191.5" >QRSDet</text>
+</g>
+<g >
+<title>main (120 samples, 2.03%)</title><rect x="1133.5" y="181" width="24.0" height="15.0" fill="rgb(246,217,18)" rx="2" ry="2" />
+<text  x="1136.54" y="191.5" >m..</text>
+</g>
+<g >
+<title>__softirqentry_text_start (1 samples, 0.02%)</title><rect x="551.8" y="133" width="0.2" height="15.0" fill="rgb(213,181,46)" rx="2" ry="2" />
+<text  x="554.82" y="143.5" ></text>
+</g>
+<g >
+<title>Classify (34 samples, 0.57%)</title><rect x="926.3" y="181" width="6.8" height="15.0" fill="rgb(242,71,18)" rx="2" ry="2" />
+<text  x="929.27" y="191.5" ></text>
+</g>
+<g >
+<title>smp_apic_timer_interrupt (1 samples, 0.02%)</title><rect x="925.3" y="149" width="0.2" height="15.0" fill="rgb(243,26,54)" rx="2" ry="2" />
+<text  x="928.27" y="159.5" ></text>
+</g>
+<g >
+<title>run_timer_softirq (1 samples, 0.02%)</title><rect x="551.8" y="117" width="0.2" height="15.0" fill="rgb(254,108,12)" rx="2" ry="2" />
+<text  x="554.82" y="127.5" ></text>
+</g>
+<g >
+<title>CompareBeats2 (177 samples, 2.99%)</title><rect x="516.5" y="197" width="35.3" height="15.0" fill="rgb(253,16,25)" rx="2" ry="2" />
+<text  x="519.51" y="207.5" >Co..</text>
+</g>
+<g >
+<title>rh_timer_func (1 samples, 0.02%)</title><rect x="551.8" y="85" width="0.2" height="15.0" fill="rgb(219,185,31)" rx="2" ry="2" />
+<text  x="554.82" y="95.5" ></text>
+</g>
+<g >
+<title>uhci_hub_status_data (1 samples, 0.02%)</title><rect x="551.8" y="53" width="0.2" height="15.0" fill="rgb(209,127,15)" rx="2" ry="2" />
+<text  x="554.82" y="63.5" ></text>
+</g>
+<g >
+<title>__memmove_avx_unaligned_erms (32 samples, 0.54%)</title><rect x="1157.5" y="197" width="6.4" height="15.0" fill="rgb(245,71,46)" rx="2" ry="2" />
+<text  x="1160.48" y="207.5" ></text>
+</g>
+<g >
+<title>memmove@plt (1 samples, 0.02%)</title><rect x="1189.8" y="197" width="0.2" height="15.0" fill="rgb(229,151,44)" rx="2" ry="2" />
+<text  x="1192.80" y="207.5" ></text>
+</g>
+<g >
+<title>AnalyzeBeat (275 samples, 4.65%)</title><rect x="10.4" y="197" width="54.9" height="15.0" fill="rgb(244,49,25)" rx="2" ry="2" />
+<text  x="13.40" y="207.5" >Analy..</text>
+</g>
+<g >
+<title>RhythmChk (11 samples, 0.19%)</title><rect x="1110.8" y="181" width="2.2" height="15.0" fill="rgb(207,210,46)" rx="2" ry="2" />
+<text  x="1113.80" y="191.5" ></text>
+</g>
+<g >
+<title>_raw_spin_unlock_irqrestore (1 samples, 0.02%)</title><rect x="551.8" y="37" width="0.2" height="15.0" fill="rgb(219,156,17)" rx="2" ry="2" />
+<text  x="554.82" y="47.5" ></text>
+</g>
+</g>
+</svg>
