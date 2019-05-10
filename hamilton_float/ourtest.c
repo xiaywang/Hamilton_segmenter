@@ -5,6 +5,7 @@
 #include "qrsdet.h"		// For sample rate.
 
 #include "ecg_data.h"
+#include "bdac.h"
 
 #include "tsc_x86.h"
 
@@ -15,7 +16,7 @@ long int float_div_counter = 0;
 
 // External function prototypes.
 void ResetBDAC(void) ;
-int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
+// int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
 
 
 // Global variables.
