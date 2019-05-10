@@ -37,6 +37,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 *******************************************************************************/
 #include <math.h>
 #include "qrsdet.h"
+#include <stdio.h>
 
 #include "tsc_x86.h"
 

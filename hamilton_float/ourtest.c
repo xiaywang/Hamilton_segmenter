@@ -68,7 +68,7 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%d\n", ecg);
+			fprintf(fp, "%f\n", ecg);
 			fclose(fp);
 #endif
 

@@ -63,7 +63,8 @@ Returns:
 #include <mem.h>
 #endif
 
-#include <math.h>
+//#include <math.h>
+#include <stdlib.h>
 #include "qrsdet.h"
 #define PRE_BLANK	MS200
 
