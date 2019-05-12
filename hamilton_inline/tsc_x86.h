@@ -6,6 +6,7 @@
 	long int float_add_counter;
 	long int float_mul_counter;
 	long int float_div_counter;
+	long int float_comp_counter;
 	#endif
 
 	/* ==================== GNU C and possibly other UNIX compilers ===================== */
