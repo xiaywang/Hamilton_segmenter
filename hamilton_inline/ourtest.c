@@ -135,6 +135,7 @@ MAINTYPE main()
 			printf("Classify runtime: %lli\n", end_Classify);
 			printf("total runtime:    %lli\n",end_time);
 			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
+			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
 		#endif
 		// TODO: filesave
 	#endif
