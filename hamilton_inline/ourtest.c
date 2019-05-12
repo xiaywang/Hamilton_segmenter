@@ -31,6 +31,7 @@ MAINTYPE main()
 	float_add_counter = 0;
 	float_mul_counter = 0;
 	float_div_counter = 0;
+	float_comp_counter = 0;
 	#endif
 
 	#ifdef RUNTIME_MEASURE
@@ -117,10 +118,12 @@ MAINTYPE main()
 
 	#ifdef OPERATION_COUNTER
 		#if PRINT
-			printf("float adds:  %li\n", float_add_counter);
-			printf("float mult:  %li\n", float_mul_counter);
-			printf("float div:   %li\n", float_div_counter);
-			printf("float total: %li\n", float_div_counter+float_mul_counter+float_add_counter);
+			printf("float adds:		%li\n", float_add_counter);
+			printf("float mult:		%li\n", float_mul_counter);
+			printf("float div:		%li\n", float_div_counter);
+			printf("float comp:		%li\n", float_comp_counter);
+			printf("float total only math:	%li\n", float_div_counter+float_mul_counter+float_add_counter);
+			printf("float total with comp:	%li\n", float_div_counter+float_mul_counter+float_add_counter+float_comp_counter);
 		#endif
 			// TODO: filesave
 	#endif
