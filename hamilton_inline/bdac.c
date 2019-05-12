@@ -156,8 +156,15 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 
 	// Run the sample through the QRS detector.
 
+	#ifdef RUNTIME_QRSDET
+		start_QRSDet = start_tsc();
+	#endif
+
 	detectDelay = QRSDet(ecgSample,0) ;
 
+	#ifdef RUNTIME_QRSDET
+		end_QRSDet += stop_tsc(start_QRSDet);
+	#endif
 		
 	if(detectDelay != 0)
 		{
@@ -215,7 +222,14 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 			j = 0 ;
 		}
 
-	DownSampleBeat(BeatBuffer,tempBeat) ;
+	for(i = 0; i < BEATLGTH; ++i)
+	{
+		BeatBuffer[i] = (tempBeat[i*2]+tempBeat[(i*2)+1])/2 ;
+		#ifdef OPERATION_COUNTER 
+		float_add_counter++;
+		float_div_counter++;
+		#endif
+	}
 
 	// Update the QUE.
 
@@ -236,7 +250,16 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 	// Classify all other beats.
 	else
 		{
+		#ifdef RUNTIME_CLASSIFY
+		start_Classify = start_tsc();
+		#endif
+
 		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
+
+		#ifdef RUNTIME_CLASSIFY
+		end_Classify += stop_tsc(start_Classify);
+		#endif
+
 		fidAdj *= SAMPLE_RATE/BEAT_SAMPLE_RATE ;
       }
 
@@ -258,18 +281,4 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 		fidAdj = -MS80 ;
 
 	return(detectDelay-fidAdj) ;
-}
-
-void DownSampleBeat(float *beatOut, float *beatIn)
-{
-	int i ;
-
-	for(i = 0; i < BEATLGTH; ++i)
-	{
-		beatOut[i] = (beatIn[i*2]+beatIn[(i*2)+1])/2 ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		float_div_counter++;
-		#endif
-	}
 }
