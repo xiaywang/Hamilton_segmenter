@@ -16,7 +16,7 @@ CFLAGS = -O3 # -std=c11
 CC = gcc $(CFLAGS)
 
 ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
- postclas.o analbeat.o qrsfilt.o tsc_x86.o
+ postclas.o analbeat.o tsc_x86.o
 
 all:		ourtest
 
@@ -47,9 +47,6 @@ postclas.o:	postclas.c bdac.h
 
 analbeat.o:	analbeat.c bdac.h
 	$(CC) -c analbeat.c
-
-qrsfilt.o:	qrsfilt.c qrsdet.h
-	$(CC) -c qrsfilt.c
 
 qrsdet.o:	qrsdet.c qrsdet.h
 	$(CC) -c qrsdet.c

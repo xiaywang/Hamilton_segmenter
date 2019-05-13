@@ -63,32 +63,37 @@ Returns:
 #include <mem.h>
 #endif
 
-//#include <math.h>
+#include <math.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "qrsdet.h"
 #define PRE_BLANK	MS200
 
 
-// External Prototypes.
 
-float QRSFilter(float datum, int init) ;
-float deriv1( float x0, int init ) ;
+#include "tsc_x86.h"
+
+#ifdef OPERATION_COUNTER 
+	extern long int float_add_counter;
+	extern long int float_mul_counter;
+	extern long int float_div_counter;
+#endif
+
 
 // Local Prototypes.
 
-float Peak( float datum, int init ) ;
-float median(float *array, int datnum) ;
-float thresh(float qmedian, float nmedian) ;
-int BLSCheck(float *dBuf,int dbPtr,float *maxder) ;
+float QRSFilter(float datum, int init) ;
 
-int earlyThresh(int qmedian, int nmedian) ;
+float Peak( float datum, int init ) ;
+float median(float *array, int datnum) ; // Xia: called many times
+float thresh(float qmedian, float nmedian) ; // Xia: called many times
 
 
 double TH = 0.475  ;
 
-float DDBuffer[DER_DELAY];/* Buffer holding derivative data. */
+//float DDBuffer[DER_DELAY];/* Buffer holding derivative data. */
 int Dly  = 0 ;
-int DDPtr ;	
+//int DDPtr ;	
 
 const int MEMMOVELEN = 7*sizeof(int);
 
@@ -117,10 +122,12 @@ int QRSDet( float datum, int init )
 			}
 		maxder=lastmax= initMax= 0.0;
 		qpkcnt  = count = sbpeak = 0 ;
-		initBlank = preBlankCnt = DDPtr = 0 ;
+		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
 		sbcount = MS1500_FLOAT ;
 		QRSFilter(0.0,1) ;	/* initialize filters. */
+		
 		Peak(0.0,1) ;
+		return 0;
 		}
 
 	fdatum = QRSFilter(datum,0) ;	/* Filter data. */
@@ -158,19 +165,6 @@ int QRSDet( float datum, int init )
 			newPeak = tempPeak ;
 		}
 
-/*	newPeak = 0 ;
-	if((aPeak != 0) && (preBlankCnt == 0))
-		newPeak = aPeak ;
-	else if(preBlankCnt != 0) --preBlankCnt ; */
-
-
-
-	/* Save derivative of raw signal for T-wave and baseline
-	   shift discrimination. */
-	
-	DDBuffer[DDPtr] = deriv1( datum, 0 ) ;
-	if(++DDPtr == DER_DELAY)
-		DDPtr = 0 ;
 
 	/* Initialize the qrs peak buffer with the first eight 	*/
 	/* local maximum peaks detected.						*/
@@ -203,16 +197,7 @@ int QRSDet( float datum, int init )
 		++count ;
 		if(newPeak > 0.0)
 			{
-			
-			
-			/* Check for maximum derivative and matching minima and maxima
-			   for T-wave and baseline shift rejection.  Only consider this
-			   peak if it doesn't seem to be a base line shift. */
-			   
-			if(!BLSCheck(DDBuffer, DDPtr, &maxder))
-				{
-
-
+		           
 				// Classify the beat as a QRS complex
 				// if the peak is larger than the detection threshold.
 
@@ -259,7 +244,6 @@ int QRSDet( float datum, int init )
 						sbloc = count  - WINDOW_WIDTH ;
 						}
 					}
-				}
 			}
 		
 		/* Test for search back condition.  If a QRS is found in  */
@@ -333,7 +317,10 @@ float Peak( float datum, int init )
 	int pk = 0 ;
 
 	if(init)
+	        {
 		max = timeSinceMax = 0 ;
+		return 0;
+	        }
 		
 	if(timeSinceMax > 0)
 		++timeSinceMax ;
@@ -385,17 +372,7 @@ float median(float *array, int datnum)
 		}
 	return(sort[datnum>>1]) ;
 	}
-/*
-int median(int *array, int datnum)
-	{
-	long sum ;
-	int i ;
 
-	for(i = 0, sum = 0; i < datnum; ++i)
-		sum += array[i] ;
-	sum /= datnum ;
-	return(sum) ;
-	} */
 
 /****************************************************************************
  thresh() calculates the detection threshold from the qrs median and noise
@@ -415,49 +392,215 @@ float thresh(float qmedian, float nmedian)
 	return(thrsh);
 	}
 
-/***********************************************************************
-	BLSCheck() reviews data to see if a baseline shift has occurred.
-	This is done by looking for both positive and negative slopes of
-	roughly the same magnitude in a 220 ms window.
-***********************************************************************/
 
-int BLSCheck(float *dBuf,int dbPtr,float *maxder)
+
+/*****************************************************************************
+FILE:  qrsfilt.cpp
+AUTHOR:	Patrick S. Hamilton
+REVISED:	5/13/2002
+  __________________________________________________________________________
+
+	This file includes QRSFilt() and associated filtering files used for QRS
+
+	detection.  Only QRSFilt() and deriv1() are called by the QRS detector
+	other functions can be hidden.
+	Revisions:
+		5/13: Filter implementations have been modified to allow simplified
+			modification for different sample rates.
+*******************************************************************************/
+
+/******************************************************************************
+* Syntax:
+*	int QRSFilter(int datum, int init) ;
+* Description:
+*	QRSFilter() takes samples of an ECG signal as input and returns a sample of
+*	a signal that is an estimate of the local energy in the QRS bandwidth.  In
+*	other words, the signal has a lump in it whenever a QRS complex, or QRS
+*	complex like artifact occurs.  The filters were originally designed for data
+*  sampled at 200 samples per second, but they work nearly as well at sample
+*	frequencies from 150 to 250 samples per second.
+*
+*	The filter buffers and static variables are reset if a value other than
+*	0 is passed to QRSFilter through init.
+*******************************************************************************/
+float QRSFilter(float datum,int init)
 	{
-	float max, min, x;
-	int maxt, mint, t;
-	max = min = 0.0 ;
+	float fdatum ;
 
-	return(0) ;
-	
-	for(t = 0; t < MS220; ++t)
+	// data buffer for lpfilt
+	static float lp_data[LPBUFFER_LGTH];
+
+	// data buffer for hpfilt
+	static float hp_data[HPBUFFER_LGTH];
+
+	// data buffer for derivative
+	static float derBuff[DERIV_LENGTH] ;
+
+	// data buffer for moving window average
+	static float data[WINDOW_WIDTH];
+    
+
+	if(init)
 		{
-		x = dBuf[dbPtr] ;
-		if(x > max)
-			{
-			maxt = t ;
-			max = x ;
-			}
-		else if(x < min)
-			{
-			mint = t ;
-			min = x;
-			}
-		if(++dbPtr == DER_DELAY)
-			dbPtr = 0 ;
+		printf("init is %i \n", init);
+		
+		// ------- initialize filters ------- //
+
+		//lpfilt
+		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+			lp_data[i_init] = 0.f;
+
+		//hpfilt
+		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+			hp_data[i_init] = 0.f;
+
+		//derivative
+		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+			derBuff[i_init] = 0 ;
+		
+		//movint window integration
+		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+			data[i_init] = 0 ;
+		
+		return 0;
 		}
 
-	*maxder = max ;
-	min = -min ;
+
+	// ---------- Low pass filter data ---------- //
+
+/*************************************************************************
+*  lpfilt() implements the digital filter represented by the difference
+*  equation:
+*
+* 	y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]
+*
+*	Note that the filter delay is (LPBUFFER_LGTH/2)-1
+*
+**************************************************************************/
 	
-	/* Possible beat if a maximum and minimum pair are found
-		where the interval between them is less than 150 ms. */
-	   
-	if((max > (min/8)) && (min > (max/8)) &&
-		(abs(maxt - mint) < MS150))
-		return(0) ;
+	// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
+	static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
+	static int lp_ptr = 0;
+	int halfPtr;
+	float y0;
+
+	halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
+	if(halfPtr < 0)							// to x[n-6].
+		halfPtr += LPBUFFER_LGTH ;
+
+	y0 = (y1*2.0f) - y2 + datum - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+	y2 = y1;
+	y1 = y0;
+	fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+	lp_data[lp_ptr] = datum ;			// Stick most recent sample into
+	if(++lp_ptr == LPBUFFER_LGTH)	// the circular buffer and update
+		lp_ptr = 0 ;					// the buffer pointer.
+
+	#ifdef OPERATION_COUNTER
+	float_add_counter += 4;
+	float_mul_counter += 2;
+	#endif
+	
+
+	// ---------- High pass filter data ---------- //
+
+/******************************************************************************
+*  hpfilt() implements the high pass filter represented by the following
+*  difference equation:
+*
+*	y[n] = y[n-1] + x[n] - x[n-128 ms]
+*	z[n] = x[n-64 ms] - y[n] ;
+*
+*  Filter delay is (HPBUFFER_LGTH-1)/2
+******************************************************************************/
+
+
+	static float hp_y = 0;
+        static int hp_ptr = 0;
+	float z ;
+	//int halfPtr ;
+	
+	hp_y += fdatum - hp_data[hp_ptr];
+	halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+	if(halfPtr < 0)
+		halfPtr += HPBUFFER_LGTH ;
+	hp_data[hp_ptr] = fdatum ;
+	fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+	//hp_data[hp_ptr] = fdatum ;
+	if(++hp_ptr == HPBUFFER_LGTH)
+		hp_ptr = 0 ;
+
+	#ifdef OPERATION_COUNTER
+		float_add_counter += 3;
+		float_div_counter += 1;
+	#endif
+
 		
-	else
-		return(1) ;
+	// ---------- Take the derivative ---------- //
+
+/*****************************************************************************
+*  deriv1 and deriv2 implement derivative approximations represented by
+*  the difference equation:
+*
+*	y[n] = x[n] - x[n - 10ms]
+*
+*  Filter delay is DERIV_LENGTH/2
+*****************************************************************************/
+// Xia: deriv1 is totally useless: it is actually the same code as deriv2 and
+// it's called only once in qrsdet to assign value to a variable which then is
+// not used at all.
+
+	static int derI = 0;
+	float y ;
+
+	y = fdatum - derBuff[derI] ;
+	derBuff[derI] = fdatum;
+	if(++derI == DERIV_LENGTH)
+		derI = 0 ;
+	fdatum = y;
+
+	#ifdef OPERATION_COUNTER
+		float_add_counter += 1;
+	#endif	
+
+
+	// ---------- Take the absolute value ---------- //
+	
+	fdatum = fabs(fdatum) ;				// Take the absolute value.
+
+
+	// ----------- Average over an 80 ms window ----------//
+	
+/*****************************************************************************
+* mvwint() implements a moving window integrator.  Actually, mvwint() averages
+* the signal values over the last WINDOW_WIDTH samples.
+*****************************************************************************/
+
+	static float sum = 0 ;
+        static int ptr = 0 ;
+	float output;
+
+	sum += fdatum ;
+	sum -= data[ptr] ;
+	data[ptr] = fdatum ;
+	if(++ptr == WINDOW_WIDTH)
+		ptr = 0 ;
+	if((sum / (float)WINDOW_WIDTH) > 32000.f){
+		output = 32000.f ;
+	} else {
+		output = sum / (float)WINDOW_WIDTH ;
+		#ifdef OPERATION_COUNTER
+		float_div_counter += 1;
+		#endif
 	}
 
+	#ifdef OPERATION_COUNTER
+		float_add_counter += 2;
+		float_div_counter += 1;
+	#endif
 
+	fdatum = output;
+
+	
+	return(fdatum) ;
+	}
