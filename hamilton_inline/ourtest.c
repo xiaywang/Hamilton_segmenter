@@ -7,6 +7,7 @@
 #include "ecg_data.h"
 #include "bdac.h"
 
+#include "config.h"
 #include "tsc_x86.h"
 
 // External function prototypes.
@@ -50,7 +51,8 @@ MAINTYPE main()
 	#endif
 
 	int i, delay;
-	float ecg;
+	float ecg[MAIN_BLOCK_SIZE];
+	int delayArray[MAIN_BLOCK_SIZE];
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
 	int beatType, beatMatch ;
@@ -74,7 +76,6 @@ MAINTYPE main()
 
 		while(SampleCount < N_DATA)
 			{
-			++SampleCount ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -82,10 +83,11 @@ MAINTYPE main()
 			#endif
 
 			// Pass sample to beat detection and classification.
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
 
-			ecg = ecg_data[SampleCount-1];
-
-			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
+			BeatDetectAndClassify(ecg, delayArray, MAIN_BLOCK_SIZE,&beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -94,28 +96,30 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg);
+			fprintf(fp, "%f\n", ecg[0]);
 			fclose(fp);
 #endif
 
 			// If a beat was detected, annotate the beat location
 			// and type.
-
-			if(delay != 0)
-				{
-				DetectionTime = SampleCount - delay ;
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
 #if PRINT
-				printf("DetectionTime %li\n", DetectionTime);
+					printf("DetectionTime %li\n", DetectionTime);
 #endif
 
 #if SAVEFILE
-				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
-				fprintf(fp, "%ld\n", DetectionTime);
-				fclose(fp);
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
 #endif
 
+					}
 				}
-
+			SampleCount += MAIN_BLOCK_SIZE;
 			}
 
 	#ifdef OPERATION_COUNTER
