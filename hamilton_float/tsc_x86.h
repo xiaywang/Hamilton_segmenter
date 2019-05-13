@@ -2,10 +2,12 @@
 #define __TSC_X86_H__
 
 	#define OPERATION_COUNTER
-	extern long int float_add_counter;
-	extern long int float_mul_counter;
-	extern long int float_div_counter;
-
+	#ifdef OPERATION_COUNTER
+	long int float_add_counter;
+	long int float_mul_counter;
+	long int float_div_counter;
+	long int float_comp_counter;
+	#endif
 
 	/* ==================== GNU C and possibly other UNIX compilers ===================== */
 		#ifndef _WIN32
@@ -82,6 +84,25 @@
 
 	#endif
 
+	#define RUNTIME_MEASURE
+	#ifdef RUNTIME_MEASURE
+	myInt64 start_time;
+	myInt64 end_time;
+
+		// for QRSDet submeasurements
+		#define RUNTIME_QRSDET
+		#ifdef RUNTIME_QRSDET
+			myInt64 start_QRSDet;
+			myInt64 end_QRSDet;
+		#endif
+
+		// for Classify submeasurements
+		#define RUNTIME_CLASSIFY
+		#ifdef RUNTIME_CLASSIFY
+			myInt64 start_Classify;
+			myInt64 end_Classify;
+		#endif
+	#endif
 
 	void init_tsc();
 

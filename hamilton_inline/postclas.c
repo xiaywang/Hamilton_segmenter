@@ -45,6 +45,15 @@ following beat is detected.
 #include "bdac.h"
 #include "ecgcodes.h"
 
+#include "tsc_x86.h"
+
+#ifdef OPERATION_COUNTER
+	extern long int float_add_counter;
+	extern long int float_mul_counter;
+	extern long int float_div_counter;
+	extern long int float_comp_counter;
+#endif
+
 // External Prototypes.
 
 double DomCompare(int newType, int domType) ;
@@ -98,6 +107,9 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 				++regCount ;
 		if((mi3 < 2.0) && (regCount > 6))
 			domType = recentTypes[0] ;
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
 	}
 
 	// Don't do anything until four beats have gone by.
@@ -152,14 +164,23 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 		// If the previous and following beats are the dominant beat type,
 		// and this beat is significantly different from the dominant,
 		// call it a PVC.
-
 		else if((recentTypes[0] == domType) && (recentTypes[2] == domType) && (lastMI2 > 2.5))
+		{
 			PostClass[recentTypes[1]][0] = PVC ;
+			#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+			#endif
+		}
 
 		// Otherwise post classify this beat as UNKNOWN.
 
-		else PostClass[recentTypes[1]][0] = UNKNOWN ;
-
+		else 
+		{
+			#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+			#endif
+			PostClass[recentTypes[1]][0] = UNKNOWN ;
+		}
 		// If the beat is premature followed by a compensitory pause, post
 		// classify the rhythm as PVC.
 

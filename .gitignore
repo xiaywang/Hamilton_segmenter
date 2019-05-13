@@ -6,6 +6,15 @@
 *.o
 *.s
 
+###exexutables###
+hamilton_inline/ourtest
+hamilton_float/ourtest
+
+hamilton_float/to_plot/100.csv
+hamilton_inline/to_plot/100.csv
+hamilton_float/to_plot/DetectionTime100.csv 
+hamilton_inline/to_plot/DetectionTime100.csv 
+
 ### Eclipse ###
 .metadata
 bin/
