@@ -135,6 +135,10 @@ int QRSDet( float datum, int init )
 	// in case a bigger one comes along.  There
 	// can only be one QRS complex in any 200 ms window.
 
+	#ifdef OPERATION_COUNTER
+	float_comp_counter++;
+	#endif
+
 	newPeak = 0.0 ;
 	if(aPeak && !preBlankCnt)			// If there has been no peak for 200 ms
 		{										// save this one and start counting.
@@ -143,13 +147,20 @@ int QRSDet( float datum, int init )
 		}
 
 	else if(!aPeak && preBlankCnt)	// If we have held onto a peak for
-		{										// 200 ms pass it on for evaluation.
+		{
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
+		// 200 ms pass it on for evaluation.
 		if(--preBlankCnt == 0)
 			newPeak = tempPeak ;
 		}
 
-	else if(aPeak)							// If we were holding a peak, but
+	else if((int)aPeak)							// If we were holding a peak, but
 		{										// this ones bigger, save it and
+		#ifdef OPERATION_COUNTER
+		float_comp_counter+=2;
+		#endif
 		if(aPeak > tempPeak)				// start counting to 200 ms again.
 			{
 			tempPeak = aPeak ;
@@ -158,6 +169,11 @@ int QRSDet( float datum, int init )
 		else if(--preBlankCnt == 0)
 			newPeak = tempPeak ;
 		}
+	#ifdef OPERATION_COUNTER
+	else{
+		float_comp_counter++;
+	}
+	#endif
 
 /*	newPeak = 0 ;
 	if((aPeak != 0) && (preBlankCnt == 0))
@@ -195,6 +211,9 @@ int QRSDet( float datum, int init )
 				det_thresh = thresh(qmedian,nmedian) ;
 				}
 			}
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
 		if( newPeak > initMax )
 			initMax = newPeak ;
 		}
@@ -202,6 +221,10 @@ int QRSDet( float datum, int init )
 	else	/* Else test for a qrs. */
 		{
 		++count ;
+
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
 		if(newPeak > 0.0)
 			{
 			
@@ -216,6 +239,9 @@ int QRSDet( float datum, int init )
 
 				// Classify the beat as a QRS complex
 				// if the peak is larger than the detection threshold.
+				#ifdef OPERATION_COUNTER
+				float_comp_counter++;
+				#endif
 
 				if(newPeak > det_thresh)
 					{
@@ -258,7 +284,9 @@ int QRSDet( float datum, int init )
 					// Don't include early peaks (which might be T-waves)
 					// in the search back process.  A T-wave can mask
 					// a small following QRS.
-
+					#ifdef OPERATION_COUNTER
+					float_comp_counter++;
+					#endif
 					if((newPeak > sbpeak) && ((count-WINDOW_WIDTH) >= MS360))
 						{
 						sbpeak = newPeak ;
@@ -271,6 +299,11 @@ int QRSDet( float datum, int init )
 		/* Test for search back condition.  If a QRS is found in  */
 		/* search back update the QRS buffer and det_thresh.      */
 
+		#ifdef OPERATION_COUNTER
+		float_comp_counter+=2;
+		float_div_counter++;
+		#endif
+
 		if(((float)count > sbcount) && (sbpeak > (det_thresh/2)))
 			{
 			memmove(&qrsbuf[1],qrsbuf,MEMMOVELEN) ;
@@ -281,6 +314,10 @@ int QRSDet( float datum, int init )
 			rrbuf[0] = (float)sbloc ;
 			rrmedian = median(rrbuf,8) ;
 			sbcount = rrmedian + (rrmedian/2) + WINDOW_WIDTH_FLOAT ;
+			#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter+=2;
+			#endif
 			QrsDelay = count = count - sbloc ;
 			QrsDelay += FILTER_DELAY ;
 			sbpeak = 0 ;
@@ -345,6 +382,10 @@ float Peak( float datum, int init )
 	if(timeSinceMax > 0)
 		++timeSinceMax ;
 
+	#ifdef OPERATION_COUNTER
+	float_comp_counter+=2;
+	#endif
+
 	if((datum > lastDatum) && (datum > max))
 		{
 		max = datum ;
@@ -356,6 +397,7 @@ float Peak( float datum, int init )
 		{
 		#ifdef OPERATION_COUNTER
 		float_div_counter++;
+		float_comp_counter++;
 		#endif
 
 		pk = max ;
@@ -368,6 +410,7 @@ float Peak( float datum, int init )
 		{
 		#ifdef OPERATION_COUNTER
 		float_div_counter++;
+		float_comp_counter++;
 		#endif
 		
 		pk = max ;
@@ -378,6 +421,7 @@ float Peak( float datum, int init )
 	#ifdef OPERATION_COUNTER
 	else{
 		float_div_counter++;
+		float_comp_counter++;
 		}
 	#endif
 
@@ -399,7 +443,15 @@ float median(float *array, int datnum)
 	for(i = 0; i < datnum; ++i)
 		{
 		temp = sort[i] ;
-		for(j = 0; (temp < sort[j]) && (j < i) ; ++j) ;
+		for(j = 0; (temp < sort[j]) && (j < i) ; ++j){
+		#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+		#endif
+		}
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
+
 		for(k = i - 1 ; k >= j ; --k)
 			sort[k+1] = sort[k] ;
 		sort[j] = temp ;
@@ -457,6 +509,9 @@ int BLSCheck(float *dBuf,int dbPtr,float *maxder)
 	for(t = 0; t < MS220; ++t)
 		{
 		x = dBuf[dbPtr] ;
+		#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+		#endif
 		if(x > max)
 			{
 			maxt = t ;
@@ -464,9 +519,19 @@ int BLSCheck(float *dBuf,int dbPtr,float *maxder)
 			}
 		else if(x < min)
 			{
+			#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+			#endif
 			mint = t ;
 			min = x;
 			}
+		#ifdef OPERATION_COUNTER
+		else 
+			{
+			float_comp_counter++;
+			}
+		#endif
+
 		if(++dbPtr == DER_DELAY)
 			dbPtr = 0 ;
 		}
@@ -477,6 +542,7 @@ int BLSCheck(float *dBuf,int dbPtr,float *maxder)
 	#ifdef OPERATION_COUNTER
 	float_add_counter+=2; // one for the -min above, one for the maxt-mint bellow
 	float_div_counter+=2; // for those in the if bellow
+	float_comp_counter+=2;
 	#endif
 
 	/* Possible beat if a maximum and minimum pair are found
