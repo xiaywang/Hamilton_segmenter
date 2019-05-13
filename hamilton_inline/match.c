@@ -77,8 +77,9 @@ some level of encapsulation:
 #include <stdlib.h>
 #include <stdio.h>
 #include "ecgcodes.h"
-
+#include "classify.h"
 #include "bdac.h"
+#include "match.h"
 
 #include "tsc_x86.h"
 
@@ -103,18 +104,18 @@ extern long int float_div_counter;
 // Local prototypes.
 
 int NoiseCheck(float *beat) ;
-double CompareBeats(float *beat1, float *beat2, int *shiftAdj) ;
-double CompareBeats2(float *beat1, float *beat2, int *shiftAdj) ;
-void UpdateBeat(float *aveBeat, float *newBeat, int shift) ;
-void BeatCopy(int srcBeat, int destBeat) ;
-int MinimumBeatVariation(int type) ;
+inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj) ;
+inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj) ;
+inline void UpdateBeat(float *aveBeat, float *newBeat, int shift) ;
+inline void BeatCopy(int srcBeat, int destBeat) ;
+//inline int MinimumBeatVariation(int type) ;
 
 // External prototypes.
 
 void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 	int *beatBegin, int *beatEnd, int *amp) ;
-void AdjustDomData(int oldType, int newType) ;
-void CombineDomData(int oldType, int newType) ;
+inline void AdjustDomData(int oldType, int newType) ;
+inline void CombineDomData(int oldType, int newType) ;
 
 // Global variables.
 
@@ -167,7 +168,7 @@ void ResetMatch(void)
 #define MATCH_START	(FIDMARK-(MATCH_LENGTH/2))
 #define MATCH_END	(FIDMARK+(MATCH_LENGTH/2))
 
-double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
+inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 	{
 	int i, shift ;
 	float max, min, meanDiff, magSum, beatDiff, minDiff;
@@ -280,7 +281,7 @@ double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 	of the two beats.
 ****************************************************************************/
 
-double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
+inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 {
 	int i, shift ;
 	float max, min, mag1, mag2 ;
@@ -373,7 +374,7 @@ UpdateBeat() averages a new beat into an average beat template by adding
 1/8th of the new beat to 7/8ths of the average beat.
 *************************************************************************/
 
-void UpdateBeat(float *aveBeat, float *newBeat, int shift)
+inline void UpdateBeat(float *aveBeat, float *newBeat, int shift)
 {
 	int i ;
 	float tempLong ;
@@ -857,7 +858,7 @@ double DomCompare(int newType, int domType)
 BeatCopy copies beat data from a source beat to a destination beat.
 *************************************************************************/
 
-void BeatCopy(int srcBeat, int destBeat)
+inline void BeatCopy(int srcBeat, int destBeat)
 {
 	int i ;
 
@@ -937,4 +938,45 @@ int WideBeatVariation(int type)
 	if(aveMI > WIDE_VAR_LIMIT)
 		return(1) ;
 	else return(0) ;
+}
+
+
+inline void AdjustDomData(int oldType, int newType)
+{
+	int i ;
+
+	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+	{
+		if(DMBeatTypes[i] == oldType)
+			DMBeatTypes[i] = newType ;
+	}
+
+	if(newType != MAXTYPES)
+	{
+		DMNormCounts[newType] = DMNormCounts[oldType] ;
+		DMBeatCounts[newType] = DMBeatCounts[oldType] ;
+	}
+
+	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
+
+}
+
+inline void CombineDomData(int oldType, int newType)
+{
+	int i ;
+
+	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+	{
+		if(DMBeatTypes[i] == oldType)
+			DMBeatTypes[i] = newType ;
+	}
+
+	if(newType != MAXTYPES)
+	{
+		DMNormCounts[newType] += DMNormCounts[oldType] ;
+		DMBeatCounts[newType] += DMBeatCounts[oldType] ;
+	}
+
+	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
+
 }
