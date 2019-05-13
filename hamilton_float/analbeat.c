@@ -43,12 +43,6 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 #include "tsc_x86.h"
 
-#ifdef OPERATION_COUNTER
-extern long int float_add_counter;
-extern long int float_mul_counter;
-extern long int float_div_counter;
-#endif
-
 // Local prototypes.
 
 int IsoCheck(float *data, int isoLength);
@@ -65,6 +59,9 @@ int IsoCheck(float *data, int isoLength)
 	float max, min;
 	for(i = 1, max=min = data[0]; i < isoLength; ++i)
 	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		if(data[i] > max)
 			max = data[i] ;
 		else if(data[i] < min)
@@ -73,6 +70,7 @@ int IsoCheck(float *data, int isoLength)
 
 	#ifdef OPERATION_COUNTER 
 		float_add_counter++;
+		float_comp_counter+=2;
 	#endif
 		
 	if(max - min < (float)ISO_LIMIT)
@@ -140,6 +138,7 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 		slope = beat[i] - beat[i-1] ;
 		#ifdef OPERATION_COUNTER 
 			float_add_counter++;
+			float_comp_counter++;
 		#endif
 		if(slope > maxSlope)
 			{
@@ -150,16 +149,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			{
 			minSlope = slope ;
 			minSlopeI = i ;
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			}
+		#ifdef OPERATION_COUNTER 
+		else
+			{
+			float_comp_counter++;
+			}
+		#endif
 		}
 
 	// Use the smallest of max or min slope for search parameters.
 
-	if(maxSlope > -minSlope)
+	if(maxSlope > -minSlope){
 		maxSlope = -minSlope ;
-	else minSlope = -maxSlope ;
+	} else {
+		minSlope = -maxSlope ;
+	}
 	#ifdef OPERATION_COUNTER 
 		float_add_counter += 2; // because it is once for the if and once in the if
+		float_comp_counter+= 2; // one for the one above, one for bellow
 	#endif
 
 	if(maxSlopeI < minSlopeI)
@@ -170,8 +181,13 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 	for(i = maxSlopeI;(i > 0) && ((beat[i]-beat[i-1]) > (maxSlope/4.0f)); --i){
 		#ifdef OPERATION_COUNTER
 			float_div_counter++;
+			float_comp_counter++;
 		#endif
 		}
+	#ifdef OPERATION_COUNTER
+		float_div_counter++;
+		float_comp_counter++;
+	#endif
 	*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
@@ -180,8 +196,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 
 		if(i > *onset-INF_CHK_N)
 			{
@@ -189,8 +211,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*onset = i-1 ;
 			}
 		i = *onset+1 ;
@@ -202,8 +230,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 
 		if(i > *onset-INF_CHK_N)
 			{
@@ -211,8 +245,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*onset = i-1 ;
 			}
 
@@ -222,8 +262,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 			*offset = i ;
 
 		// Make sure this wasn't just an inflection.
@@ -232,16 +278,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		if(i < *offset+INF_CHK_N)
 			{
 			for(;(i < BEATLGTH) && ((beat[i]-beat[i-1]) < (minSlope /4.0f)); ++i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*offset = i ;
 			}
 		i = *offset ;
@@ -253,16 +311,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		if(i < *offset+BEAT_MS40)
 			{
 			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) < (minSlope/4.0f)); ++i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*offset = i ;
 
 			// One more search motivated by PVC shape in 123.
@@ -271,16 +341,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			if(i < *offset + BEAT_MS60)
 				{
 				for(;(i < BEATLGTH) && (beat[i]-beat[i-1] < (minSlope/4.0f)); ++i){
 					#ifdef OPERATION_COUNTER
 						float_div_counter++;
 						float_add_counter++;
+						float_comp_counter++;
 					#endif
 				}
+				#ifdef OPERATION_COUNTER
+					float_div_counter++;
+					float_add_counter++;
+					float_comp_counter++;
+				#endif
 				*offset = i ;
 				}
 			}
@@ -294,8 +376,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*onset = i-1 ;
 
 		// Check to see if this was just a brief inflection.
@@ -304,16 +392,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		if(i > *onset-INF_CHK_N)
 			{
 			for(; (i > 0) && ((beat[i]-beat[i-1]) < (minSlope/4.0f));--i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*onset = i-1 ;
 			}
 		i = *onset+1 ;
@@ -324,16 +424,29 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
+
 		if(i > *onset-INF_CHK_N)
 			{
 			for(; (i > 0) && ((beat[i-1]-beat[i]) < (minSlope/4.0f)); --i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif	
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*onset = i-1 ;
 			}
 
@@ -343,8 +456,14 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		*offset = i ;
 
 		// Check to see if this was just a brief inflection.
@@ -353,16 +472,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		if(i < *offset+INF_CHK_N)
 			{
 			for(;(i < BEATLGTH) && ((beat[i] - beat[i-1]) > (maxSlope/4.0f)); ++i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*offset = i ;
 			}
 		i = *offset ;
@@ -374,16 +505,28 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 			#ifdef OPERATION_COUNTER
 				float_div_counter++;
 				float_add_counter++;
+				float_comp_counter++;
 			#endif
 		}
+		#ifdef OPERATION_COUNTER
+			float_div_counter++;
+			float_add_counter++;
+			float_comp_counter++;
+		#endif
 		if(i < *offset+BEAT_MS40)
 			{
 			for(; (i < BEATLGTH) && ((beat[i-1]-beat[i]) > (maxSlope/4.0f)); ++i){
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 			*offset = i ;
 			}
 		}
@@ -412,11 +555,27 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 
 	// Find the maximum and minimum values in the QRS.
 
-	for(i = *onset, maxV = minV = beat[*onset]; i < *offset; ++i)
-		if(beat[i] > maxV)
+	for(i = *onset, maxV = minV = beat[*onset]; i < *offset; ++i){
+		#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+		#endif
+		if(beat[i] > maxV){
 			maxV = beat[i] ;
-		else if(beat[i] < minV)
+		} else if(beat[i] < minV){
 			minV = beat[i] ;
+			#ifdef OPERATION_COUNTER
+				float_comp_counter++;
+			#endif
+		}
+		#ifdef OPERATION_COUNTER
+		else{
+			float_comp_counter++;
+		}
+		#endif
+	}
+	#ifdef OPERATION_COUNTER
+		float_comp_counter++;
+	#endif	
 
 	// If the offset is significantly below the onset and the offset is
 	// on a negative slope, add the next up slope to the width.
@@ -442,6 +601,7 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				}
 			#ifdef OPERATION_COUNTER
 				float_add_counter+=2;
+				float_comp_counter++;
 			#endif
 			}
 
@@ -452,10 +612,16 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 				#ifdef OPERATION_COUNTER
 					float_div_counter++;
 					float_add_counter++;
+					float_comp_counter++;
 				#endif
 				}
 			*offset = i ;
 			}
+			#ifdef OPERATION_COUNTER
+				float_div_counter++;
+				float_add_counter++;
+				float_comp_counter++;
+			#endif
 		}
 
 	// Determine beginning and ending of the beat.
@@ -508,11 +674,25 @@ void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
 	// Calculate beat amplitude.
 
 	maxV=minV=beat[*onset] ;
-	for(i = *onset; i < *offset; ++i)
-		if(beat[i] > maxV)
+	for(i = *onset; i < *offset; ++i){
+		#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+		#endif
+		if(beat[i] > maxV){
 			maxV = beat[i] ;
-		else if(beat[i] < minV)
+		}
+		else if(beat[i] < minV){
 			minV = beat[i] ;
+			#ifdef OPERATION_COUNTER
+				float_comp_counter++;
+			#endif
+		}
+		#ifdef OPERATION_COUNTER
+		else {
+			float_comp_counter++;
+		}
+		#endif
+	}
 	*amp = maxV-minV ;
 
 	#ifdef OPERATION_COUNTER
