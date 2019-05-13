@@ -45,7 +45,7 @@ void ClearLastNewType(void) ;
 int GetBeatBegin(int type) ;
 int GetBeatEnd(int type) ;
 int GetBeatAmp(int type) ;
-int MinimumBeatVariation(int type) ;
+extern inline int MinimumBeatVariation(int type) ;
 int GetBeatCenter(int type) ;
 int WideBeatVariation(int type) ;
 double DomCompare2(float *newBeat, int domType) ;

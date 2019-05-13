@@ -66,7 +66,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 #include "rythmchk.h"
 #include "analbeat.h"
 #include "postclas.h"
-
+#include "classify.h"
 #include "tsc_x86.h"
 
 #ifdef OPERATION_COUNTER
@@ -122,12 +122,12 @@ extern long int float_div_counter;
 
 // Local prototypes.
 
-int HFNoiseCheck(float *beat) ;
-int TempClass(int rhythmClass, int morphType, int beatWidth, int domWidth,
+//inline int HFNoiseCheck(float *beat) ;
+inline int TempClass(int rhythmClass, int morphType, int beatWidth, int domWidth,
 	int domType, int hfNoise, int noiseLevel, int blShift, double domIndex) ;
-int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
-int GetDomRhythm(void) ;
-int GetRunCount(void) ;
+inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
+inline int GetDomRhythm(void) ;
+inline int GetRunCount(void) ;
 
 // Local Global variables
 
@@ -382,7 +382,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 #define AVELENGTH	BEAT_MS50
 #define AVELENGTH_FLOAT	BEAT_MS50_FLOAT
 
-int HFNoiseCheck(float *beat)
+inline int HFNoiseCheck(float *beat)
 {
 	int i, avePtr = 0 ;
 	float aveBuff[AVELENGTH];
@@ -441,7 +441,7 @@ int HFNoiseCheck(float *beat)
 *  to the features of the dominant beat and the present noise level.
 *************************************************************************/
 
-int TempClass(int rhythmClass, int morphType,
+inline int TempClass(int rhythmClass, int morphType,
 	int beatWidth, int domWidth, int domType,
 	int hfNoise, int noiseLevel, int blShift, double domIndex)
 {
@@ -591,14 +591,14 @@ int TempClass(int rhythmClass, int morphType,
 *  have been classified as regular.
 *******************************************************************************/
 
-#define DM_BUFFER_LENGTH	180
+//#define DM_BUFFER_LENGTH	180
 
 int NewDom, DomRhythm ;
 int DMBeatTypes[DM_BUFFER_LENGTH], DMBeatClasses[DM_BUFFER_LENGTH] ;
 int DMBeatRhythms[DM_BUFFER_LENGTH] ;
 int DMNormCounts[8], DMBeatCounts[8], DMIrregCount = 0 ;
 
-int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
+inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
 {
 	static int brIndex = 0 ;
 	int i, oldType, runCount, dom, max ;
@@ -750,12 +750,12 @@ int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
 	return(dom) ;
 }
 
-int GetNewDominantType(void)
+inline int GetNewDominantType(void)
 {
 	return(NewDom) ;
 }
 
-int GetDomRhythm(void)
+inline int GetDomRhythm(void)
 {
 	if(DMIrregCount > IRREG_RR_LIMIT)
 		return(0) ;
@@ -763,52 +763,14 @@ int GetDomRhythm(void)
 }
 
 
-void AdjustDomData(int oldType, int newType)
-{
-	int i ;
 
-	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	{
-		if(DMBeatTypes[i] == oldType)
-			DMBeatTypes[i] = newType ;
-	}
-
-	if(newType != MAXTYPES)
-	{
-		DMNormCounts[newType] = DMNormCounts[oldType] ;
-		DMBeatCounts[newType] = DMBeatCounts[oldType] ;
-	}
-
-	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
-
-}
-
-void CombineDomData(int oldType, int newType)
-{
-	int i ;
-
-	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	{
-		if(DMBeatTypes[i] == oldType)
-			DMBeatTypes[i] = newType ;
-	}
-
-	if(newType != MAXTYPES)
-	{
-		DMNormCounts[newType] += DMNormCounts[oldType] ;
-		DMBeatCounts[newType] += DMBeatCounts[oldType] ;
-	}
-
-	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
-
-}
 
 /***********************************************************************
 	GetRunCount() checks how many of the present beat type have occurred
 	in a row.
 ***********************************************************************/
 
-int GetRunCount()
+inline int GetRunCount()
 {
 	int i ;
 	for(i = 1; (i < 8) && (RecentTypes[0] == RecentTypes[i]); ++i) ;
