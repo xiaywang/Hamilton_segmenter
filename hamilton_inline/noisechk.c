@@ -56,9 +56,9 @@ float NoiseEstimate ;
 *************************************************************************/
 
 int GetNoiseEstimate()
-	{
+{
 	return(NoiseEstimate) ;
-	}
+}
 
 /***********************************************************************
 	NoiseCheck() must be called for every sample of data.  The data is
@@ -82,7 +82,7 @@ int GetNoiseEstimate()
 ***********************************************************************/
 
 int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
-	{
+{
 	int ptr, i;
 	int ncStart, ncEnd;
 	float ncMax, ncMin ;
@@ -107,7 +107,7 @@ int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 	// of this beat.
 
 	if((delay != 0) && (ncStart < NB_LENGTH) && (ncStart > ncEnd))
-		{
+	{
 
 		ptr = NBPtr - ncStart ;	// Find index to end of last beat in
 		if(ptr < 0)					// the circular buffer.
@@ -118,14 +118,14 @@ int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 
 		ncMax = ncMin = NoiseBuffer[ptr] ;
 		for(i = 0; i < ncStart-ncEnd; ++i)
-			{
+		{
 			if(NoiseBuffer[ptr] > ncMax)
 				ncMax = NoiseBuffer[ptr] ;
 			else if(NoiseBuffer[ptr] < ncMin)
 				ncMin = NoiseBuffer[ptr] ;
 			if(++ptr == NB_LENGTH)
 				ptr = 0 ;
-			}
+		}
 
 		// The noise index is the ratio of the signal variation
 		// over the isoelectric window length, scaled by 10.
@@ -138,9 +138,9 @@ int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 			float_mul_counter += 1;
 			float_div_counter += 1;
 		#endif
-		}
+	}
 	else
 		NoiseEstimate = 0 ;
 	return(NoiseEstimate) ;
-	}
+}
 
