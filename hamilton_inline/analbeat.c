@@ -67,26 +67,21 @@ inline int IsoCheck(float *data, int isoLength)
 	for(i = 1, max=min = data[0]; i < isoLength; ++i)
 	{
 		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
+		float_comp_counter+=2;
 		#endif
 		if(data[i] > max){
 			max = data[i] ;
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter--;
+			#endif
 		} else if(data[i] < min){
 			min = data[i] ;
-			#ifdef OPERATION_COUNTER 
-				float_add_counter++;
-			#endif
 		}
-		#ifdef OPERATION_COUNTER 
-		else {
-			float_add_counter++;
-		}
-		#endif
 	}
 
 	#ifdef OPERATION_COUNTER 
 		float_add_counter++;
-		float_comp_counter+=2;
+		float_comp_counter++;
 	#endif
 		
 	if(max - min < (float)ISO_LIMIT)
