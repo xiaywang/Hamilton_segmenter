@@ -76,7 +76,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 int RRMatch(int rr0,int rr1) ;
 int RRShort(int rr0,int rr1) ;
 int RRShort2(int *rrIntervals, int *rrTypes) ;
-// int RRMatch2(int rr0,int rr1) ;
+int RRMatch2(int rr0,int rr1) ;
 
 // Global variables.
 int RRBuffer[RBB_LENGTH], RRTypes[RBB_LENGTH], BeatCount = 0;
@@ -105,6 +105,10 @@ int RhythmChk(int rr)
 {
 	int i, regular = 1 ;
 	int NNEst, NVEst ;
+	int rrMean = 0, nnCount ;
+	bool rrshort2;
+
+
 
 	BigeminyFlag = 0 ;
 
@@ -202,8 +206,34 @@ int RhythmChk(int rr)
 
 	else if(RRTypes[1] == NN)
 	{
+		/////inline RRShort2
+		for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+			if(RRTypes[i] == NN)
+			{
+				++nnCount ;
+				rrMean += RRBuffer[i] ;
+			}
 
-		if(RRShort2(RRBuffer,RRTypes))
+		// Return if there aren't at least 4 normal intervals.
+
+		if(nnCount != 4)
+			rrshort2 = false ;
+		rrMean >>= 2 ;
+
+
+		for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+			if(RRTypes[i] == NN)
+			{
+				if(abs(rrMean-RRBuffer[i]) > (rrMean>>4))
+					i = 10 ;
+			}
+
+		if((i < 9) && (RRBuffer[0] < (rrMean - (rrMean>>3))))
+			rrshort2 = true ;
+		else
+			rrshort2 = false ;
+		//////
+		if(rrshort2)
 		{
 			if(RRBuffer[1] < BRADY_LIMIT)
 			{
@@ -271,8 +301,35 @@ int RhythmChk(int rr)
 
 	else if(RRTypes[1] == NV)
 	{
+		//////inline RRShort2
+		for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+			if(RRTypes[1+i] == NN)
+			{
+				++nnCount ;
+				rrMean += RRBuffer[1+i] ;
+			}
 
-		if(RRShort2(&RRBuffer[1],&RRTypes[1]))
+		// Return if there aren't at least 4 normal intervals.
+
+		if(nnCount != 4)
+			rrshort2 = false ;
+		rrMean >>= 2 ;
+
+
+		for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+			if(RRTypes[1+i] == NN)
+			{
+				if(abs(rrMean-RRBuffer[1+i]) > (rrMean>>4))
+					i = 10 ;
+			}
+
+		if((i < 9) && (RRBuffer[1] < (rrMean - (rrMean>>3))))
+			rrshort2 = true ;
+		else
+			rrshort2 = false ;
+		////////
+		
+		if(rrshort2)
 		{
 	/*		if(RRMatch2(RRBuffer[0],RRBuffer[1]))
 				{
@@ -495,10 +552,42 @@ int RRShort2(int *rrIntervals, int *rrTypes)
 		return(0) ;
 }
 
-// int RRMatch2(int rr0,int rr1)
-// {
-// 	if(abs(rr0-rr1) < ((rr0+rr1)>>4))
-// 		return(1) ;
-// 	else return(0) ;
-// }
+int RRShort2(int *rrIntervals, int *rrTypes)
+{
+	int rrMean = 0, i, nnCount ;
+	bool rrshort2;
+
+	for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+		if(arg2[i] == NN)
+		{
+			++nnCount ;
+			rrMean += arg1[i] ;
+		}
+
+	// Return if there aren't at least 4 normal intervals.
+
+	if(nnCount != 4)
+		rrshort2 = false ;
+	rrMean >>= 2 ;
+
+
+	for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
+		if(arg2[i] == NN)
+		{
+			if(abs(rrMean-arg1[i]) > (rrMean>>4))
+				i = 10 ;
+		}
+
+	if((i < 9) && (arg1[0] < (rrMean - (rrMean>>3))))
+		rrshort2 = true ;
+	else
+		rrshort2 = false ;
+}
+
+int RRMatch2(int rr0,int rr1)
+{
+	if(abs(rr0-rr1) < ((rr0+rr1)>>4))
+		return(1) ;
+	else return(0) ;
+}
 

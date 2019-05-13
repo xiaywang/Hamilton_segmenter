@@ -73,6 +73,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 extern long int float_add_counter;
 extern long int float_mul_counter;
 extern long int float_div_counter;
+extern long int float_comp_counter;
 #endif
 
 // Detection Rule Parameters.
@@ -430,6 +431,7 @@ inline int HFNoiseCheck(float *beat)
 		float_add_counter++;
 		float_mul_counter++;
 		float_div_counter+=3;
+		float_comp_counter++;
 		#endif
 		return(int)(((maxNoiseAve * (50.0/AVELENGTH_FLOAT))/((qrsMax-qrsMin)/4))) ;
 	}
@@ -459,7 +461,13 @@ inline int TempClass(int rhythmClass, int morphType,
 
 	if(MinimumBeatVariation(domType) && (rhythmClass == PVC)
 		&& (domIndex > R2_DI_THRESHOLD) && (GetDomRhythm() == 1))
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		return(PVC) ;
+	}
+		
 
 	// Rule 3:  If the beat is sufficiently narrow, classify as normal.
 
@@ -486,21 +494,35 @@ inline int TempClass(int rhythmClass, int morphType,
 	// rhythm is regular, call it normal.
 
 	if((domIndex < R7_DI_THRESHOLD) && (rhythmClass == NORMAL))
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		return(NORMAL) ;
+	}	
 
 	// Rule 8:  If post classification rhythm is normal for this
 	// type and its shape is close to the dominant shape, classify
 	// as normal.
 
 	if((domIndex < R8_DI_THRESHOLD) && (CheckPCRhythm(morphType) == NORMAL))
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		return(NORMAL) ;
-
+	}
 	// Rule 9:  If the beat is not premature, it looks similar to the dominant
 	// beat type, and the dominant beat type is variable (noisy), classify as
 	// normal.
 
 	if((domIndex < R9_DI_THRESHOLD) && (rhythmClass != PVC) && WideBeatVariation(domType))
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		return(NORMAL) ;
+	}
 
 	// Rule 10:  If this beat is significantly different from the dominant beat
 	// there have previously been matching beats, the post rhythm classification
@@ -509,7 +531,12 @@ inline int TempClass(int rhythmClass, int morphType,
 	if((domIndex > R10_DI_THRESHOLD)
 		&& (GetBeatTypeCount(morphType) >= R10_BC_LIM) &&
 		(CheckPCRhythm(morphType) == PVC) && (GetDomRhythm() == 1))
-		return(PVC) ;
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
+		return(PVC);
+	}
 
 	// Rule 11: if the beat is wide, wider than the dominant beat, doesn't
 	// appear to be noisy, and matches a previous type, classify it as
@@ -545,7 +572,14 @@ inline int TempClass(int rhythmClass, int morphType,
 
 	if((beatWidth > domWidth) && (domIndex > R15_DI_THRESHOLD) &&
 		(beatWidth >= R15_WIDTH_THRESHOLD))
-		return(PVC) ;
+			
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
+		return(PVC);
+	}
+
 
 	// Rule 16:  If the beat is sufficiently narrow, call it normal.
 
@@ -564,7 +598,12 @@ inline int TempClass(int rhythmClass, int morphType,
 	// Rule 18:  If the beat is similar to the dominant beat, call it normal.
 
 	if(domIndex < R18_DI_THRESHOLD)
+	{
+		#ifdef OPERATION_COUNTER 
+		float_comp_counter++;
+		#endif
 		return(NORMAL) ;
+	}
 
 	// If it's noisy don't trust the width.
 
