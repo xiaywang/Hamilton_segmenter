@@ -47,6 +47,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 extern long int float_add_counter;
 extern long int float_mul_counter;
 extern long int float_div_counter;
+extern long int float_comp_counter;
 #endif
 
 // Local prototypes.
