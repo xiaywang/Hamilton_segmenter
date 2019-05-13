@@ -6,6 +6,10 @@
 *.o
 *.s
 
+###exexutables###
+hamilton_inline/ourtest
+hamilton_float/ourtest
+
 ### Eclipse ###
 .metadata
 bin/

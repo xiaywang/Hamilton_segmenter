@@ -9,11 +9,6 @@
 
 #include "tsc_x86.h"
 
-#define OPERATION_COUNTER
-long int float_add_counter = 0;
-long int float_mul_counter = 0;
-long int float_div_counter = 0;
-
 // External function prototypes.
 void ResetBDAC(void) ;
 // int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
@@ -31,6 +26,26 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 
 MAINTYPE main()
 	{	  
+
+	#ifdef OPERATION_COUNTER
+	float_add_counter = 0;
+	float_mul_counter = 0;
+	float_div_counter = 0;
+	float_comp_counter = 0;
+	#endif
+
+	#ifdef RUNTIME_MEASURE
+	start_time = 0;
+	end_time = 0;
+		#ifdef RUNTIME_QRSDET
+		start_QRSDet = 0;
+		end_QRSDet = 0;
+		#endif
+		#ifdef RUNTIME_CLASSIFY
+		start_Classify = 0;
+		end_Classify = 0;
+		#endif
+	#endif
 
 	int i, delay;
 	float ecg;
@@ -59,12 +74,21 @@ MAINTYPE main()
 			{
 			++SampleCount ;
 
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				start_time = start_tsc();
+			#endif
 
 			// Pass sample to beat detection and classification.
 
 			ecg = ecg_data[SampleCount-1];
 
 			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
+
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				end_time += stop_tsc(start_time);
+			#endif
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
@@ -93,11 +117,29 @@ MAINTYPE main()
 			}
 
 	#ifdef OPERATION_COUNTER
-			printf("float adds: %li\n", float_add_counter);
-			printf("float mult: %li\n", float_mul_counter);
-			printf("float div: %li\n", float_div_counter);
-			printf("float total: %li\n", float_div_counter+float_mul_counter+float_add_counter);
-	#endif	
+		#if PRINT
+			printf("float adds:		%li\n", float_add_counter);
+			printf("float mult:		%li\n", float_mul_counter);
+			printf("float div:		%li\n", float_div_counter);
+			printf("float comp:		%li\n", float_comp_counter);
+			printf("float total only math:	%li\n", float_div_counter+float_mul_counter+float_add_counter);
+			printf("float total with comp:	%li\n", float_div_counter+float_mul_counter+float_add_counter+float_comp_counter);
+		#endif
+			// TODO: filesave
+	#endif
+
+		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
+	#ifdef RUNTIME_MEASURE
+		#if PRINT
+			printf("QRSdet runtime:   %lli\n", end_QRSDet);
+			printf("Classify runtime: %lli\n", end_Classify);
+			printf("total runtime:    %lli\n",end_time);
+			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
+			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
+		#endif
+		// TODO: filesave
+	#endif
+
 	}
 
 

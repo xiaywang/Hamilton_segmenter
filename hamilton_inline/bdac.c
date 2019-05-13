@@ -70,12 +70,6 @@ Functions in bdac.cpp require functions in the following files:
 
 #include "tsc_x86.h"
 
-#ifdef OPERATION_COUNTER
-extern long int float_add_counter;
-extern long int float_mul_counter;
-extern long int float_div_counter;
-#endif
-
 // Internal function prototypes.
 
 void DownSampleBeat(float *beatOut, float *beatIn) ;
