@@ -2,10 +2,12 @@
 #define __TSC_X86_H__
 
 	#define OPERATION_COUNTER
-	extern long int float_add_counter;
-	extern long int float_mul_counter;
-	extern long int float_div_counter;
-
+	#ifdef OPERATION_COUNTER
+	long int float_add_counter;
+	long int float_mul_counter;
+	long int float_div_counter;
+	long int float_comp_counter;
+	#endif
 
 	/* ==================== GNU C and possibly other UNIX compilers ===================== */
 		#ifndef _WIN32

@@ -87,6 +87,7 @@ some level of encapsulation:
 extern long int float_add_counter;
 extern long int float_mul_counter;
 extern long int float_div_counter;
+extern long int float_comp_counter;
 #endif
 
 #define MATCH_LENGTH	BEAT_MS300	// Number of points used for beat matching.
@@ -179,10 +180,20 @@ inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 
 	max = min = beat1[MATCH_START] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
-		if(beat1[i] > max)
+		if(beat1[i] > max)		
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			max = beat1[i] ;
+		}
 		else if(beat1[i] < min)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			min = beat1[i] ;
+		}
 
 	magSum = max - min ;
 
@@ -194,9 +205,19 @@ inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 	max = min = beat2[i] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat2[i] > max)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			max = beat2[i] ;
+		}
 		else if(beat2[i] < min)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			min = beat2[i] ;
+		}
 
 	// magSum += max - min ;
 	scaleFactor = magSum ;
@@ -294,9 +315,20 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	max = min = beat1[MATCH_START] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat1[i] > max)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			max = beat1[i] ;
+		}
+
 		else if(beat1[i] < min)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			min = beat1[i] ;
+		}
 
 	mag1 = max - min ;
 
@@ -304,9 +336,19 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	max = min = beat2[i] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat2[i] > max)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			max = beat2[i] ;
+		}
 		else if(beat2[i] < min)
+		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			min = beat2[i] ;
+		}
 
 	mag2 = max-min ;
 
@@ -334,7 +376,7 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 			#ifdef OPERATION_COUNTER 
 			float_add_counter+=3;
 			#endif
-			beatDiff += abs(beat1[i] - meanDiff- beat2[i+shift]) ;
+			beatDiff += fabs(beat1[i] - meanDiff- beat2[i+shift]) ;
 		}
 
 		if(shift == -MAX_SHIFT)
@@ -626,6 +668,9 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 		{
 
 			// Combine beats into bestMatch
+			#ifdef OPERATION_COUNTER
+				float_comp_counter++;
+			#endif 
 
 			if(bestMatch < nextBest)
 			{
@@ -936,7 +981,14 @@ int WideBeatVariation(int type)
 
 	aveMI /= n ;
 	if(aveMI > WIDE_VAR_LIMIT)
-		return(1) ;
+	{
+		#ifdef OPERATION_COUNTER
+			float_comp_counter++;
+		#endif
+			return(1) ;
+	}
+
+	
 	else return(0) ;
 }
 
