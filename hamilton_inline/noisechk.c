@@ -41,6 +41,7 @@ This file contains functions for evaluating the noise content of a beat.
 	extern long int float_add_counter;
 	extern long int float_mul_counter;
 	extern long int float_div_counter;
+	extern long int float_comp_counter;
 #endif
 
 #define NB_LENGTH	MS1500
@@ -119,10 +120,20 @@ int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 		ncMax = ncMin = NoiseBuffer[ptr] ;
 		for(i = 0; i < ncStart-ncEnd; ++i)
 		{
+			#ifdef OPERATION_COUNTER
+			float_comp_counter+=2;
+			#endif
 			if(NoiseBuffer[ptr] > ncMax)
+			{
 				ncMax = NoiseBuffer[ptr] ;
+				#ifdef OPERATION_COUNTER
+				float_comp_counter--;
+				#endif
+			}
 			else if(NoiseBuffer[ptr] < ncMin)
+			{
 				ncMin = NoiseBuffer[ptr] ;
+			}
 			if(++ptr == NB_LENGTH)
 				ptr = 0 ;
 		}
