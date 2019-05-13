@@ -44,6 +44,8 @@ MAINTYPE main()
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
 		end_Classify = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 	#endif
 
@@ -131,11 +133,21 @@ MAINTYPE main()
 		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
-			printf("QRSdet runtime:   %lli\n", end_QRSDet);
-			printf("Classify runtime: %lli\n", end_Classify);
+			#ifdef RUNTIME_QRSDET
+				printf("QRSdet runtime:   %lli\n", end_QRSDet);
+				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
+			#endif
+			#ifdef RUNTIME_CLASSIFY
+				printf("Classify runtime: %lli\n", end_Classify);
+			#endif
 			printf("total runtime:    %lli\n",end_time);
+			#ifdef OPERATION_COUNTER
 			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
 			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
+			#else
+			printf("performance:      %f\n", (double)(259724 )/(double)end_time);
+			printf("performance (w/ comp):      %f\n", (double)(337451 )/(double)end_time);
+			#endif
 		#endif
 		// TODO: filesave
 	#endif
