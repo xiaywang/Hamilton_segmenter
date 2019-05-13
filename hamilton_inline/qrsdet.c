@@ -213,6 +213,11 @@ int QRSDet( float datum, int init )
 					sbcount = rrmedian + (rrmedian/2) + WINDOW_WIDTH_FLOAT ;
 					count = WINDOW_WIDTH ;
 
+					#ifdef OPERATION_COUNTER
+					float_add_counter+=3; // assuming the numbers converted to float are first coneverted and then computed
+					float_div_counter++;
+					#endif
+
 					sbpeak = 0 ;
 
 					lastmax = maxder ;
@@ -313,7 +318,8 @@ int QRSDet( float datum, int init )
 
 float Peak( float datum, int init )
 	{
-	static int max = 0, timeSinceMax = 0, lastDatum ;
+	static float max = 0, lastDatum ;
+	static int timeSinceMax=0;
 	int pk = 0 ;
 
 	if(init)
@@ -332,8 +338,12 @@ float Peak( float datum, int init )
 			timeSinceMax = 1 ;
 		}
 
-	else if(datum < (max >> 1))
+	else if(datum < (max/2))
 		{
+		#ifdef OPERATION_COUNTER
+		float_div_counter++;
+		#endif
+		
 		pk = max ;
 		max = 0 ;
 		timeSinceMax = 0 ;
@@ -342,11 +352,21 @@ float Peak( float datum, int init )
 
 	else if(timeSinceMax > MS95)
 		{
+		#ifdef OPERATION_COUNTER
+		float_div_counter++;
+		#endif
+		
 		pk = max ;
 		max = 0 ;
 		timeSinceMax = 0 ;
 		Dly = 3 ;
 		}
+	#ifdef OPERATION_COUNTER
+	else{
+		float_div_counter++;
+		}
+	#endif
+	
 	lastDatum = datum ;
 	return(pk) ;
 	}
@@ -389,6 +409,10 @@ float thresh(float qmedian, float nmedian)
 	temp *= TH ;
 	dmed = temp ;
 	thrsh = nmedian + dmed ; /* dmed * THRESHOLD */
+	#ifdef OPERATION_COUNTER
+	float_add_counter+=2;
+	float_mul_counter++;
+	#endif
 	return(thrsh);
 	}
 
