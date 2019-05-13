@@ -136,7 +136,7 @@ void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, 
   //	FILE *fp;
 
 	// Store new sample in the circular buffer.
-	for(int repetition = 0; repetition < MAIN_BLOCK_SIZE; repetition++){	
+	for(int repetition = 0; repetition < sampleLength; repetition++){	
 		ECGBuffer[ECGBufferIndex] = ecgSample[repetition];
 		if(++ECGBufferIndex == ECG_BUFFER_LENGTH)
 			ECGBufferIndex = 0 ;

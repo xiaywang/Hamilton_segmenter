@@ -74,7 +74,7 @@ MAINTYPE main()
 #endif
 		// Read data from MIT/BIH file until there is none left.
 
-		while(SampleCount < N_DATA)
+		while(SampleCount <= N_DATA - MAIN_BLOCK_SIZE)
 			{
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
@@ -120,6 +120,54 @@ MAINTYPE main()
 					}
 				}
 			SampleCount += MAIN_BLOCK_SIZE;
+			}
+			// clean up for cases where N_DATA is not divisible by MAIN_BLOCK_SIZE
+			if(SampleCount > N_DATA-MAIN_BLOCK_SIZE)
+			{
+			SampleCount;
+			int restLenght = N_DATA - SampleCount; 
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				start_time = start_tsc();
+			#endif
+
+			// Pass sample to beat detection and classification.
+			for(int index = 0; index < restLenght; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
+
+			BeatDetectAndClassify(ecg, delayArray, restLenght,&beatType, &beatMatch) ;
+
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				end_time += stop_tsc(start_time);
+			#endif
+
+#if SAVEFILE
+			fp = fopen("./to_plot/100.csv", "a+");
+			fprintf(fp, "%f\n", ecg[0]);
+			fclose(fp);
+#endif
+
+			// If a beat was detected, annotate the beat location
+			// and type.
+			for(int index = 0; index < restLenght; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
+#if PRINT
+					printf("DetectionTime %li\n", DetectionTime);
+#endif
+
+#if SAVEFILE
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
+#endif
+
+					}
+				}
 			}
 
 	#ifdef OPERATION_COUNTER
