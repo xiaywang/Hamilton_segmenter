@@ -106,7 +106,7 @@ int RhythmChk(int rr)
 	int i, regular = 1 ;
 	int NNEst, NVEst ;
 	int rrMean = 0, nnCount ;
-	bool rrshort2;
+	int rrshort2;
 
 
 
@@ -217,7 +217,7 @@ int RhythmChk(int rr)
 		// Return if there aren't at least 4 normal intervals.
 
 		if(nnCount != 4)
-			rrshort2 = false ;
+			rrshort2 = 0 ;
 		rrMean >>= 2 ;
 
 
@@ -229,9 +229,9 @@ int RhythmChk(int rr)
 			}
 
 		if((i < 9) && (RRBuffer[0] < (rrMean - (rrMean>>3))))
-			rrshort2 = true ;
+			rrshort2 = 1 ;
 		else
-			rrshort2 = false ;
+			rrshort2 = 0 ;
 		//////
 		if(rrshort2)
 		{
@@ -312,7 +312,7 @@ int RhythmChk(int rr)
 		// Return if there aren't at least 4 normal intervals.
 
 		if(nnCount != 4)
-			rrshort2 = false ;
+			rrshort2 = 0 ;
 		rrMean >>= 2 ;
 
 
@@ -324,11 +324,11 @@ int RhythmChk(int rr)
 			}
 
 		if((i < 9) && (RRBuffer[1] < (rrMean - (rrMean>>3))))
-			rrshort2 = true ;
+			rrshort2 = 1 ;
 		else
-			rrshort2 = false ;
+			rrshort2 = 0 ;
 		////////
-		
+
 		if(rrshort2)
 		{
 	/*		if(RRMatch2(RRBuffer[0],RRBuffer[1]))
@@ -550,38 +550,6 @@ int RRShort2(int *rrIntervals, int *rrTypes)
 		return(1) ;
 	else
 		return(0) ;
-}
-
-int RRShort2(int *rrIntervals, int *rrTypes)
-{
-	int rrMean = 0, i, nnCount ;
-	bool rrshort2;
-
-	for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
-		if(arg2[i] == NN)
-		{
-			++nnCount ;
-			rrMean += arg1[i] ;
-		}
-
-	// Return if there aren't at least 4 normal intervals.
-
-	if(nnCount != 4)
-		rrshort2 = false ;
-	rrMean >>= 2 ;
-
-
-	for(i = 1, nnCount = 0; (i < 7) && (nnCount < 4); ++i)
-		if(arg2[i] == NN)
-		{
-			if(abs(rrMean-arg1[i]) > (rrMean>>4))
-				i = 10 ;
-		}
-
-	if((i < 9) && (arg1[0] < (rrMean - (rrMean>>3))))
-		rrshort2 = true ;
-	else
-		rrshort2 = false ;
 }
 
 int RRMatch2(int rr0,int rr1)
