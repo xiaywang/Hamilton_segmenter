@@ -49,6 +49,15 @@ MA 02143 USA).  For updates to this software, please visit our website
 #include "ecgcodes.h"	// Defines codes of NORMAL, PVC, and UNKNOWN.
 #include <stdlib.h>		// For abs()
 
+#include "tsc_x86.h"
+
+#ifdef OPERATION_COUNTER
+	extern long int float_add_counter;
+	extern long int float_mul_counter;
+	extern long int float_div_counter;
+	extern long int float_comp_counter;
+#endif
+
 // Define RR interval types.
 
 #define QQ	0	// Unknown-Unknown interval.

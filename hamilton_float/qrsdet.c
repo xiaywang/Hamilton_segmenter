@@ -366,6 +366,10 @@ float Peak( float datum, int init )
 
 	else if(timeSinceMax > MS95)
 		{
+		#ifdef OPERATION_COUNTER
+		float_div_counter++;
+		#endif
+		
 		pk = max ;
 		max = 0 ;
 		timeSinceMax = 0 ;
