@@ -60,16 +60,16 @@ int PCRhythm[MAXTYPES][8] ;
 **********************************************************************/
 
 void ResetPostClassify()
-	{
+{
 	int i, j ;
 	for(i = 0; i < MAXTYPES; ++i)
 		for(j = 0; j < 8; ++j)
-			{
+		{
 			PostClass[i][j] = 0 ;
 			PCRhythm[i][j] = 0 ;
-			}
+		}
 	PCInitCount = 0 ;
-	}
+}
 
 /***********************************************************************
 	Classify the previous beat type and rhythm type based on this beat
@@ -79,7 +79,7 @@ void ResetPostClassify()
 
 void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, double mi2,
 	int rhythmClass)
-	{
+{
 	static int lastRC, lastWidth ;
 	static double lastMI2 ;
 	int i, regCount, pvcCount, normRR ;
@@ -91,28 +91,28 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 
 	if((recentTypes[0] == recentTypes[2]) && (recentTypes[0] != domType)
 		&& (recentTypes[0] != recentTypes[1]))
-		{
+	{
 		mi3 = DomCompare(recentTypes[0],domType) ;
 		for(i = regCount = 0; i < 8; ++i)
 			if(PCRhythm[recentTypes[0]][i] == NORMAL)
 				++regCount ;
 		if((mi3 < 2.0) && (regCount > 6))
 			domType = recentTypes[0] ;
-		}
+	}
 
 	// Don't do anything until four beats have gone by.
 
 	if(PCInitCount < 3)
-		{
+	{
 		++PCInitCount ;
 		lastWidth = width ;
 		lastMI2 = 0 ;
 		lastRC = 0 ;
 		return ;
-		}
+	}
 
 	if(recentTypes[1] < MAXTYPES)
-		{
+	{
 
 		// Find first NN interval.
 		for(i = 2; (i < 7) && (recentTypes[i] != recentTypes[i+1]); ++i) ;
@@ -126,10 +126,10 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 				++pvcCount ;
 
 		for(i = 7; i > 0; --i)
-			{
+		{
 			PostClass[recentTypes[1]][i] = PostClass[recentTypes[1]][i-1] ;
 			PCRhythm[recentTypes[1]][i] = PCRhythm[recentTypes[1]][i-1] ;
-			}
+		}
 
 		// If the beat is premature followed by a compensitory pause and the
 		// previous and following beats are normal, post classify as
@@ -170,12 +170,12 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 		// regular rhythm classification.
 
 		else PCRhythm[recentTypes[1]][0] = lastRC ;
-		}
+	}
 
 	lastWidth = width ;
 	lastMI2 = mi2 ;
 	lastRC = rhythmClass ;
-	}
+}
 
 
 /*************************************************************************
@@ -184,7 +184,7 @@ void PostClassify(int *recentTypes, int domType, int *recentRRs, int width, doub
 *************************************************************************/
 
 int CheckPostClass(int type)
-	{
+{
 	int i, pvcs4 = 0, pvcs8 ;
 
 	if(type == MAXTYPES)
@@ -200,7 +200,7 @@ int CheckPostClass(int type)
 	if((pvcs4 >= 3) || (pvcs8 >= 6))
 		return(PVC) ;
 	else return(UNKNOWN) ;
-	}
+}
 
 /****************************************************************************
 	Check classification of previous beats' rhythms based on post beat
@@ -210,7 +210,7 @@ int CheckPostClass(int type)
 ****************************************************************************/
 
 int CheckPCRhythm(int type)
-	{
+{
 	int i, normCount, n ;
 
 
@@ -231,4 +231,4 @@ int CheckPCRhythm(int type)
 		((normCount <= 2) && (n >= 7)))
 		return(PVC) ;
 	return(UNKNOWN) ;
-	}
+}
