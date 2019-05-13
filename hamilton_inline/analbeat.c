@@ -43,6 +43,13 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 #include "tsc_x86.h"
 
+#ifdef OPERATION_COUNTER
+extern long int float_add_counter;
+extern long int float_mul_counter;
+extern long int float_div_counter;
+extern long int float_comp_counter;
+#endif
+
 // Local prototypes.
 
 inline int IsoCheck(float *data, int isoLength);

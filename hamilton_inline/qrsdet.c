@@ -77,6 +77,7 @@ Returns:
 	extern long int float_add_counter;
 	extern long int float_mul_counter;
 	extern long int float_div_counter;
+        extern long int float_comp_counter;
 #endif
 
 
@@ -111,6 +112,11 @@ int QRSDet( float datum, int init )
 	int i ;
 	float fdatum, newPeak, aPeak;
 
+	// ---------- Peak ---------- //
+	static float max=0.0, lastDatum ;
+	static int timeSinceMax=0;
+	int pk = 0 ;
+
 /*	Initialize all buffers to 0 on the first call.	*/
 
 	if( init )
@@ -126,7 +132,10 @@ int QRSDet( float datum, int init )
 		sbcount = MS1500_FLOAT ;
 		QRSFilter(0.0,1) ;	/* initialize filters. */
 		
-		Peak(0.0,1) ;
+		//Peak(0.0,1) ; -- initialize Peak variables
+		max = 0.0;
+		timeSinceMax = 0;
+		
 		return 0;
 		}
 
@@ -135,7 +144,62 @@ int QRSDet( float datum, int init )
 
 	/* Wait until normal detector is ready before calling early detections. */
 
-	aPeak = Peak(fdatum,0) ;
+	
+/**************************************************************
+* peak() takes a datum as input and returns a peak height
+* when the signal returns to half its peak height, or 
+**************************************************************/
+
+	if(timeSinceMax > 0)
+		++timeSinceMax ;
+
+	if((fdatum > lastDatum) && (fdatum > max))
+		{
+		max = fdatum ;
+		if(max > 2)
+			timeSinceMax = 1 ;
+		#ifdef OPERATION_COUNTER 
+			float_comp_counter+=3;
+		#endif
+		}
+
+	else if(fdatum < (max/2))
+		{
+		#ifdef OPERATION_COUNTER
+		float_div_counter++;
+		float_comp_counter+=3; // 2 from the previous if, 1 from this if
+		#endif
+		
+		pk = max ;
+		max = 0 ;
+		timeSinceMax = 0 ;
+		Dly = 0 ;
+		}
+
+	else if(timeSinceMax > MS95)
+		{
+		#ifdef OPERATION_COUNTER
+		  float_div_counter++; // from the previous else if
+		  float_comp_counter+=4; // 3 from previous if's, 1 from this one
+		#endif
+		
+		pk = max ;
+		max = 0 ;
+		timeSinceMax = 0 ;
+		Dly = 3 ;
+		}
+	#ifdef OPERATION_COUNTER
+	else{
+	        float_div_counter++; // in the previous else if
+		float_comp_counter+=4; // all the previous if's
+		}
+	#endif
+	
+	lastDatum = fdatum ;
+	aPeak = pk;
+
+	// --- end Peak --- //
+	
 
 	// Hold any peak that is detected for 200 ms
 	// in case a bigger one comes along.  There
@@ -156,6 +220,9 @@ int QRSDet( float datum, int init )
 
 	else if(aPeak)							// If we were holding a peak, but
 		{										// this ones bigger, save it and
+                #ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
 		if(aPeak > tempPeak)				// start counting to 200 ms again.
 			{
 			tempPeak = aPeak ;
@@ -172,7 +239,12 @@ int QRSDet( float datum, int init )
 	if( qpkcnt < 8 )
 		{
 		++count ;
-		if(newPeak > 0.0) count = WINDOW_WIDTH ;
+		#ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
+		if(newPeak > 0.0){
+		  count = WINDOW_WIDTH ;
+		}
 		if(++initBlank == MS1000)
 			{
 			initBlank = 0 ;
@@ -188,6 +260,9 @@ int QRSDet( float datum, int init )
 				det_thresh = thresh(qmedian,nmedian) ;
 				}
 			}
+		#ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
 		if( newPeak > initMax )
 			initMax = newPeak ;
 		}
@@ -195,12 +270,17 @@ int QRSDet( float datum, int init )
 	else	/* Else test for a qrs. */
 		{
 		++count ;
+		#ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
 		if(newPeak > 0.0)
 			{
 		           
 				// Classify the beat as a QRS complex
 				// if the peak is larger than the detection threshold.
-
+                                #ifdef OPERATION_COUNTER
+		                  float_comp_counter++;
+		                #endif
 				if(newPeak > det_thresh)
 					{
 					memmove(&qrsbuf[1], qrsbuf, MEMMOVELEN) ;
@@ -242,7 +322,9 @@ int QRSDet( float datum, int init )
 					// Don't include early peaks (which might be T-waves)
 					// in the search back process.  A T-wave can mask
 					// a small following QRS.
-
+                                        #ifdef OPERATION_COUNTER
+		                          float_comp_counter+=2;
+		                        #endif
 					if((newPeak > sbpeak) && ((count-WINDOW_WIDTH) >= MS360))
 						{
 						sbpeak = newPeak ;
@@ -253,7 +335,9 @@ int QRSDet( float datum, int init )
 		
 		/* Test for search back condition.  If a QRS is found in  */
 		/* search back update the QRS buffer and det_thresh.      */
-
+                #ifdef OPERATION_COUNTER
+		  float_comp_counter+=2;
+		#endif
 		if(((float)count > sbcount) && (sbpeak > (det_thresh/2)))
 			{
 			memmove(&qrsbuf[1],qrsbuf,MEMMOVELEN) ;
@@ -311,65 +395,7 @@ int QRSDet( float datum, int init )
 	return(QrsDelay) ;
 	}
 
-/**************************************************************
-* peak() takes a datum as input and returns a peak height
-* when the signal returns to half its peak height, or 
-**************************************************************/
 
-float Peak( float datum, int init )
-	{
-	static float max = 0, lastDatum ;
-	static int timeSinceMax=0;
-	int pk = 0 ;
-
-	if(init)
-	        {
-		max = timeSinceMax = 0 ;
-		return 0;
-	        }
-		
-	if(timeSinceMax > 0)
-		++timeSinceMax ;
-
-	if((datum > lastDatum) && (datum > max))
-		{
-		max = datum ;
-		if(max > 2)
-			timeSinceMax = 1 ;
-		}
-
-	else if(datum < (max/2))
-		{
-		#ifdef OPERATION_COUNTER
-		float_div_counter++;
-		#endif
-		
-		pk = max ;
-		max = 0 ;
-		timeSinceMax = 0 ;
-		Dly = 0 ;
-		}
-
-	else if(timeSinceMax > MS95)
-		{
-		#ifdef OPERATION_COUNTER
-		float_div_counter++;
-		#endif
-		
-		pk = max ;
-		max = 0 ;
-		timeSinceMax = 0 ;
-		Dly = 3 ;
-		}
-	#ifdef OPERATION_COUNTER
-	else{
-		float_div_counter++;
-		}
-	#endif
-	
-	lastDatum = datum ;
-	return(pk) ;
-	}
 
 /********************************************************************
 median returns the median of an array of integers.  It uses a slow
@@ -385,7 +411,14 @@ float median(float *array, int datnum)
 	for(i = 0; i < datnum; ++i)
 		{
 		temp = sort[i] ;
-		for(j = 0; (temp < sort[j]) && (j < i) ; ++j) ;
+		#ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
+		for(j = 0; (temp < sort[j]) && (j < i) ; ++j) {
+		  #ifdef OPERATION_COUNTER
+		    float_comp_counter++;
+		  #endif
+		  };
 		for(k = i - 1 ; k >= j ; --k)
 			sort[k+1] = sort[k] ;
 		sort[j] = temp ;
@@ -609,6 +642,9 @@ float QRSFilter(float datum,int init)
 	data[ptr] = fdatum ;
 	if(++ptr == WINDOW_WIDTH)
 		ptr = 0 ;
+	#ifdef OPERATION_COUNTER
+	  float_comp_counter++;
+	#endif
 	if((sum / (float)WINDOW_WIDTH) > 32000.f){
 		output = 32000.f ;
 	} else {

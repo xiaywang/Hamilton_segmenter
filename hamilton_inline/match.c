@@ -386,6 +386,9 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 		}
 		else if(beatDiff < minDiff)
 		{
+			#ifdef OPERATION_COUNTER 
+			float_comp_counter++;
+			#endif
 			minDiff = beatDiff ;
 			minShift = shift ;
 		}
@@ -669,7 +672,7 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 
 			// Combine beats into bestMatch
 			#ifdef OPERATION_COUNTER
-				float_comp_counter++;
+				float_comp_counter+=2;
 			#endif 
 
 			if(bestMatch < nextBest)
