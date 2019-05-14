@@ -7,6 +7,7 @@
 #include "ecg_data.h"
 #include "bdac.h"
 
+#include "config.h"
 #include "tsc_x86.h"
 
 // External function prototypes.
@@ -44,11 +45,14 @@ MAINTYPE main()
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
 		end_Classify = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 	#endif
 
 	int i, delay;
-	float ecg;
+	float ecg[MAIN_BLOCK_SIZE];
+	int delayArray[MAIN_BLOCK_SIZE];
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
 	int beatType, beatMatch ;
@@ -70,9 +74,8 @@ MAINTYPE main()
 #endif
 		// Read data from MIT/BIH file until there is none left.
 
-		while(SampleCount < N_DATA)
+		while(SampleCount <= N_DATA - MAIN_BLOCK_SIZE)
 			{
-			++SampleCount ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -80,10 +83,12 @@ MAINTYPE main()
 			#endif
 
 			// Pass sample to beat detection and classification.
+			// set buffer to give to bdac and reset delay array
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
 
-			ecg = ecg_data[SampleCount-1];
-
-			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
+			BeatDetectAndClassify(ecg, delayArray, MAIN_BLOCK_SIZE,&beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -92,28 +97,78 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg);
+			fprintf(fp, "%f\n", ecg[0]);
 			fclose(fp);
 #endif
 
 			// If a beat was detected, annotate the beat location
 			// and type.
-
-			if(delay != 0)
-				{
-				DetectionTime = SampleCount - delay ;
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
 #if PRINT
-				printf("DetectionTime %li\n", DetectionTime);
+					printf("DetectionTime %li\n", DetectionTime);
 #endif
 
 #if SAVEFILE
-				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
-				fprintf(fp, "%ld\n", DetectionTime);
-				fclose(fp);
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
 #endif
 
+					}
 				}
+			SampleCount += MAIN_BLOCK_SIZE;
+			}
+			// clean up for cases where N_DATA is not divisible by MAIN_BLOCK_SIZE
+			if(SampleCount > N_DATA-MAIN_BLOCK_SIZE)
+			{
+			SampleCount;
+			int restLenght = N_DATA - SampleCount; 
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				start_time = start_tsc();
+			#endif
 
+			// Pass sample to beat detection and classification.
+			for(int index = 0; index < restLenght; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
+
+			BeatDetectAndClassify(ecg, delayArray, restLenght,&beatType, &beatMatch) ;
+
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				end_time += stop_tsc(start_time);
+			#endif
+
+#if SAVEFILE
+			fp = fopen("./to_plot/100.csv", "a+");
+			fprintf(fp, "%f\n", ecg[0]);
+			fclose(fp);
+#endif
+
+			// If a beat was detected, annotate the beat location
+			// and type.
+			for(int index = 0; index < restLenght; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
+#if PRINT
+					printf("DetectionTime %li\n", DetectionTime);
+#endif
+
+#if SAVEFILE
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
+#endif
+
+					}
+				}
 			}
 
 	#ifdef OPERATION_COUNTER
@@ -131,11 +186,21 @@ MAINTYPE main()
 		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
-			printf("QRSdet runtime:   %lli\n", end_QRSDet);
-			printf("Classify runtime: %lli\n", end_Classify);
+			#ifdef RUNTIME_QRSDET
+				printf("QRSdet runtime:   %lli\n", end_QRSDet);
+				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
+			#endif
+			#ifdef RUNTIME_CLASSIFY
+				printf("Classify runtime: %lli\n", end_Classify);
+			#endif
 			printf("total runtime:    %lli\n",end_time);
+			#ifdef OPERATION_COUNTER
 			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
 			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
+			#else
+			printf("performance:      %f\n", (double)(259724 )/(double)end_time);
+			printf("performance (w/ comp):      %f\n", (double)(337451 )/(double)end_time);
+			#endif
 		#endif
 		// TODO: filesave
 	#endif

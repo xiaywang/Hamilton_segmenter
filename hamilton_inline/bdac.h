@@ -55,4 +55,4 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define MAXTYPES 8
 #define FIDMARK BEAT_MS400
 
-int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch);
+void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, int *beatType, int *beatMatch);
