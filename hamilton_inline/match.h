@@ -51,3 +51,9 @@ int WideBeatVariation(int type) ;
 double DomCompare2(float *newBeat, int domType) ;
 double DomCompare(int newType, int domType) ;
 
+
+int TypeCount;
+int BeatCounts[MAXTYPES] ;
+int BeatClassifications[MAXTYPES] ;
+double MIs[MAXTYPES][8] ;
+

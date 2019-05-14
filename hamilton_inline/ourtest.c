@@ -11,6 +11,13 @@
 #include "tsc_x86.h"
 #include "notch.h"
 
+//needed to init qrsdet, qrsfilt, bdac, classify
+#include "classify.h"
+#include "postclas.h"
+#include "match.h"
+#include "rythmchk.h"
+#include "ecgcodes.h"
+
 // External function prototypes.
 void ResetBDAC(void) ;
 
@@ -51,7 +58,7 @@ MAINTYPE main()
 		#endif
 	#endif
 
-	int i, delay;
+	int i, j, delay;
 	float ecg[MAIN_BLOCK_SIZE], filterOut[MAIN_BLOCK_SIZE];
 	int delayArray[MAIN_BLOCK_SIZE];
 	unsigned char byte ;
@@ -61,9 +68,84 @@ MAINTYPE main()
 
 
 
-		// Initialize beat detection and classification.
+		//~~~~~ Initialize beat detection and classification.
+		//~~~ QRSDet init
+		for(i = 0; i < 8; ++i)
+		{
+			noise[i] = 0.0 ;	/* Initialize noise buffer */
+			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+		}
+		maxder=lastmax= initMax= 0.0;
+		qpkcnt  = count = sbpeak = 0 ;
+		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
+		sbcount = MS1500_FLOAT ;
+		
+		max = 0.0;
+		timeSinceMax = 0;
 
-		ResetBDAC() ;
+
+		//~~~ QRSfilt init
+		//lpfilt
+		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+			lp_data[i_init] = 0.f;
+
+		//hpfilt
+		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+			hp_data[i_init] = 0.f;
+
+		//derivative
+		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+			derBuff[i_init] = 0 ;
+		
+		//movint window integration
+		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+			data[i_init] = 0 ;
+
+		//~~~~bdac init
+		RRCount = 0;
+		InitBeatFlag = 1 ;
+		BeatQueCount = 0 ;	// Flush the beat que.
+
+		//~~~Classify init
+		BeatCount = 0 ;
+		ClassifyState = LEARNING ;
+
+		TypeCount = 0 ;
+		for(i = 0; i < MAXTYPES; ++i)
+		{
+			BeatCounts[i] = 0 ;
+			BeatClassifications[i] = UNKNOWN ;
+			for(j = 0; j < 8; ++j)
+			{
+				MIs[i][j] = 0 ;
+			}
+		}
+
+		for(i = 0; i < MAXTYPES; ++i)
+			for(j = 0; j < 8; ++j)
+			{
+				PostClass[i][j] = 0 ;
+				PCRhythm[i][j] = 0 ;
+			}
+		PCInitCount = 0 ;
+
+		runCount = 0 ;
+
+		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+		{
+			DMBeatTypes[i] = -1 ;
+			DMBeatClasses[i] = 0 ;
+		}
+
+		for(i = 0; i < 8; ++i)
+		{
+			DMNormCounts[i] = 0 ;
+			DMBeatCounts[i] = 0 ;
+		}
+		DMIrregCount = 0 ;
+
+
+		// ResetBDAC() ;
 		SampleCount = 0 ;
 #if SAVEFILE
 		FILE *fp;

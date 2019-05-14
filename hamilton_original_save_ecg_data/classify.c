@@ -57,7 +57,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 *******************************************************************************/
 
-#include "ecgcodes.h"
+#include <wfdb/ecgcodes.h>
 #include <stdlib.h>	// For abs()
 #include <stdio.h>
 #include "qrsdet.h"	// For base sample rate.
@@ -66,15 +66,6 @@ MA 02143 USA).  For updates to this software, please visit our website
 #include "rythmchk.h"
 #include "analbeat.h"
 #include "postclas.h"
-#include "classify.h"
-#include "tsc_x86.h"
-
-#ifdef OPERATION_COUNTER
-extern long int float_add_counter;
-extern long int float_mul_counter;
-extern long int float_div_counter;
-extern long int float_comp_counter;
-#endif
 
 // Detection Rule Parameters.
 
@@ -123,65 +114,17 @@ extern long int float_comp_counter;
 
 // Local prototypes.
 
-//inline int HFNoiseCheck(float *beat) ;
-inline int TempClass(int rhythmClass, int morphType, int beatWidth, int domWidth,
+int HFNoiseCheck(int *beat) ;
+int TempClass(int rhythmClass, int morphType, int beatWidth, int domWidth,
 	int domType, int hfNoise, int noiseLevel, int blShift, double domIndex) ;
-inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
-inline int GetDomRhythm(void) ;
-inline int GetRunCount(void) ;
+int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
+int GetDomRhythm(void) ;
+int GetRunCount(void) ;
 
 // Local Global variables
 
+int DomType ;
 int RecentRRs[8], RecentTypes[8] ;
-
-// int Classify_init()
-// {
-// 	int i, j ;
-
-// 	BeatCount = 0 ;
-// 	ClassifyState = LEARNING ;
-
-// 	TypeCount = 0 ;
-// 	for(i = 0; i < MAXTYPES; ++i)
-// 	{
-// 		BeatCounts[i] = 0 ;
-// 		BeatClassifications[i] = UNKNOWN ;
-// 		for(j = 0; j < 8; ++j)
-// 		{
-// 			MIs[i][j] = 0 ;
-// 		}
-// 	}
-
-// 	for(i = 0; i < MAXTYPES; ++i)
-// 		for(j = 0; j < 8; ++j)
-// 		{
-// 			PostClass[i][j] = 0 ;
-// 			PCRhythm[i][j] = 0 ;
-// 		}
-// 	PCInitCount = 0 ;
-
-// 	runCount = 0 ;
-
-// 	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-// 	{
-// 		DMBeatTypes[i] = -1 ;
-// 		DMBeatClasses[i] = 0 ;
-// 	}
-
-// 	for(i = 0; i < 8; ++i)
-// 	{
-// 		DMNormCounts[i] = 0 ;
-// 		DMBeatCounts[i] = 0 ;
-// 	}
-// 	DMIrregCount = 0 ;
-// 	// ResetRhythmChk() ;
-// 	// ResetMatch() ;
-// 	// ResetPostClassify() ;
-// 	// runCount = 0 ;
-// 	// DomMonitor(0, 0, 0, 0, 1) ;
-// 	// return(0) ;
-// }
-
 
 /***************************************************************************
 *  Classify() takes a beat buffer, the previous rr interval, and the present
@@ -192,11 +135,11 @@ int RecentRRs[8], RecentTypes[8] ;
 *  resets the static variables used by Classify.
 ****************************************************************************/
 
-int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
+int Classify(int *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	int init)
-{
+	{
 	int rhythmClass, beatClass, i, beatWidth, blShift ;
-	static int morphType;
+	static int morphType, runCount = 0 ;
 	double matchIndex, domIndex, mi2 ;
 	int shiftAdj ;
 	int domType, domWidth, onset, offset, amp ;
@@ -206,22 +149,23 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	// If initializing...
 
-	// if(init)
-	// {
-	// 	ResetRhythmChk() ;
-	// 	ResetMatch() ;
-	// 	ResetPostClassify() ;
-	// 	runCount = 0 ;
-	// 	DomMonitor(0, 0, 0, 0, 1) ;
-	// 	return(0) ;
-	// }
+	if(init)
+		{
+		ResetRhythmChk() ;
+		ResetMatch() ;
+		ResetPostClassify() ;
+		runCount = 0 ;
+		DomMonitor(0, 0, 0, 0, 1) ;
+		return(0) ;
+		}
 
 	hfNoise = HFNoiseCheck(newBeat) ;	// Check for muscle noise.
 	rhythmClass = RhythmChk(rr) ;			// Check the rhythm.
 
 	// Estimate beat features.
 
-	AnalyzeBeat(newBeat, &onset, &offset, &isoLevel, &beatBegin, &beatEnd, &amp) ;
+	AnalyzeBeat(newBeat, &onset, &offset, &isoLevel,
+		&beatBegin, &beatEnd, &amp) ;
 
 	blShift = abs(lastIsoLevel-isoLevel) ;
 	lastIsoLevel = isoLevel ;
@@ -229,12 +173,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	// Make isoelectric level 0.
 
 	for(i = 0; i < BEATLGTH; ++i)
-	{
-		newBeat[i] -= (float)isoLevel ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		#endif
-	}
+		newBeat[i] -= isoLevel ;
 
 	// If there was a significant baseline shift since
 	// the last beat and the last beat was a new type,
@@ -262,10 +201,10 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	if((matchIndex < MATCH_LIMIT) && (rhythmClass == PVC) &&
 		MinimumBeatVariation(morphType) && (mi2 > PVC_MATCH_WITH_AMP_LIMIT))
-	{
+		{
 		morphType = NewBeatType(newBeat) ;
 		lastBeatWasNew = 1 ;
-	}
+		}
 
 	// Match if within standard match limits.
 
@@ -276,18 +215,18 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	else if((blShift < BL_SHIFT_LIMIT) && (noiseLevel < NEW_TYPE_NOISE_THRESHOLD)
 		&& (hfNoise < NEW_TYPE_HF_NOISE_LIMIT))
-	{
+		{
 		morphType = NewBeatType(newBeat) ;
 		lastBeatWasNew = 1 ;
-	}
+		}
 
 	// Even if it is a noisy, start new beat if it was an irregular beat.
 
 	else if((lastRhythmClass != NORMAL) || (rhythmClass != NORMAL))
-	{
+		{
 		morphType = NewBeatType(newBeat) ;
 		lastBeatWasNew = 1 ;
-	}
+		}
 
 	// If its noisy and regular, don't waste space starting a new beat.
 
@@ -296,10 +235,10 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	// Update recent rr and type arrays.
 
 	for(i = 7; i > 0; --i)
-	{
+		{
 		RecentRRs[i] = RecentRRs[i-1] ;
 		RecentTypes[i] = RecentTypes[i-1] ;
-	}
+		}
 	RecentRRs[0] = rr ;
 	RecentTypes[0] = morphType ;
 
@@ -310,7 +249,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	// Get features from average beat if it matched.
 
 	if(morphType != MAXTYPES)
-	{
+		{
 		beatClass = GetBeatClass(morphType) ;
 		beatWidth = GetBeatWidth(morphType) ;
 		*fidAdj = GetBeatCenter(morphType)-FIDMARK ;
@@ -320,26 +259,25 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 		// estimate.
 
 		if((beatWidth > offset-onset) && (GetBeatTypeCount(morphType) <= 4))
-		{
+			{
 			beatWidth = offset-onset ;
 			*fidAdj = ((offset+onset)/2)-FIDMARK ;
+			}
 		}
-	}
 
 	// If this beat didn't match get beat features directly
 	// from this beat.
 
 	else
-	{
+		{
 		beatWidth = offset-onset ;
 		beatClass = UNKNOWN ;
 		*fidAdj = ((offset+onset)/2)-FIDMARK ;
-	}
+		}
 
 	// Fetch dominant type beat features.
 
-	// DomType = domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
-	domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
+	DomType = domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
 	domWidth = GetBeatWidth(domType) ;
 
 	// Compare the beat type, or actual beat to the dominant beat.
@@ -364,7 +302,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	// it.
 
 	if((beatClass == UNKNOWN) && (morphType < MAXTYPES))
-	{
+		{
 
 		// Classify as normal if there are 6 in a row
 		// or at least two in a row that meet rhythm
@@ -389,13 +327,13 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 		// they are not too narrow.
 
 		else if(IsBigeminy() == 1)
-		{
+			{
 			if((rhythmClass == PVC) && (beatWidth > BEAT_MS100))
 				SetBeatClass(morphType,PVC) ;
 			else if(rhythmClass == NORMAL)
 				SetBeatClass(morphType,NORMAL) ;
+			}
 		}
-	}
 
 	// Save morphology type of this beat for next classification.
 
@@ -416,7 +354,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	// Otherwise use the temporary classification.
 
 	return(tempClass) ;
-}
+	}
 
 /**************************************************************************
 *  HFNoiseCheck() gauges the high frequency (muscle noise) present in the
@@ -429,13 +367,12 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 **************************************************************************/
 
 #define AVELENGTH	BEAT_MS50
-#define AVELENGTH_FLOAT	BEAT_MS50_FLOAT
 
-inline int HFNoiseCheck(float *beat)
-{
-	int i, avePtr = 0 ;
-	float aveBuff[AVELENGTH];
-	float qrsMax = 0.0, qrsMin = 0.0, sum = 0.0, maxNoiseAve = 0.0;
+int HFNoiseCheck(int *beat)
+	{
+	int maxNoiseAve = 0, i ;
+	int sum=0, aveBuff[AVELENGTH], avePtr = 0 ;
+	int qrsMax = 0, qrsMin = 0 ;
 
 	// Determine the QRS amplitude.
 
@@ -446,55 +383,33 @@ inline int HFNoiseCheck(float *beat)
 			qrsMin = beat[i] ;
 
 	for(i = 0; i < AVELENGTH; ++i)
-		aveBuff[i] = 0.0 ;
+		aveBuff[i] = 0 ;
 
 	for(i = FIDMARK-BEAT_MS280; i < FIDMARK+BEAT_MS280; ++i)
-	{
+		{
 		sum -= aveBuff[avePtr] ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		#endif
-		
-		aveBuff[avePtr] = abs(beat[i] - (beat[i-BEAT_MS10]*2) + beat[i-2*BEAT_MS10]) ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter+=2;
-		float_mul_counter++;
-		#endif
-		
+		aveBuff[avePtr] = abs(beat[i] - (beat[i-BEAT_MS10]<<1) + beat[i-2*BEAT_MS10]) ;
 		sum += aveBuff[avePtr] ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		#endif
-		
 		if(++avePtr == AVELENGTH)
 			avePtr = 0 ;
 		if((i < (FIDMARK - BEAT_MS50)) || (i > (FIDMARK + BEAT_MS110)))
 			if(sum > maxNoiseAve)
 				maxNoiseAve = sum ;
-	}
-
+		}
 	if((qrsMax - qrsMin)>=4)
-	{
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		float_mul_counter++;
-		float_div_counter+=3;
-		float_comp_counter++;
-		#endif
-		return(int)(((maxNoiseAve * (50.0/AVELENGTH_FLOAT))/((qrsMax-qrsMin)/4))) ;
-	}
+		return((maxNoiseAve * (50/AVELENGTH))/((qrsMax-qrsMin)>>2)) ;
 	else return(0) ;
-}
+	}
 
 /************************************************************************
 *  TempClass() classifies beats based on their beat features, relative
 *  to the features of the dominant beat and the present noise level.
 *************************************************************************/
 
-inline int TempClass(int rhythmClass, int morphType,
+int TempClass(int rhythmClass, int morphType,
 	int beatWidth, int domWidth, int domType,
 	int hfNoise, int noiseLevel, int blShift, double domIndex)
-{
+	{
 
 	// Rule 1:  If no dominant type has been detected classify all
 	// beats as UNKNOWN.
@@ -509,13 +424,7 @@ inline int TempClass(int rhythmClass, int morphType,
 
 	if(MinimumBeatVariation(domType) && (rhythmClass == PVC)
 		&& (domIndex > R2_DI_THRESHOLD) && (GetDomRhythm() == 1))
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
 		return(PVC) ;
-	}
-		
 
 	// Rule 3:  If the beat is sufficiently narrow, classify as normal.
 
@@ -542,35 +451,21 @@ inline int TempClass(int rhythmClass, int morphType,
 	// rhythm is regular, call it normal.
 
 	if((domIndex < R7_DI_THRESHOLD) && (rhythmClass == NORMAL))
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
 		return(NORMAL) ;
-	}	
 
 	// Rule 8:  If post classification rhythm is normal for this
 	// type and its shape is close to the dominant shape, classify
 	// as normal.
 
 	if((domIndex < R8_DI_THRESHOLD) && (CheckPCRhythm(morphType) == NORMAL))
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
 		return(NORMAL) ;
-	}
+
 	// Rule 9:  If the beat is not premature, it looks similar to the dominant
 	// beat type, and the dominant beat type is variable (noisy), classify as
 	// normal.
 
 	if((domIndex < R9_DI_THRESHOLD) && (rhythmClass != PVC) && WideBeatVariation(domType))
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
 		return(NORMAL) ;
-	}
 
 	// Rule 10:  If this beat is significantly different from the dominant beat
 	// there have previously been matching beats, the post rhythm classification
@@ -579,12 +474,7 @@ inline int TempClass(int rhythmClass, int morphType,
 	if((domIndex > R10_DI_THRESHOLD)
 		&& (GetBeatTypeCount(morphType) >= R10_BC_LIM) &&
 		(CheckPCRhythm(morphType) == PVC) && (GetDomRhythm() == 1))
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
-		return(PVC);
-	}
+		return(PVC) ;
 
 	// Rule 11: if the beat is wide, wider than the dominant beat, doesn't
 	// appear to be noisy, and matches a previous type, classify it as
@@ -620,14 +510,7 @@ inline int TempClass(int rhythmClass, int morphType,
 
 	if((beatWidth > domWidth) && (domIndex > R15_DI_THRESHOLD) &&
 		(beatWidth >= R15_WIDTH_THRESHOLD))
-			
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
-		return(PVC);
-	}
-
+		return(PVC) ;
 
 	// Rule 16:  If the beat is sufficiently narrow, call it normal.
 
@@ -646,12 +529,7 @@ inline int TempClass(int rhythmClass, int morphType,
 	// Rule 18:  If the beat is similar to the dominant beat, call it normal.
 
 	if(domIndex < R18_DI_THRESHOLD)
-	{
-		#ifdef OPERATION_COUNTER 
-		float_comp_counter++;
-		#endif
 		return(NORMAL) ;
-	}
 
 	// If it's noisy don't trust the width.
 
@@ -667,7 +545,7 @@ inline int TempClass(int rhythmClass, int morphType,
 
 	return(PVC) ;
 
-}
+	}
 
 
 /****************************************************************************
@@ -678,15 +556,17 @@ inline int TempClass(int rhythmClass, int morphType,
 *  have been classified as regular.
 *******************************************************************************/
 
-//#define DM_BUFFER_LENGTH	180
+#define DM_BUFFER_LENGTH	180
 
 int NewDom, DomRhythm ;
+int DMBeatTypes[DM_BUFFER_LENGTH], DMBeatClasses[DM_BUFFER_LENGTH] ;
 int DMBeatRhythms[DM_BUFFER_LENGTH] ;
+int DMNormCounts[8], DMBeatCounts[8], DMIrregCount = 0 ;
 
-inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
-{
+int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
+	{
 	static int brIndex = 0 ;
-	int i, oldType, runCount_DomMonitor, dom, max ;
+	int i, oldType, runCount, dom, max ;
 
 	// Fetch the type of the beat before the last beat.
 
@@ -698,40 +578,40 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 	// If reset flag is set, reset beat type counts and
 	// beat information buffers.
 
-	// if(reset != 0)
-	// {
-	// 	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	// 	{
-	// 		DMBeatTypes[i] = -1 ;
-	// 		DMBeatClasses[i] = 0 ;
-	// 	}
+	if(reset != 0)
+		{
+		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+			{
+			DMBeatTypes[i] = -1 ;
+			DMBeatClasses[i] = 0 ;
+			}
 
-	// 	for(i = 0; i < 8; ++i)
-	// 	{
-	// 		DMNormCounts[i] = 0 ;
-	// 		DMBeatCounts[i] = 0 ;
-	// 	}
-	// 	DMIrregCount = 0 ;
-	// 	return(0) ;
-	// }
+		for(i = 0; i < 8; ++i)
+			{
+			DMNormCounts[i] = 0 ;
+			DMBeatCounts[i] = 0 ;
+			}
+		DMIrregCount = 0 ;
+		return(0) ;
+		}
 
 	// Once we have wrapped around, subtract old beat types from
 	// the beat counts.
 
 	if((DMBeatTypes[brIndex] != -1) && (DMBeatTypes[brIndex] != MAXTYPES))
-	{
+		{
 		--DMBeatCounts[DMBeatTypes[brIndex]] ;
 		DMNormCounts[DMBeatTypes[brIndex]] -= DMBeatClasses[brIndex] ;
 		if(DMBeatRhythms[brIndex] == UNKNOWN)
 			--DMIrregCount ;
-	}
+		}
 
 	// If this is a morphology that has been detected before, decide
 	// (for the purposes of selecting the dominant normal beattype)
 	// whether it is normal or not and update the approporiate counts.
 
 	if(morphType != 8)
-	{
+		{
 
 		// Update the buffers of previous beats and increment the
 		// count for this beat type.
@@ -751,18 +631,18 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 
 		i = brIndex - 1 ;
 		if(i < 0) i += DM_BUFFER_LENGTH ;
-		for(runCount_DomMonitor = 0; (DMBeatTypes[i] == morphType) && (runCount_DomMonitor < 6); ++runCount_DomMonitor)
+		for(runCount = 0; (DMBeatTypes[i] == morphType) && (runCount < 6); ++runCount)
 			if(--i < 0) i += DM_BUFFER_LENGTH ;
 
 		// If the rhythm is regular, the beat width is less than 130 ms, and
 		// there have been at least two in a row, consider the beat to be
 		// normal.
 
-		if((rhythmClass == NORMAL) && (beatWidth < BEAT_MS130) && (runCount_DomMonitor >= 1))
-		{
+		if((rhythmClass == NORMAL) && (beatWidth < BEAT_MS130) && (runCount >= 1))
+			{
 			DMBeatClasses[brIndex] = 1 ;
 			++DMNormCounts[morphType] ;
-		}
+			}
 
 		// If the last beat was within the normal P-R interval for this beat,
 		// and the one before that was this beat type, assume the last beat
@@ -770,24 +650,24 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 
 		else if(rr < ((FIDMARK-GetBeatBegin(morphType))*SAMPLE_RATE/BEAT_SAMPLE_RATE)
 			&& (oldType == morphType))
-		{
+			{
 			DMBeatClasses[brIndex] = 1 ;
 			++DMNormCounts[morphType] ;
-		}
+			}
 
 		// Otherwise assume that this is not a normal beat.
 
 		else DMBeatClasses[brIndex] = 0 ;
-	}
+		}
 
 	// If the beat does not match any of the beat types, store
 	// an indication that the beat does not match.
 
 	else
-	{
+		{
 		DMBeatClasses[brIndex] = 0 ;
 		DMBeatTypes[brIndex] = -1 ;
-	}
+		}
 
 	// Increment the index to the beginning of the circular buffers.
 
@@ -833,32 +713,70 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 
 	NewDom = dom ;
 	return(dom) ;
-}
+	}
 
-inline int GetNewDominantType(void)
-{
+int GetNewDominantType(void)
+	{
 	return(NewDom) ;
-}
+	}
 
-inline int GetDomRhythm(void)
-{
+int GetDomRhythm(void)
+	{
 	if(DMIrregCount > IRREG_RR_LIMIT)
 		return(0) ;
 	else return(1) ;
-}
+	}
 
 
+void AdjustDomData(int oldType, int newType)
+	{
+	int i ;
 
+	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+		{
+		if(DMBeatTypes[i] == oldType)
+			DMBeatTypes[i] = newType ;
+		}
+
+	if(newType != MAXTYPES)
+		{
+		DMNormCounts[newType] = DMNormCounts[oldType] ;
+		DMBeatCounts[newType] = DMBeatCounts[oldType] ;
+		}
+
+	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
+
+	}
+
+void CombineDomData(int oldType, int newType)
+	{
+	int i ;
+
+	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+		{
+		if(DMBeatTypes[i] == oldType)
+			DMBeatTypes[i] = newType ;
+		}
+
+	if(newType != MAXTYPES)
+		{
+		DMNormCounts[newType] += DMNormCounts[oldType] ;
+		DMBeatCounts[newType] += DMBeatCounts[oldType] ;
+		}
+
+	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
+
+	}
 
 /***********************************************************************
 	GetRunCount() checks how many of the present beat type have occurred
 	in a row.
 ***********************************************************************/
 
-inline int GetRunCount()
-{
+GetRunCount()
+	{
 	int i ;
 	for(i = 1; (i < 8) && (RecentTypes[0] == RecentTypes[i]); ++i) ;
 	return(i) ;
-}
+	}
 
