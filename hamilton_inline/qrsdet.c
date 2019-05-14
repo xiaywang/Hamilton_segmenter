@@ -86,7 +86,7 @@ Returns:
 float QRSFilter(float datum, int init) ;
 
 float Peak( float datum, int init ) ;
-float median(float *array, int datnum) ; // Xia: called many times
+float median(float *array) ; // Xia: called many times
 float thresh(float qmedian, float nmedian) ; // Xia: called many times
 
 
@@ -118,12 +118,12 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 	/*	Initialize all buffers to 0 on the first call.	*/
 
 	if( init )
-		{
+	{
 		for(i = 0; i < 8; ++i)
-			{
+		{
 			noise[i] = 0.0 ;	/* Initialize noise buffer */
 			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
-			}
+		}
 		maxder=lastmax= initMax= 0.0;
 		qpkcnt  = count = sbpeak = 0 ;
 		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
@@ -138,7 +138,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 			delayArray[index] = 0;
 		}
 		return;
-		}
+	}
 
 
 	for(int index = 0; index < sampleLength; index++){
@@ -266,7 +266,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 				++qpkcnt ;
 				if(qpkcnt == 8)
 					{
-					qmedian = median(qrsbuf, 8 ) ;
+					qmedian = median(qrsbuf) ;
 					nmedian = 0.0 ;
 					rrmedian = MS1000_FLOAT ;
 					sbcount = MS1500_FLOAT+MS1500_FLOAT ;
@@ -298,11 +298,11 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 						{
 						memmove(&qrsbuf[1], qrsbuf, MEMMOVELEN) ;
 						qrsbuf[0] = newPeak ;
-						qmedian = median(qrsbuf,8) ;
+						qmedian = median(qrsbuf) ;
 						det_thresh = thresh(qmedian,nmedian) ;
 						memmove(&rrbuf[1], rrbuf, MEMMOVELEN) ;
 						rrbuf[0] = (float)(count - WINDOW_WIDTH) ;
-						rrmedian = median(rrbuf,8) ;
+						rrmedian = median(rrbuf) ;
 						sbcount = rrmedian + (rrmedian/2) + WINDOW_WIDTH_FLOAT ;
 						count = WINDOW_WIDTH ;
 
@@ -329,7 +329,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 						{
 						memmove(&noise[1],noise,MEMMOVELEN) ;
 						noise[0] = newPeak ;
-						nmedian = median(noise,8) ;
+						nmedian = median(noise) ;
 						det_thresh = thresh(qmedian,nmedian) ;
 
 						// Don't include early peaks (which might be T-waves)
@@ -355,11 +355,11 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 				{
 				memmove(&qrsbuf[1],qrsbuf,MEMMOVELEN) ;
 				qrsbuf[0] = (float)sbpeak ;
-				qmedian = median(qrsbuf,8) ;
+				qmedian = median(qrsbuf) ;
 				det_thresh = thresh(qmedian,nmedian) ;
 				memmove(&rrbuf[1],rrbuf,MEMMOVELEN) ;
 				rrbuf[0] = (float)sbloc ;
-				rrmedian = median(rrbuf,8) ;
+				rrmedian = median(rrbuf) ;
 				sbcount = rrmedian + (rrmedian/2) + WINDOW_WIDTH_FLOAT ;
 				QrsDelay = count = count - sbloc ;
 				QrsDelay += FILTER_DELAY ;
@@ -392,7 +392,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 						qrsbuf[i] = rsetBuff[i] ;
 						noise[i] = 0.0 ;
 						}
-					qmedian = median( rsetBuff, 8 ) ;
+					qmedian = median( rsetBuff) ;
 					nmedian = 0.0 ;
 					rrmedian = MS1000_FLOAT ;
 					sbcount = MS1500_FLOAT+MS1500_FLOAT ;
@@ -417,13 +417,13 @@ median returns the median of an array of integers.  It uses a slow
 sort algorithm, but these arrays are small, so it hardly matters.
 ********************************************************************/
 
-float median(float *array, int datnum)
+float median(float *array)
 	{
 	int i, j, k;
 	float sort[20], temp;
-	for(i = 0; i < datnum; ++i)
+	for(i = 0; i < 8; ++i)
 		sort[i] = array[i] ;
-	for(i = 0; i < datnum; ++i)
+	for(i = 0; i < 8; ++i)
 		{
 		temp = sort[i] ;
 		#ifdef OPERATION_COUNTER
@@ -438,7 +438,7 @@ float median(float *array, int datnum)
 			sort[k+1] = sort[k] ;
 		sort[j] = temp ;
 		}
-	return(sort[datnum>>1]) ;
+	return(sort[4]) ;
 	}
 
 
