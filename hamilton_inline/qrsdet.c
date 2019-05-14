@@ -83,7 +83,7 @@ Returns:
 
 // Local Prototypes.
 
-float QRSFilter(float datum, int init) ;
+void QRSFilter(float* datum, float* output, int sampleLength, int init) ;
 
 float Peak( float datum, int init ) ;
 float median(float *array) ; // Xia: called many times
@@ -109,7 +109,8 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 	static int preBlankCnt;
 	
 	int i ;
-	float fdatum, newPeak, aPeak;
+	float fdatum[sampleLength];
+	float newPeak, aPeak;
 
 	// ---------- Peak ---------- //
 	static float max=0.0, lastDatum ;
@@ -128,7 +129,9 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 		qpkcnt  = count = sbpeak = 0 ;
 		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
 		sbcount = MS1500_FLOAT ;
-		QRSFilter(0.0,1) ;	/* initialize filters. */
+		float dummyData = 0.0f;
+		float dummyOut;
+		QRSFilter(&dummyData,&dummyOut,1,1) ;	/* initialize filters. */
 		
 		//Peak(0.0,1) ; -- initialize Peak variables
 		max = 0.0;
@@ -141,20 +144,20 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 	}
 
 
-	for(int index = 0; index < sampleLength; index++){
-		int QrsDelay = 0 ;
-		int pk = 0 ;
 
 		#ifdef RUNTIME_QRSDET
 			start_QRSFilt = start_tsc();
 		#endif
 		
-		fdatum = QRSFilter(datum[index],0) ;	/* Filter data. */
+		QRSFilter(datum, fdatum, sampleLength,0) ;	/* Filter data. */
 
 		#ifdef RUNTIME_QRSDET
 			end_QRSFilt += stop_tsc(start_QRSFilt);
 		#endif
 
+	for(int index = 0; index < sampleLength; index++){
+		int QrsDelay = 0 ;
+		int pk = 0 ;
 		/* Wait until normal detector is ready before calling early detections. */
 
 	
@@ -166,9 +169,9 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 		if(timeSinceMax > 0)
 			++timeSinceMax ;
 
-		if((fdatum > lastDatum) && (fdatum > max))
+		if((fdatum[index] > lastDatum) && (fdatum[index] > max))
 			{
-			max = fdatum ;
+			max = fdatum[index] ;
 			if(max > 2)
 				timeSinceMax = 1 ;
 			#ifdef OPERATION_COUNTER 
@@ -176,7 +179,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 			#endif
 			}
 
-		else if(fdatum < (max/2))
+		else if(fdatum[index] < (max/2))
 			{
 			#ifdef OPERATION_COUNTER
 			float_div_counter++;
@@ -208,7 +211,7 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 			}
 		#endif
 		
-		lastDatum = fdatum ;
+		lastDatum = fdatum[index] ;
 		aPeak = pk;
 
 		// --- end Peak --- //
@@ -291,9 +294,10 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 			           
 					// Classify the beat as a QRS complex
 					// if the peak is larger than the detection threshold.
-	                                #ifdef OPERATION_COUNTER
-			                  float_comp_counter++;
-			                #endif
+                    #ifdef OPERATION_COUNTER
+                	float_comp_counter++;
+	                #endif
+
 					if(newPeak > det_thresh)
 						{
 						memmove(&qrsbuf[1], qrsbuf, MEMMOVELEN) ;
@@ -466,128 +470,133 @@ float thresh(float qmedian, float nmedian)
 
 #if QRSFILT_OPT == 1
 
-float QRSFilter(float datum,int init)
+void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 	{
-	// data buffer for lpfilt
-	static float lp_data[LPBUFFER_LGTH];
+	for(int index = 0; index < sampleLength; index++){
+		// data buffer for lpfilt
+		static float lp_data[LPBUFFER_LGTH];
 
-	// data buffer for hpfilt
-	static float hp_data[HPBUFFER_LGTH];
+		// data buffer for hpfilt
+		static float hp_data[HPBUFFER_LGTH];
 
-	// data buffer for derivative
-	static float derBuff[DERIV_LENGTH] ;
+		// data buffer for derivative
+		static float derBuff[DERIV_LENGTH] ;
 
-	// data buffer for moving window average
-	static float data[WINDOW_WIDTH];
-    
+		// data buffer for moving window average
+		static float data[WINDOW_WIDTH];
+	    
 
-	if(init)
-		{
-		printf("init is %i \n", init);
+		if(init)
+			{
+			printf("init is %i \n", init);
+			
+			// ------- initialize filters ------- //
+
+			//lpfilt
+			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+				lp_data[i_init] = 0.f;
+
+			//hpfilt
+			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+				hp_data[i_init] = 0.f;
+
+			//derivative
+			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+				derBuff[i_init] = 0 ;
+			
+			//movint window integration
+			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+				data[i_init] = 0 ;
+			
+			for(int i = 0; i < sampleLength; i++){
+				filtOutput[i] = 0;
+			}
+			return;
+			}
+
+
+		// ---------- Low pass filter data ---------- //
+		// y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]
+		// Note that the filter delay is (LPBUFFER_LGTH/2)-1
+
+		// y[n] = y[n-1] + x[n] - x[n-128 ms]
+		// z[n] = x[n-64 ms] - y[n] ;
+		// Filter delay is (HPBUFFER_LGTH-1)/2
+
+		// y[n] = x[n] - x[n - 10ms]
+		// Filter delay is DERIV_LENGTH/2
+
+		// mvwint() implements a moving window integrator.  Actually, mvwint() averages
+		// the signal values over the last WINDOW_WIDTH samples.
+
+		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
+		static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
+		static float hp_y = 0;
+		static float sum = 0 ;
+		static int lp_ptr = 0;
+		static int hp_ptr = 0;
+		static int derI = 0;
+	    static int ptr = 0 ;
+		int halfPtr;
+		float fdatum ;
+		float y0;
+		float z;
+		float y;
+		float output;
+
+		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
+		if(halfPtr < 0)							// to x[n-6].
+			halfPtr += LPBUFFER_LGTH ;
+
+		y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+		y2 = y1;
+		y1 = y0;
+		fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+		lp_data[lp_ptr] = datum[index] ;			// Stick most recent sample into
 		
-		// ------- initialize filters ------- //
+		hp_y += fdatum - hp_data[hp_ptr];
+		halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+		if(halfPtr < 0)
+			halfPtr += HPBUFFER_LGTH ;
+		hp_data[hp_ptr] = fdatum ;
+		fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+		y = fdatum - derBuff[derI] ;
+		derBuff[derI] = fdatum;
+		fdatum = y;
+		fdatum = fabs(fdatum) ;				// Take the absolute value.
+		sum += fdatum ;
+		sum -= data[ptr] ;
+		data[ptr] = fdatum ;
 
-		//lpfilt
-		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-			lp_data[i_init] = 0.f;
-
-		//hpfilt
-		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-			hp_data[i_init] = 0.f;
-
-		//derivative
-		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-			derBuff[i_init] = 0 ;
-		
-		//movint window integration
-		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-			data[i_init] = 0 ;
-		
-		return 0;
+		#ifdef OPERATION_COUNTER
+		  float_comp_counter++;
+		#endif
+		if((sum / (float)WINDOW_WIDTH) > 32000.f){
+			output = 32000.f ;
+		} else {
+			output = sum / (float)WINDOW_WIDTH ;
+			#ifdef OPERATION_COUNTER
+			float_div_counter += 1;
+			#endif
 		}
 
-
-	// ---------- Low pass filter data ---------- //
-	// y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]
-	// Note that the filter delay is (LPBUFFER_LGTH/2)-1
-
-	// y[n] = y[n-1] + x[n] - x[n-128 ms]
-	// z[n] = x[n-64 ms] - y[n] ;
-	// Filter delay is (HPBUFFER_LGTH-1)/2
-
-	// y[n] = x[n] - x[n - 10ms]
-	// Filter delay is DERIV_LENGTH/2
-
-	// mvwint() implements a moving window integrator.  Actually, mvwint() averages
-	// the signal values over the last WINDOW_WIDTH samples.
-
-	// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
-	static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
-	static float hp_y = 0;
-	static float sum = 0 ;
-	static int lp_ptr = 0;
-	static int hp_ptr = 0;
-	static int derI = 0;
-    static int ptr = 0 ;
-	int halfPtr;
-	float fdatum ;
-	float y0;
-	float z;
-	float y;
-	float output;
-
-	halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
-	if(halfPtr < 0)							// to x[n-6].
-		halfPtr += LPBUFFER_LGTH ;
-
-	y0 = (y1*2.0f) - y2 + datum - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-	y2 = y1;
-	y1 = y0;
-	fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-	lp_data[lp_ptr] = datum ;			// Stick most recent sample into
-	
-	hp_y += fdatum - hp_data[hp_ptr];
-	halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-	if(halfPtr < 0)
-		halfPtr += HPBUFFER_LGTH ;
-	hp_data[hp_ptr] = fdatum ;
-	fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-	y = fdatum - derBuff[derI] ;
-	derBuff[derI] = fdatum;
-	fdatum = y;
-	fdatum = fabs(fdatum) ;				// Take the absolute value.
-	sum += fdatum ;
-	sum -= data[ptr] ;
-	data[ptr] = fdatum ;
-
-	#ifdef OPERATION_COUNTER
-	  float_comp_counter++;
-	#endif
-	if((sum / (float)WINDOW_WIDTH) > 32000.f){
-		output = 32000.f ;
-	} else {
-		output = sum / (float)WINDOW_WIDTH ;
+		if(++lp_ptr == LPBUFFER_LGTH)	// the circular buffer and update
+			lp_ptr = 0 ;					// the buffer pointer.
+		if(++derI == DERIV_LENGTH)
+			derI = 0 ;
+		if(++hp_ptr == HPBUFFER_LGTH)
+			hp_ptr = 0 ;
+		if(++ptr == WINDOW_WIDTH)
+			ptr = 0 ;
+		
 		#ifdef OPERATION_COUNTER
-		float_div_counter += 1;
+			float_add_counter += 10;
+			float_mul_counter++;
+			float_div_counter += 4;
 		#endif
-	}
-
-	if(++lp_ptr == LPBUFFER_LGTH)	// the circular buffer and update
-		lp_ptr = 0 ;					// the buffer pointer.
-	if(++derI == DERIV_LENGTH)
-		derI = 0 ;
-	if(++hp_ptr == HPBUFFER_LGTH)
-		hp_ptr = 0 ;
-	if(++ptr == WINDOW_WIDTH)
-		ptr = 0 ;
-	
-	#ifdef OPERATION_COUNTER
-		float_add_counter += 10;
-		float_mul_counter++;
-		float_div_counter += 4;
-	#endif
-
-	return(output) ;
+		filtOutput[index] = output;
+		}
+	return;
 	}
 
 #else
@@ -621,47 +630,52 @@ REVISED:	5/13/2002
 *	The filter buffers and static variables are reset if a value other than
 *	0 is passed to QRSFilter through init.
 *******************************************************************************/
-float QRSFilter(float datum,int init)
+void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 	{
-	float fdatum ;
+	for(int index = 0; index < sampleLength; index++){
+		float fdatum ;
 
-	// data buffer for lpfilt
-	static float lp_data[LPBUFFER_LGTH];
+		// data buffer for lpfilt
+		static float lp_data[LPBUFFER_LGTH];
 
-	// data buffer for hpfilt
-	static float hp_data[HPBUFFER_LGTH];
+		// data buffer for hpfilt
+		static float hp_data[HPBUFFER_LGTH];
 
-	// data buffer for derivative
-	static float derBuff[DERIV_LENGTH] ;
+		// data buffer for derivative
+		static float derBuff[DERIV_LENGTH] ;
 
-	// data buffer for moving window average
-	static float data[WINDOW_WIDTH];
-    
+		// data buffer for moving window average
+		static float data[WINDOW_WIDTH];
+	    
 
-	if(init)
-		{
-		printf("init is %i \n", init);
-		
-		// ------- initialize filters ------- //
+		if(init)
+			{
+			printf("init is %i \n", init);
+			
+			// ------- initialize filters ------- //
 
-		//lpfilt
-		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-			lp_data[i_init] = 0.f;
+			//lpfilt
+			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+				lp_data[i_init] = 0.f;
 
-		//hpfilt
-		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-			hp_data[i_init] = 0.f;
+			//hpfilt
+			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+				hp_data[i_init] = 0.f;
 
-		//derivative
-		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-			derBuff[i_init] = 0 ;
-		
-		//movint window integration
-		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-			data[i_init] = 0 ;
-		
-		return 0;
-		}
+			//derivative
+			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+				derBuff[i_init] = 0 ;
+			
+			//movint window integration
+			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+				data[i_init] = 0 ;
+			
+			for(int index = 0; index < sampleLength; index++){
+				filtOutput[index] = 0;
+			}
+
+			return;
+			}
 
 
 	// ---------- Low pass filter data ---------- //
@@ -676,31 +690,31 @@ float QRSFilter(float datum,int init)
 *
 **************************************************************************/
 	
-	// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
-	static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
-	static int lp_ptr = 0;
-	int halfPtr;
-	float y0;
+		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
+		static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
+		static int lp_ptr = 0;
+		int halfPtr;
+		float y0;
 
-	halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
-	if(halfPtr < 0)							// to x[n-6].
-		halfPtr += LPBUFFER_LGTH ;
+		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
+		if(halfPtr < 0)							// to x[n-6].
+			halfPtr += LPBUFFER_LGTH ;
 
-	y0 = (y1*2.0f) - y2 + datum - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-	y2 = y1;
-	y1 = y0;
-	fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-	lp_data[lp_ptr] = datum ;			// Stick most recent sample into
-	if(++lp_ptr == LPBUFFER_LGTH)	// the circular buffer and update
-		lp_ptr = 0 ;					// the buffer pointer.
+		y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+		y2 = y1;
+		y1 = y0;
+		fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+		lp_data[lp_ptr] = datum[index] ;			// Stick most recent sample into
+		if(++lp_ptr == LPBUFFER_LGTH)	// the circular buffer and update
+			lp_ptr = 0 ;					// the buffer pointer.
 
-	#ifdef OPERATION_COUNTER
-	float_add_counter += 4;
-	float_mul_counter += 2;
-	#endif
-	
+		#ifdef OPERATION_COUNTER
+		float_add_counter += 4;
+		float_mul_counter += 2;
+		#endif
+		
 
-	// ---------- High pass filter data ---------- //
+		// ---------- High pass filter data ---------- //
 
 /******************************************************************************
 *  hpfilt() implements the high pass filter represented by the following
@@ -713,28 +727,28 @@ float QRSFilter(float datum,int init)
 ******************************************************************************/
 
 
-	static float hp_y = 0;
-        static int hp_ptr = 0;
-	float z ;
-	//int halfPtr ;
-	
-	hp_y += fdatum - hp_data[hp_ptr];
-	halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-	if(halfPtr < 0)
-		halfPtr += HPBUFFER_LGTH ;
-	hp_data[hp_ptr] = fdatum ;
-	fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-	//hp_data[hp_ptr] = fdatum ;
-	if(++hp_ptr == HPBUFFER_LGTH)
-		hp_ptr = 0 ;
-
-	#ifdef OPERATION_COUNTER
-		float_add_counter += 3;
-		float_div_counter += 1;
-	#endif
-
+		static float hp_y = 0;
+	        static int hp_ptr = 0;
+		float z ;
+		//int halfPtr ;
 		
-	// ---------- Take the derivative ---------- //
+		hp_y += fdatum - hp_data[hp_ptr];
+		halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+		if(halfPtr < 0)
+			halfPtr += HPBUFFER_LGTH ;
+		hp_data[hp_ptr] = fdatum ;
+		fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+		//hp_data[hp_ptr] = fdatum ;
+		if(++hp_ptr == HPBUFFER_LGTH)
+			hp_ptr = 0 ;
+
+		#ifdef OPERATION_COUNTER
+			float_add_counter += 3;
+			float_div_counter += 1;
+		#endif
+
+			
+		// ---------- Take the derivative ---------- //
 
 /*****************************************************************************
 *  deriv1 and deriv2 implement derivative approximations represented by
@@ -744,65 +758,66 @@ float QRSFilter(float datum,int init)
 *
 *  Filter delay is DERIV_LENGTH/2
 *****************************************************************************/
-// Xia: deriv1 is totally useless: it is actually the same code as deriv2 and
-// it's called only once in qrsdet to assign value to a variable which then is
-// not used at all.
+	// Xia: deriv1 is totally useless: it is actually the same code as deriv2 and
+	// it's called only once in qrsdet to assign value to a variable which then is
+	// not used at all.
 
-	static int derI = 0;
-	float y ;
+		static int derI = 0;
+		float y ;
 
-	y = fdatum - derBuff[derI] ;
-	derBuff[derI] = fdatum;
-	if(++derI == DERIV_LENGTH)
-		derI = 0 ;
-	fdatum = y;
+		y = fdatum - derBuff[derI] ;
+		derBuff[derI] = fdatum;
+		if(++derI == DERIV_LENGTH)
+			derI = 0 ;
+		fdatum = y;
 
-	#ifdef OPERATION_COUNTER
-		float_add_counter += 1;
-	#endif	
-
-
-	// ---------- Take the absolute value ---------- //
-	
-	fdatum = fabs(fdatum) ;				// Take the absolute value.
+		#ifdef OPERATION_COUNTER
+			float_add_counter += 1;
+		#endif	
 
 
-	// ----------- Average over an 80 ms window ----------//
+		// ---------- Take the absolute value ---------- //
+		
+		fdatum = fabs(fdatum) ;				// Take the absolute value.
+
+
+		// ----------- Average over an 80 ms window ----------//
 	
 /*****************************************************************************
 * mvwint() implements a moving window integrator.  Actually, mvwint() averages
 * the signal values over the last WINDOW_WIDTH samples.
 *****************************************************************************/
 
-	static float sum = 0 ;
-        static int ptr = 0 ;
-	float output;
+		static float sum = 0 ;
+	        static int ptr = 0 ;
+		float output;
 
-	sum += fdatum ;
-	sum -= data[ptr] ;
-	data[ptr] = fdatum ;
-	if(++ptr == WINDOW_WIDTH)
-		ptr = 0 ;
-	#ifdef OPERATION_COUNTER
-	  float_comp_counter++;
-	#endif
-	if((sum / (float)WINDOW_WIDTH) > 32000.f){
-		output = 32000.f ;
-	} else {
-		output = sum / (float)WINDOW_WIDTH ;
+		sum += fdatum ;
+		sum -= data[ptr] ;
+		data[ptr] = fdatum ;
+		if(++ptr == WINDOW_WIDTH)
+			ptr = 0 ;
 		#ifdef OPERATION_COUNTER
-		float_div_counter += 1;
+		  float_comp_counter++;
 		#endif
-	}
+		if((sum / (float)WINDOW_WIDTH) > 32000.f){
+			output = 32000.f ;
+		} else {
+			output = sum / (float)WINDOW_WIDTH ;
+			#ifdef OPERATION_COUNTER
+			float_div_counter += 1;
+			#endif
+		}
 
-	#ifdef OPERATION_COUNTER
-		float_add_counter += 2;
-		float_div_counter += 1;
-	#endif
+		#ifdef OPERATION_COUNTER
+			float_add_counter += 2;
+			float_div_counter += 1;
+		#endif
 
-	fdatum = output;
+		fdatum = output;
 
-	
-	return(fdatum) ;
+		filtOutput[index] = fdatum;
+		}
+		return;
 	}
 #endif
