@@ -83,6 +83,7 @@ MAINTYPE main()
 			#endif
 
 			// Pass sample to beat detection and classification.
+			// set buffer to give to bdac and reset delay array
 			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
 				ecg[index] = ecg_data[SampleCount + index];
 			}

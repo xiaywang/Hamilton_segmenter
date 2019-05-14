@@ -77,7 +77,7 @@ void DownSampleBeat(float *beatOut, float *beatIn) ;
 
 // External function prototypes.
 
-int QRSDet( float datum, int init ) ;
+void QRSDet( float* datum, int* delayArray, int sampleLength, int init ) ;
 int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd) ;
 int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj, int init) ;
 int GetDominantType(void) ;
@@ -100,8 +100,10 @@ int InitBeatFlag = 1 ;
 
 void ResetBDAC(void)
 {
-	int dummy ;
-	QRSDet(0.0,1) ;	// Reset the qrs detector
+	int dummy;
+	float fDummy = 0.0f;
+	int outDummy = 0;
+	QRSDet(&fDummy, &outDummy, 1,1) ;	// Reset the qrs detector
 	RRCount = 0 ;
 	Classify(BeatBuffer,0,0,&dummy,&dummy,1) ;
 	InitBeatFlag = 1 ;
@@ -135,8 +137,21 @@ void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, 
 
   //	FILE *fp;
 
-	// Store new sample in the circular buffer.
+
+	// Run the sample through the QRS detector.
+	#ifdef RUNTIME_QRSDET
+		start_QRSDet = start_tsc();
+	#endif
+
+	// delayArray[repetition] = QRSDet(ecgSample[repetition],0) ;
+	QRSDet(ecgSample, delayArray, sampleLength, 0);
+
+	#ifdef RUNTIME_QRSDET
+		end_QRSDet += stop_tsc(start_QRSDet);
+	#endif
+
 	for(int repetition = 0; repetition < sampleLength; repetition++){	
+		// Store new sample in the circular buffer.
 		ECGBuffer[ECGBufferIndex] = ecgSample[repetition];
 		if(++ECGBufferIndex == ECG_BUFFER_LENGTH)
 			ECGBufferIndex = 0 ;
@@ -149,18 +164,6 @@ void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, 
 
 		for(i = 0; i < BeatQueCount; ++i)
 			++BeatQue[i] ;
-
-		// Run the sample through the QRS detector.
-
-		#ifdef RUNTIME_QRSDET
-			start_QRSDet = start_tsc();
-		#endif
-
-		delayArray[repetition] = QRSDet(ecgSample[repetition],0) ;
-
-		#ifdef RUNTIME_QRSDET
-			end_QRSDet += stop_tsc(start_QRSDet);
-		#endif
 			
 		if(delayArray[repetition] != 0)
 			{
