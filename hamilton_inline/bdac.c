@@ -89,9 +89,8 @@ int gcd(int x, int y) ;
 
 float ECGBuffer[ECG_BUFFER_LENGTH];  // Circular data buffer.
 float BeatBuffer[BEATLGTH] ;
-int BeatQue[BEAT_QUE_LENGTH], BeatQueCount = 0 ;  // Buffer of detection delays.
-int RRCount = 0, ECGBufferIndex = 0  ;
-int InitBeatFlag = 1 ;
+int BeatQue[BEAT_QUE_LENGTH];  // Buffer of detection delays.
+int ECGBufferIndex = 0  ;
 
 /******************************************************************************
 	ResetBDAC() resets static variables required for beat detection and

@@ -135,6 +135,55 @@ inline int GetRunCount(void) ;
 int DomType ;
 int RecentRRs[8], RecentTypes[8] ;
 
+// int Classify_init()
+// {
+// 	int i, j ;
+
+// 	BeatCount = 0 ;
+// 	ClassifyState = LEARNING ;
+
+// 	TypeCount = 0 ;
+// 	for(i = 0; i < MAXTYPES; ++i)
+// 	{
+// 		BeatCounts[i] = 0 ;
+// 		BeatClassifications[i] = UNKNOWN ;
+// 		for(j = 0; j < 8; ++j)
+// 		{
+// 			MIs[i][j] = 0 ;
+// 		}
+// 	}
+
+// 	for(i = 0; i < MAXTYPES; ++i)
+// 		for(j = 0; j < 8; ++j)
+// 		{
+// 			PostClass[i][j] = 0 ;
+// 			PCRhythm[i][j] = 0 ;
+// 		}
+// 	PCInitCount = 0 ;
+
+// 	runCount = 0 ;
+
+// 	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+// 	{
+// 		DMBeatTypes[i] = -1 ;
+// 		DMBeatClasses[i] = 0 ;
+// 	}
+
+// 	for(i = 0; i < 8; ++i)
+// 	{
+// 		DMNormCounts[i] = 0 ;
+// 		DMBeatCounts[i] = 0 ;
+// 	}
+// 	DMIrregCount = 0 ;
+// 	// ResetRhythmChk() ;
+// 	// ResetMatch() ;
+// 	// ResetPostClassify() ;
+// 	// runCount = 0 ;
+// 	// DomMonitor(0, 0, 0, 0, 1) ;
+// 	// return(0) ;
+// }
+
+
 /***************************************************************************
 *  Classify() takes a beat buffer, the previous rr interval, and the present
 *  noise level estimate and returns a beat classification of NORMAL, PVC, or
@@ -148,7 +197,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	int init)
 {
 	int rhythmClass, beatClass, i, beatWidth, blShift ;
-	static int morphType, runCount = 0 ;
+	static int morphType;
 	double matchIndex, domIndex, mi2 ;
 	int shiftAdj ;
 	int domType, domWidth, onset, offset, amp ;
@@ -158,15 +207,15 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	// If initializing...
 
-	if(init)
-	{
-		ResetRhythmChk() ;
-		ResetMatch() ;
-		ResetPostClassify() ;
-		runCount = 0 ;
-		DomMonitor(0, 0, 0, 0, 1) ;
-		return(0) ;
-	}
+	// if(init)
+	// {
+	// 	ResetRhythmChk() ;
+	// 	ResetMatch() ;
+	// 	ResetPostClassify() ;
+	// 	runCount = 0 ;
+	// 	DomMonitor(0, 0, 0, 0, 1) ;
+	// 	return(0) ;
+	// }
 
 	hfNoise = HFNoiseCheck(newBeat) ;	// Check for muscle noise.
 	rhythmClass = RhythmChk(rr) ;			// Check the rhythm.
@@ -633,14 +682,12 @@ inline int TempClass(int rhythmClass, int morphType,
 //#define DM_BUFFER_LENGTH	180
 
 int NewDom, DomRhythm ;
-int DMBeatTypes[DM_BUFFER_LENGTH], DMBeatClasses[DM_BUFFER_LENGTH] ;
 int DMBeatRhythms[DM_BUFFER_LENGTH] ;
-int DMNormCounts[8], DMBeatCounts[8], DMIrregCount = 0 ;
 
 inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
 {
 	static int brIndex = 0 ;
-	int i, oldType, runCount, dom, max ;
+	int i, oldType, runCount_DomMonitor, dom, max ;
 
 	// Fetch the type of the beat before the last beat.
 
@@ -652,22 +699,22 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 	// If reset flag is set, reset beat type counts and
 	// beat information buffers.
 
-	if(reset != 0)
-	{
-		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-		{
-			DMBeatTypes[i] = -1 ;
-			DMBeatClasses[i] = 0 ;
-		}
+	// if(reset != 0)
+	// {
+	// 	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+	// 	{
+	// 		DMBeatTypes[i] = -1 ;
+	// 		DMBeatClasses[i] = 0 ;
+	// 	}
 
-		for(i = 0; i < 8; ++i)
-		{
-			DMNormCounts[i] = 0 ;
-			DMBeatCounts[i] = 0 ;
-		}
-		DMIrregCount = 0 ;
-		return(0) ;
-	}
+	// 	for(i = 0; i < 8; ++i)
+	// 	{
+	// 		DMNormCounts[i] = 0 ;
+	// 		DMBeatCounts[i] = 0 ;
+	// 	}
+	// 	DMIrregCount = 0 ;
+	// 	return(0) ;
+	// }
 
 	// Once we have wrapped around, subtract old beat types from
 	// the beat counts.
@@ -705,14 +752,14 @@ inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int
 
 		i = brIndex - 1 ;
 		if(i < 0) i += DM_BUFFER_LENGTH ;
-		for(runCount = 0; (DMBeatTypes[i] == morphType) && (runCount < 6); ++runCount)
+		for(runCount_DomMonitor = 0; (DMBeatTypes[i] == morphType) && (runCount_DomMonitor < 6); ++runCount_DomMonitor)
 			if(--i < 0) i += DM_BUFFER_LENGTH ;
 
 		// If the rhythm is regular, the beat width is less than 130 ms, and
 		// there have been at least two in a row, consider the beat to be
 		// normal.
 
-		if((rhythmClass == NORMAL) && (beatWidth < BEAT_MS130) && (runCount >= 1))
+		if((rhythmClass == NORMAL) && (beatWidth < BEAT_MS130) && (runCount_DomMonitor >= 1))
 		{
 			DMBeatClasses[brIndex] = 1 ;
 			++DMNormCounts[morphType] ;

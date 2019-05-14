@@ -121,15 +121,12 @@ inline void CombineDomData(int oldType, int newType) ;
 // Global variables.
 
 float BeatTemplates[MAXTYPES][BEATLGTH] ;
-int BeatCounts[MAXTYPES] ;
 int BeatWidths[MAXTYPES] ;
-int BeatClassifications[MAXTYPES] ;
 int BeatBegins[MAXTYPES] ;
 int BeatEnds[MAXTYPES] ;
 int BeatsSinceLastMatch[MAXTYPES] ;
 int BeatAmps[MAXTYPES] ;
 int BeatCenters[MAXTYPES] ;
-double MIs[MAXTYPES][8] ;
 
 // Need access to these in postclas.cpp when beat types are combined
 // and moved.
@@ -137,7 +134,6 @@ double MIs[MAXTYPES][8] ;
 extern int PostClass[MAXTYPES][8] ;
 extern int PCRhythm[MAXTYPES][8] ;
 
-int TypeCount = 0 ;
 
 /***************************************************************************
 ResetMatch() resets static variables involved with template matching.

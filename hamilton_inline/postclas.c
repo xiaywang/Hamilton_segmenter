@@ -46,6 +46,7 @@ following beat is detected.
 #include "ecgcodes.h"
 
 #include "tsc_x86.h"
+#include "postclas.h"
 
 #ifdef OPERATION_COUNTER
 	extern long int float_add_counter;
@@ -61,8 +62,6 @@ int GetBeatTypeCount(int type) ;
 
 // Records of post classifications.
 
-int PostClass[MAXTYPES][8], PCInitCount = 0 ;
-int PCRhythm[MAXTYPES][8] ;
 
 /**********************************************************************
  Resets post classifications for beats.

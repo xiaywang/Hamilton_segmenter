@@ -76,3 +76,21 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define DER_DELAY	WINDOW_WIDTH + FILTER_DELAY + MS100
 
 
+float noise[8], rrbuf[8];
+float sbcount, maxder, lastmax, initMax, max;
+int qpkcnt, qpkcnt, count, sbpeak, initBlank, preBlankCnt, timeSinceMax;
+
+// data buffer for lpfilt
+float lp_data[LPBUFFER_LGTH];
+
+// data buffer for hpfilt
+float hp_data[HPBUFFER_LGTH];
+
+// data buffer for derivative
+float derBuff[DERIV_LENGTH] ;
+
+// data buffer for moving window average
+float data[WINDOW_WIDTH];
+
+
+

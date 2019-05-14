@@ -56,3 +56,5 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define FIDMARK BEAT_MS400
 
 void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, int *beatType, int *beatMatch);
+
+int RRCount, InitBeatFlag, BeatQueCount;

@@ -50,6 +50,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 #include <stdlib.h>		// For abs()
 
 #include "tsc_x86.h"
+#include "rythmchk.h"
 
 #ifdef OPERATION_COUNTER
 	extern long int float_add_counter;
@@ -67,7 +68,6 @@ MA 02143 USA).  For updates to this software, please visit our website
 #define VV	4	// PVC-PVC interval.
 
 #define RBB_LENGTH	8
-#define LEARNING	0
 #define READY	1
 
 #define BRADY_LIMIT	MS1500
@@ -79,8 +79,7 @@ int RRShort2(int *rrIntervals, int *rrTypes) ;
 int RRMatch2(int rr0,int rr1) ;
 
 // Global variables.
-int RRBuffer[RBB_LENGTH], RRTypes[RBB_LENGTH], BeatCount = 0;
-int ClassifyState	= LEARNING ;
+int RRBuffer[RBB_LENGTH], RRTypes[RBB_LENGTH];
 
 int BigeminyFlag ;
 

@@ -98,23 +98,57 @@ int Dly  = 0 ;
 
 const int MEMMOVELEN = 7*sizeof(int);
 
+// void QRSDet_Init( float* datum, int* delayArray, int sampleLength)
+// {
+// 	//QRSDet init
+// 	for(i = 0; i < 8; ++i)
+// 	{
+// 		noise[i] = 0.0 ;	/* Initialize noise buffer */
+// 		rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+// 	}
+// 	maxder=lastmax= initMax= 0.0;
+// 	qpkcnt  = count = sbpeak = 0 ;
+// 	initBlank = preBlankCnt = 0; // DDPtr = 0 ;
+// 	sbcount = MS1500_FLOAT ;
+	
+// 	max = 0.0;
+// 	timeSinceMax = 0;
+
+
+// 	//QRSfilt init
+// 	// ------- initialize filters ------- //
+
+// 	//lpfilt
+// 	for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+// 		lp_data[i_init] = 0.f;
+
+// 	//hpfilt
+// 	for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+// 		hp_data[i_init] = 0.f;
+
+// 	//derivative
+// 	for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+// 		derBuff[i_init] = 0 ;
+	
+// 	//movint window integration
+// 	for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+// 		data[i_init] = 0 ;
+// }
+
+
 void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 	{
-	static int qpkcnt = 0 ;
-	static float qrsbuf[8], noise[8], rrbuf[8], rsetBuff[8] ;
+	static float qrsbuf[8], rsetBuff[8] ;
 	static int rsetCount = 0 ;
-	static float nmedian, qmedian, rrmedian, det_thresh, sbcount = MS1500_FLOAT, maxder, lastmax, initMax, tempPeak ;
-	static int count, sbpeak = 0, sbloc ;
-	static int initBlank ;
-	static int preBlankCnt;
+	static float nmedian, qmedian, rrmedian, det_thresh, tempPeak ;
+	static int sbloc ;
 	
 	int i ;
 	float fdatum[sampleLength];
 	float newPeak, aPeak;
 
 	// ---------- Peak ---------- //
-	static float max=0.0, lastDatum ;
-	static int timeSinceMax=0;
+	static float lastDatum ;
 
 	/*	Initialize all buffers to 0 on the first call.	*/
 
