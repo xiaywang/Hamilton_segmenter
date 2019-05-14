@@ -488,7 +488,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 
 		if(init)
 			{
-			printf("init is %i \n", init);
 			
 			// ------- initialize filters ------- //
 
@@ -650,7 +649,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 
 		if(init)
 			{
-			printf("init is %i \n", init);
 			
 			// ------- initialize filters ------- //
 

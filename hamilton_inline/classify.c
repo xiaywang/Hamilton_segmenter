@@ -132,7 +132,6 @@ inline int GetRunCount(void) ;
 
 // Local Global variables
 
-int DomType ;
 int RecentRRs[8], RecentTypes[8] ;
 
 /***************************************************************************
@@ -173,8 +172,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	// Estimate beat features.
 
-	AnalyzeBeat(newBeat, &onset, &offset, &isoLevel,
-		&beatBegin, &beatEnd, &amp) ;
+	AnalyzeBeat(newBeat, &onset, &offset, &isoLevel, &beatBegin, &beatEnd, &amp) ;
 
 	blShift = abs(lastIsoLevel-isoLevel) ;
 	lastIsoLevel = isoLevel ;
@@ -291,7 +289,8 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 
 	// Fetch dominant type beat features.
 
-	DomType = domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
+	// DomType = domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
+	domType = DomMonitor(morphType, rhythmClass, beatWidth, rr, 0) ;
 	domWidth = GetBeatWidth(domType) ;
 
 	// Compare the beat type, or actual beat to the dominant beat.

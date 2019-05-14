@@ -126,7 +126,7 @@ Returns
 	classified.  If a beat has been classified, BeatDetectAndClassify returns
 	the number of samples since the approximate location of the R-wave.
 ****************************************************************************/
-void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, int *beatType, int *beatMatch)
+void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, int* beatType, int *beatMatch)
 {
 	// int detectDelay[MAIN_BLOCK_SIZE];
 	int rr, i, j ;

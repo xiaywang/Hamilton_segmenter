@@ -9,11 +9,12 @@
 
 #include "config.h"
 #include "tsc_x86.h"
+#include "notch.h"
 
 // External function prototypes.
 void ResetBDAC(void) ;
-// int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
 
+// int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
 
 // Global variables.
 
@@ -51,11 +52,12 @@ MAINTYPE main()
 	#endif
 
 	int i, delay;
-	float ecg[MAIN_BLOCK_SIZE];
+	float ecg[MAIN_BLOCK_SIZE], filterOut[MAIN_BLOCK_SIZE];
 	int delayArray[MAIN_BLOCK_SIZE];
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
-	int beatType, beatMatch ;
+	int beatType; 
+	int beatMatch ;
 
 
 
@@ -73,7 +75,6 @@ MAINTYPE main()
 		fclose(fp);
 #endif
 		// Read data from MIT/BIH file until there is none left.
-
 		while(SampleCount <= N_DATA - MAIN_BLOCK_SIZE)
 			{
 
@@ -88,7 +89,10 @@ MAINTYPE main()
 				ecg[index] = ecg_data[SampleCount + index];
 			}
 
-			BeatDetectAndClassify(ecg, delayArray, MAIN_BLOCK_SIZE,&beatType, &beatMatch) ;
+			//apply notch filter
+			slowperformance(ecg, filterOut, MAIN_BLOCK_SIZE);
+
+			BeatDetectAndClassify(filterOut, delayArray, MAIN_BLOCK_SIZE, &beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -97,7 +101,7 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg[0]);
+			fprintf(fp, "%f\n", filterOut[0]);
 			fclose(fp);
 #endif
 
@@ -137,7 +141,10 @@ MAINTYPE main()
 				ecg[index] = ecg_data[SampleCount + index];
 			}
 
-			BeatDetectAndClassify(ecg, delayArray, restLenght,&beatType, &beatMatch) ;
+			//apply notch filter
+			slowperformance(ecg, filterOut, restLenght);
+
+			BeatDetectAndClassify(filterOut, delayArray, restLenght, &beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -146,7 +153,7 @@ MAINTYPE main()
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg[0]);
+			fprintf(fp, "%f\n", filterOut[0]);
 			fclose(fp);
 #endif
 
