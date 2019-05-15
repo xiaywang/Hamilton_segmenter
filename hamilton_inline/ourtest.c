@@ -197,24 +197,15 @@ for (int flame =0; flame < 1; flame++)
 
 			// If a beat was detected, annotate the beat location
 			// and type.
-<<<<<<< HEAD
 
-			if(delay != 0)
-				{
-				DetectionTime = SampleCount - delay ;
-//#if PRINT
-				//printf("DetectionTime %li\n", DetectionTime);
-//#endif
-=======
 			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
 				delay = delayArray[index];
 				if(delay != 0)
 					{
 					DetectionTime = SampleCount + 1 + index - delay ;
-#if PRINT
+#if DEBUG
 					printf("DetectionTime %li\n", DetectionTime);
 #endif
->>>>>>> 6c3c86d097405b988d7e3b6c84197de31b9e2ca6
 
 #if SAVEFILE
 					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
@@ -296,18 +287,15 @@ for (int flame =0; flame < 1; flame++)
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
 			#ifdef RUNTIME_QRSDET
-<<<<<<< HEAD
+
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);
+			printf("QRSfilt runtime:   %lli\n", end_QRSFilt);
 			#endif
 			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);
-=======
+
 				printf("QRSdet runtime:   %lli\n", end_QRSDet);
 				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
-			#endif
-			#ifdef RUNTIME_CLASSIFY
-				printf("Classify runtime: %lli\n", end_Classify);
->>>>>>> 6c3c86d097405b988d7e3b6c84197de31b9e2ca6
 			#endif
 			printf("total runtime:    %lli\n",end_time);
 			#ifdef OPERATION_COUNTER

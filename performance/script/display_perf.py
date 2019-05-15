@@ -1,9 +1,9 @@
 import sys
-print("file name is %s"%sys.argv[1])
+import colors
 result={}
 with open(sys.argv[1], "r") as file:
 	for line in file:
-		if line.lstrip() and line[0] != "S":
+		if line.lstrip() and line[0] != "S" and line[0] != "D":
 			name, count=line.split(":")
 			count=count.lstrip()
 			if name in result.keys():
@@ -17,17 +17,18 @@ with open(sys.argv[1], "r") as file:
 				result[name].append(delta)
 			else:
 				result[name]=[float(count)]
-			print(" ".join([name, count]))
+		# else:
+		# 	print("exception: %s" %line)
 
-
-		else:
-			print("exception: %s" %line)
-
-print(result)
-
+print(colors.title("Comparing to floating point baseline:"))
+print(colors.title("For detailed report, please refer to %s"%(sys.argv[1])))
 for key, value in result.items():
-	if value[2][0] == "-":
-		print("%s has decreased %s comparing to float baseline\n" %(key, value[2]))
-
+	if len(value) == 3:
+		if value[2][0] == "-":
+			print("%s: %s" %(colors.yellow(key), colors.green(value[2])))
+		else:
+			print("%s: %s " %(colors.yellow(key), colors.red(value[2])))
 	else:
-		print("%s has increased %s comparing to float baseline\n" %(key, value[2]))
+		print(colors.red("%s misses data, please refer to report for detail"%(key)))
+
+
