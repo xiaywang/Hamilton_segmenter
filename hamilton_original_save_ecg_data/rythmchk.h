@@ -33,6 +33,3 @@ MA 02143 USA).  For updates to this software, please visit our website
 void ResetRhythmChk(void) ;
 int RhythmChk(int rr) ;
 int IsBigeminy(void) ;
-
-#define LEARNING	0
-int BeatCount, ClassifyState;

@@ -68,6 +68,7 @@ Functions in bdac.cpp require functions in the following files:
 											// can occur before there is enough data
 											// to classify the first beat in the que.
 
+#include "config.h"
 #include "tsc_x86.h"
 
 // Internal function prototypes.
@@ -76,7 +77,7 @@ void DownSampleBeat(float *beatOut, float *beatIn) ;
 
 // External function prototypes.
 
-int QRSDet( float datum, int init ) ;
+void QRSDet( float* datum, int* delayArray, int sampleLength, int init ) ;
 int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd) ;
 int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj, int init) ;
 int GetDominantType(void) ;
@@ -88,9 +89,8 @@ int gcd(int x, int y) ;
 
 float ECGBuffer[ECG_BUFFER_LENGTH];  // Circular data buffer.
 float BeatBuffer[BEATLGTH] ;
-int BeatQue[BEAT_QUE_LENGTH], BeatQueCount = 0 ;  // Buffer of detection delays.
-int RRCount = 0, ECGBufferIndex = 0  ;
-int InitBeatFlag = 1 ;
+int BeatQue[BEAT_QUE_LENGTH];  // Buffer of detection delays.
+int ECGBufferIndex = 0  ;
 
 /******************************************************************************
 	ResetBDAC() resets static variables required for beat detection and
@@ -99,8 +99,10 @@ int InitBeatFlag = 1 ;
 
 void ResetBDAC(void)
 {
-	int dummy ;
-	QRSDet(0.0,1) ;	// Reset the qrs detector
+	int dummy;
+	float fDummy = 0.0f;
+	int outDummy = 0;
+	QRSDet(&fDummy, &outDummy, 1,1) ;	// Reset the qrs detector
 	RRCount = 0 ;
 	Classify(BeatBuffer,0,0,&dummy,&dummy,1) ;
 	InitBeatFlag = 1 ;
@@ -123,9 +125,10 @@ Returns
 	classified.  If a beat has been classified, BeatDetectAndClassify returns
 	the number of samples since the approximate location of the R-wave.
 ****************************************************************************/
-int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
+void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, int* beatType, int *beatMatch)
 {
-	int detectDelay, rr, i, j ;
+	// int detectDelay[MAIN_BLOCK_SIZE];
+	int rr, i, j ;
 	int noiseEst = 0, beatBegin, beatEnd ;
 	int domType ;
 	int fidAdj ;
@@ -133,146 +136,151 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 
   //	FILE *fp;
 
-	// Store new sample in the circular buffer.
-
-	ECGBuffer[ECGBufferIndex] = ecgSample ;
-	if(++ECGBufferIndex == ECG_BUFFER_LENGTH)
-		ECGBufferIndex = 0 ;
-
-	// Increment RRInterval count.
-
-	++RRCount ;
-
-	// Increment detection delays for any beats in the que.
-
-	for(i = 0; i < BeatQueCount; ++i)
-		++BeatQue[i] ;
 
 	// Run the sample through the QRS detector.
-
 	#ifdef RUNTIME_QRSDET
 		start_QRSDet = start_tsc();
 	#endif
 
-	detectDelay = QRSDet(ecgSample,0) ;
+	// delayArray[repetition] = QRSDet(ecgSample[repetition],0) ;
+	QRSDet(ecgSample, delayArray, sampleLength, 0);
 
 	#ifdef RUNTIME_QRSDET
 		end_QRSDet += stop_tsc(start_QRSDet);
 	#endif
-		
-	if(detectDelay != 0)
-		{
-		  //printf("here\n");
 
-                //fp = fopen("./to_plot/QRSDetDelay100.csv", "a+");
-                //fprintf(fp, "%d,\n", detectDelay);
-	        //fclose(fp);
-		
-		BeatQue[BeatQueCount] = detectDelay ;
-		++BeatQueCount ;
+	for(int repetition = 0; repetition < sampleLength; repetition++){	
+		// Store new sample in the circular buffer.
+		ECGBuffer[ECGBufferIndex] = ecgSample[repetition];
+		if(++ECGBufferIndex == ECG_BUFFER_LENGTH)
+			ECGBufferIndex = 0 ;
+
+		// Increment RRInterval count.
+
+		++RRCount ;
+
+		// Increment detection delays for any beats in the que.
+
+		for(i = 0; i < BeatQueCount; ++i)
+			++BeatQue[i] ;
+			
+		if(delayArray[repetition] != 0)
+			{
+			  //printf("here\n");
+
+	                //fp = fopen("./to_plot/QRSDetDelay100.csv", "a+");
+	                //fprintf(fp, "%d,\n", detectDelay);
+		        //fclose(fp);
+			
+			BeatQue[BeatQueCount] = delayArray[repetition] ;
+			++BeatQueCount ;
+			}
+
+		// Return if no beat is ready for classification.
+
+		if((BeatQue[0] < (BEATLGTH-FIDMARK)*(SAMPLE_RATE/BEAT_SAMPLE_RATE))
+			|| (BeatQueCount == 0))
+			{
+			NoiseCheck(ecgSample[repetition],0,rr, beatBegin, beatEnd) ;	// Update noise check buffer
+			delayArray[repetition] = 0 ;
+			continue;
+			}
+
+		// Otherwise classify the beat at the head of the que.
+
+		rr = RRCount - BeatQue[0] ;	// Calculate the R-to-R interval
+		delayArray[repetition] = RRCount = BeatQue[0] ;
+
+		// Estimate low frequency noise in the beat.
+		// Might want to move this into classify().
+
+		domType = GetDominantType() ;
+		if(domType == -1)
+			{
+			beatBegin = MS250 ;
+			beatEnd = MS300 ;
+			}
+		else
+			{
+			beatBegin = (SAMPLE_RATE/BEAT_SAMPLE_RATE)*(FIDMARK-GetBeatBegin(domType)) ;
+			beatEnd = (SAMPLE_RATE/BEAT_SAMPLE_RATE)*(GetBeatEnd(domType)-FIDMARK) ;
+			}
+		noiseEst = NoiseCheck(ecgSample[repetition],delayArray[repetition],rr,beatBegin,beatEnd) ;
+
+		// Copy the beat from the circular buffer to the beat buffer
+		// and reduce the sample rate by averageing pairs of data
+		// points.
+
+		j = ECGBufferIndex - delayArray[repetition] - (SAMPLE_RATE/BEAT_SAMPLE_RATE)*FIDMARK ;
+		if(j < 0) j += ECG_BUFFER_LENGTH ;
+
+		for(i = 0; i < (SAMPLE_RATE/BEAT_SAMPLE_RATE)*BEATLGTH; ++i)
+			{
+			tempBeat[i] = ECGBuffer[j] ;
+			if(++j == ECG_BUFFER_LENGTH)
+				j = 0 ;
+			}
+
+		for(i = 0; i < BEATLGTH; ++i)
+		{
+			BeatBuffer[i] = (tempBeat[i*2]+tempBeat[(i*2)+1])/2 ;
+			#ifdef OPERATION_COUNTER 
+			float_add_counter++;
+			float_div_counter++;
+			#endif
 		}
 
-	// Return if no beat is ready for classification.
+		// Update the QUE.
 
-	if((BeatQue[0] < (BEATLGTH-FIDMARK)*(SAMPLE_RATE/BEAT_SAMPLE_RATE))
-		|| (BeatQueCount == 0))
-		{
-		NoiseCheck(ecgSample,0,rr, beatBegin, beatEnd) ;	// Update noise check buffer
-		return 0 ;
-		}
+		for(i = 0; i < BeatQueCount-1; ++i)
+			BeatQue[i] = BeatQue[i+1] ;
+		--BeatQueCount ;
 
-	// Otherwise classify the beat at the head of the que.
 
-	rr = RRCount - BeatQue[0] ;	// Calculate the R-to-R interval
-	detectDelay = RRCount = BeatQue[0] ;
+		// Skip the first beat.
 
-	// Estimate low frequency noise in the beat.
-	// Might want to move this into classify().
+		if(InitBeatFlag)
+			{
+			InitBeatFlag = 0 ;
+			*beatType = 13 ;
+			*beatMatch = 0 ;
+			fidAdj = 0 ;
+			}
+		// Classify all other beats.
+		else
+			{
+			#ifdef RUNTIME_CLASSIFY
+			start_Classify = start_tsc();
+			#endif
 
-	domType = GetDominantType() ;
-	if(domType == -1)
-		{
-		beatBegin = MS250 ;
-		beatEnd = MS300 ;
-		}
-	else
-		{
-		beatBegin = (SAMPLE_RATE/BEAT_SAMPLE_RATE)*(FIDMARK-GetBeatBegin(domType)) ;
-		beatEnd = (SAMPLE_RATE/BEAT_SAMPLE_RATE)*(GetBeatEnd(domType)-FIDMARK) ;
-		}
-	noiseEst = NoiseCheck(ecgSample,detectDelay,rr,beatBegin,beatEnd) ;
+			*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
 
-	// Copy the beat from the circular buffer to the beat buffer
-	// and reduce the sample rate by averageing pairs of data
-	// points.
+			#ifdef RUNTIME_CLASSIFY
+			end_Classify += stop_tsc(start_Classify);
+			#endif
 
-	j = ECGBufferIndex - detectDelay - (SAMPLE_RATE/BEAT_SAMPLE_RATE)*FIDMARK ;
-	if(j < 0) j += ECG_BUFFER_LENGTH ;
+			fidAdj *= SAMPLE_RATE/BEAT_SAMPLE_RATE ;
+	      }
 
-	for(i = 0; i < (SAMPLE_RATE/BEAT_SAMPLE_RATE)*BEATLGTH; ++i)
-		{
-		tempBeat[i] = ECGBuffer[j] ;
-		if(++j == ECG_BUFFER_LENGTH)
-			j = 0 ;
-		}
+		// Ignore detection if the classifier decides that this
+		// was the trailing edge of a PVC.
 
-	for(i = 0; i < BEATLGTH; ++i)
-	{
-		BeatBuffer[i] = (tempBeat[i*2]+tempBeat[(i*2)+1])/2 ;
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		float_div_counter++;
-		#endif
+		if(*beatType == 100)
+			{
+			RRCount += rr ;
+			delayArray[repetition] = 0 ;
+			continue;
+			}
+
+		// Limit the fiducial mark adjustment in case of problems with
+		// beat onset and offset estimation.
+
+		if(fidAdj > MS80)
+			fidAdj = MS80 ;
+		else if(fidAdj < -MS80)
+			fidAdj = -MS80 ;
+
+		delayArray[repetition] = delayArray[repetition] - fidAdj;
 	}
-
-	// Update the QUE.
-
-	for(i = 0; i < BeatQueCount-1; ++i)
-		BeatQue[i] = BeatQue[i+1] ;
-	--BeatQueCount ;
-
-
-	// Skip the first beat.
-
-	if(InitBeatFlag)
-		{
-		InitBeatFlag = 0 ;
-		*beatType = 13 ;
-		*beatMatch = 0 ;
-		fidAdj = 0 ;
-		}
-	// Classify all other beats.
-	else
-		{
-		#ifdef RUNTIME_CLASSIFY
-		start_Classify = start_tsc();
-		#endif
-
-		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
-
-		#ifdef RUNTIME_CLASSIFY
-		end_Classify += stop_tsc(start_Classify);
-		#endif
-
-		fidAdj *= SAMPLE_RATE/BEAT_SAMPLE_RATE ;
-      }
-
-	// Ignore detection if the classifier decides that this
-	// was the trailing edge of a PVC.
-
-	if(*beatType == 100)
-		{
-		RRCount += rr ;
-		return(0) ;
-		}
-
-	// Limit the fiducial mark adjustment in case of problems with
-	// beat onset and offset estimation.
-
-	if(fidAdj > MS80)
-		fidAdj = MS80 ;
-	else if(fidAdj < -MS80)
-		fidAdj = -MS80 ;
-
-	return(detectDelay-fidAdj) ;
+	return;
 }

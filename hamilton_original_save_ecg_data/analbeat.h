@@ -1,13 +1,10 @@
 /*****************************************************************************
-
-FILE:  rythmchk.h
+FILE:  analbeat.h
 AUTHOR:	Patrick S. Hamilton
-REVISED:	9/25/2001
+REVISED:	12/4/2001
   ___________________________________________________________________________
-
-rythmchk.h: Prototype definitions for rythmchk.cpp
+analbeat.h: Beat analysis prototype definition.
 Copywrite (C) 2001 Patrick S. Hamilton
-
 This file is free software; you can redistribute it and/or modify it under
 the terms of the GNU Library General Public License as published by the Free
 Software Foundation; either version 2 of the License, or (at your option) any
@@ -28,11 +25,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 (http://www.eplimited.com).
 ******************************************************************************/
 
-// External prototypes for rythmchk.cpp
+// External prototypes for analbeat.cpp
 
-void ResetRhythmChk(void) ;
-int RhythmChk(int rr) ;
-int IsBigeminy(void) ;
-
-#define LEARNING	0
-int BeatCount, ClassifyState;
+void AnalyzeBeat(int *beat, int *onset, int *offset,
+	int *isoLevel, int *beatBegin, int *beatEnd, int *amp) ;

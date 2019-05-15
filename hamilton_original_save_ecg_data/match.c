@@ -76,22 +76,10 @@ some level of encapsulation:
 ******************************************************************************/
 #include <stdlib.h>
 #include <stdio.h>
-#include "ecgcodes.h"
-#include "classify.h"
+#include <wfdb/ecgcodes.h>
+
 #include "bdac.h"
-#include "match.h"
-
-#include "tsc_x86.h"
-
-#ifdef OPERATION_COUNTER
-extern long int float_add_counter;
-extern long int float_mul_counter;
-extern long int float_div_counter;
-extern long int float_comp_counter;
-#endif
-
 #define MATCH_LENGTH	BEAT_MS300	// Number of points used for beat matching.
-#define MATCH_LENGTH_FLOAT	((float)BEAT_MS300)	// Number of points used for beat matching.
 #define MATCH_LIMIT	1.2			// Match limit used testing whether two
 											// beat types might be combined.
 #define COMBINE_LIMIT	0.8		// Limit used for deciding whether two types
@@ -104,29 +92,32 @@ extern long int float_comp_counter;
 
 // Local prototypes.
 
-int NoiseCheck(float *beat) ;
-inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj) ;
-inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj) ;
-inline void UpdateBeat(float *aveBeat, float *newBeat, int shift) ;
-inline void BeatCopy(int srcBeat, int destBeat) ;
-//inline int MinimumBeatVariation(int type) ;
+int NoiseCheck(int *beat) ;
+double CompareBeats(int *beat1, int *beat2, int *shiftAdj) ;
+double CompareBeats2(int *beat1, int *beat2, int *shiftAdj) ;
+void UpdateBeat(int *aveBeat, int *newBeat, int shift) ;
+void BeatCopy(int srcBeat, int destBeat) ;
+int MinimumBeatVariation(int type) ;
 
 // External prototypes.
 
-void AnalyzeBeat(float *beat, int *onset, int *offset, int *isoLevel,
+void AnalyzeBeat(int *beat, int *onset, int *offset, int *isoLevel,
 	int *beatBegin, int *beatEnd, int *amp) ;
-inline void AdjustDomData(int oldType, int newType) ;
-inline void CombineDomData(int oldType, int newType) ;
+void AdjustDomData(int oldType, int newType) ;
+void CombineDomData(int oldType, int newType) ;
 
 // Global variables.
 
-float BeatTemplates[MAXTYPES][BEATLGTH] ;
+int BeatTemplates[MAXTYPES][BEATLGTH] ;
+int BeatCounts[MAXTYPES] ;
 int BeatWidths[MAXTYPES] ;
+int BeatClassifications[MAXTYPES] ;
 int BeatBegins[MAXTYPES] ;
 int BeatEnds[MAXTYPES] ;
 int BeatsSinceLastMatch[MAXTYPES] ;
 int BeatAmps[MAXTYPES] ;
 int BeatCenters[MAXTYPES] ;
+double MIs[MAXTYPES][8] ;
 
 // Need access to these in postclas.cpp when beat types are combined
 // and moved.
@@ -134,25 +125,26 @@ int BeatCenters[MAXTYPES] ;
 extern int PostClass[MAXTYPES][8] ;
 extern int PCRhythm[MAXTYPES][8] ;
 
+int TypeCount = 0 ;
 
 /***************************************************************************
 ResetMatch() resets static variables involved with template matching.
 ****************************************************************************/
 
 void ResetMatch(void)
-{
+	{
 	int i, j ;
 	TypeCount = 0 ;
 	for(i = 0; i < MAXTYPES; ++i)
-	{
+		{
 		BeatCounts[i] = 0 ;
 		BeatClassifications[i] = UNKNOWN ;
 		for(j = 0; j < 8; ++j)
-		{
+			{
 			MIs[i][j] = 0 ;
+			}
 		}
 	}
-}
 
 /**************************************************************************
 	CompareBeats() takes two beat buffers and compares how well they match
@@ -165,118 +157,70 @@ void ResetMatch(void)
 #define MATCH_START	(FIDMARK-(MATCH_LENGTH/2))
 #define MATCH_END	(FIDMARK+(MATCH_LENGTH/2))
 
-inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
+double CompareBeats(int *beat1, int *beat2, int *shiftAdj)
 	{
-	int i, shift ;
-	float max, min, meanDiff, magSum, beatDiff, minDiff;
-	long minShift ;
+	int i, max, min, magSum, shift ;
+	long beatDiff, meanDiff, minDiff, minShift ;
 	double metric, scaleFactor, tempD ;
 
 	// Calculate the magnitude of each beat.
 
 	max = min = beat1[MATCH_START] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
-		if(beat1[i] > max)		
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
+		if(beat1[i] > max)
 			max = beat1[i] ;
-		}
 		else if(beat1[i] < min)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			min = beat1[i] ;
-		}
 
 	magSum = max - min ;
-
-	#ifdef OPERATION_COUNTER 
-	float_add_counter++;
-	#endif
 
 	i = MATCH_START ;
 	max = min = beat2[i] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat2[i] > max)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			max = beat2[i] ;
-		}
 		else if(beat2[i] < min)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			min = beat2[i] ;
-		}
 
 	// magSum += max - min ;
 	scaleFactor = magSum ;
 	scaleFactor /= max-min ;
 	magSum *= 2 ;
 
-	#ifdef OPERATION_COUNTER 
-	float_add_counter++;
-	float_mul_counter++;
-	float_div_counter++;
-	#endif
-
 	// Calculate the sum of the point-by-point
 	// absolute differences for five possible shifts.
 
 	for(shift = -MAX_SHIFT; shift <= MAX_SHIFT; ++shift)
-	{
-		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0.0;
-			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
 		{
-			#ifdef OPERATION_COUNTER 
-			float_add_counter+=2;
-			float_mul_counter++;
-			#endif
+		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0;
+			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
+			{
 			tempD = beat2[i+shift] ;
 			tempD *= scaleFactor ;
 			meanDiff += beat1[i]- tempD ; // beat2[i+shift] ;
-		}
-		meanDiff /= MATCH_LENGTH_FLOAT ;
-		#ifdef OPERATION_COUNTER 
-		float_div_counter++;
-		#endif
+			}
+		meanDiff /= MATCH_LENGTH ;
 
-		for(i = FIDMARK-(MATCH_LENGTH>>1), beatDiff = 0.0;
+		for(i = FIDMARK-(MATCH_LENGTH>>1), beatDiff = 0;
 			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_add_counter+=3;
-			float_mul_counter++;
-			#endif
+			{
 			tempD = beat2[i+shift] ;
 			tempD *= scaleFactor ;
 			beatDiff += abs(beat1[i] - meanDiff- tempD) ; // beat2[i+shift]  ) ;
-		}
+			}
 
 
 		if(shift == -MAX_SHIFT)
-		{
+			{
 			minDiff = beatDiff ;
 			minShift = -MAX_SHIFT ;
-		}
+			}
 		else if(beatDiff < minDiff)
-		{
+			{
 			minDiff = beatDiff ;
 			minShift = shift ;
+			}
 		}
-	}
-	
-
-	#ifdef OPERATION_COUNTER 
-	float_div_counter+=2;
-	float_mul_counter++;
-	#endif
 
 	metric = minDiff ;
 	*shiftAdj = minShift ;
@@ -289,7 +233,7 @@ inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 	metric *= 30 ;
 	metric /= MATCH_LENGTH ;
 	return(metric) ;
-}
+	}
 
 /***************************************************************************
 	CompareBeats2 is nearly the same as CompareBeats above, but beat2 is
@@ -298,12 +242,11 @@ inline double CompareBeats(float *beat1, float *beat2, int *shiftAdj)
 	of the two beats.
 ****************************************************************************/
 
-inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
-{
-	int i, shift ;
-	float max, min, mag1, mag2 ;
-	long minShift ;
-	float beatDiff, meanDiff, minDiff ;
+double CompareBeats2(int *beat1, int *beat2, int *shiftAdj)
+	{
+	int i, max, min, shift ;
+	int mag1, mag2 ;
+	long beatDiff, meanDiff, minDiff, minShift ;
 	double metric ;
 
 	// Calculate the magnitude of each beat.
@@ -311,20 +254,9 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	max = min = beat1[MATCH_START] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat1[i] > max)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			max = beat1[i] ;
-		}
-
 		else if(beat1[i] < min)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			min = beat1[i] ;
-		}
 
 	mag1 = max - min ;
 
@@ -332,19 +264,9 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	max = min = beat2[i] ;
 	for(i = MATCH_START+1; i < MATCH_END; ++i)
 		if(beat2[i] > max)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			max = beat2[i] ;
-		}
 		else if(beat2[i] < min)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
 			min = beat2[i] ;
-		}
 
 	mag2 = max-min ;
 
@@ -352,49 +274,27 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	// absolute differences for five possible shifts.
 
 	for(shift = -MAX_SHIFT; shift <= MAX_SHIFT; ++shift)
-	{
-		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0.0;
-			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
 		{
-			#ifdef OPERATION_COUNTER 
-			float_add_counter+=2;
-			#endif
+		for(i = FIDMARK-(MATCH_LENGTH>>1), meanDiff = 0;
+			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
 			meanDiff += beat1[i]- beat2[i+shift] ;
-		}
 		meanDiff /= MATCH_LENGTH ;
-		#ifdef OPERATION_COUNTER 
-		float_div_counter++;
-		#endif
 
 		for(i = FIDMARK-(MATCH_LENGTH>>1), beatDiff = 0;
 			i < FIDMARK + (MATCH_LENGTH>>1); ++i)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_add_counter+=3;
-			#endif
-			beatDiff += fabs(beat1[i] - meanDiff- beat2[i+shift]) ;
-		}
+			beatDiff += abs(beat1[i] - meanDiff- beat2[i+shift]) ; ;
 
 		if(shift == -MAX_SHIFT)
-		{
+			{
 			minDiff = beatDiff ;
 			minShift = -MAX_SHIFT ;
-		}
+			}
 		else if(beatDiff < minDiff)
-		{
-			#ifdef OPERATION_COUNTER 
-			float_comp_counter++;
-			#endif
+			{
 			minDiff = beatDiff ;
 			minShift = shift ;
+			}
 		}
-	}
-
-	#ifdef OPERATION_COUNTER 
-	float_div_counter+=2;
-	float_mul_counter++;
-	float_add_counter++;
-	#endif
 
 	metric = minDiff ;
 	*shiftAdj = minShift ;
@@ -408,36 +308,30 @@ inline double CompareBeats2(float *beat1, float *beat2, int *shiftAdj)
 	metric /= MATCH_LENGTH ;
 
 	return(metric) ;
-}
+	}
 
 /************************************************************************
 UpdateBeat() averages a new beat into an average beat template by adding
 1/8th of the new beat to 7/8ths of the average beat.
 *************************************************************************/
 
-inline void UpdateBeat(float *aveBeat, float *newBeat, int shift)
-{
+void UpdateBeat(int *aveBeat, int *newBeat, int shift)
+	{
 	int i ;
-	float tempLong ;
+	long tempLong ;
 
 	for(i = 0; i < BEATLGTH; ++i)
-	{
-		if((i+shift >= 0) && (i+shift < BEATLGTH))
 		{
-			#ifdef OPERATION_COUNTER 
-			float_add_counter++;
-			float_mul_counter++;
-			float_div_counter++;
-			#endif
-
+		if((i+shift >= 0) && (i+shift < BEATLGTH))
+			{
 			tempLong = aveBeat[i] ;
 			tempLong *= 7 ;
 			tempLong += newBeat[i+shift] ;
-			tempLong /= 8 ;
+			tempLong >>= 3 ;
 			aveBeat[i] = tempLong ;
+			}
 		}
 	}
-}
 
 /*******************************************************
 	GetTypesCount returns the number of types that have
@@ -445,9 +339,9 @@ inline void UpdateBeat(float *aveBeat, float *newBeat, int shift)
 *******************************************************/
 
 int GetTypesCount(void)
-{
+	{
 	return(TypeCount) ;
-}
+	}
 
 /********************************************************
 	GetBeatTypeCount returns the number of beats of a
@@ -455,18 +349,18 @@ int GetTypesCount(void)
 ********************************************************/
 
 int GetBeatTypeCount(int type)
-{
+	{
 	return(BeatCounts[type]) ;
-}
+	}
 
 /*******************************************************
 	GetBeatWidth returns the QRS width estimate for
 	a given type of beat.
 *******************************************************/
 int GetBeatWidth(int type)
-{
+	{
 	return(BeatWidths[type]) ;
-}
+	}
 
 /*******************************************************
 	GetBeatCenter returns the point between the onset and
@@ -474,9 +368,9 @@ int GetBeatWidth(int type)
 ********************************************************/
 
 int GetBeatCenter(int type)
-{
+	{
 	return(BeatCenters[type]) ;
-}
+	}
 
 /*******************************************************
 	GetBeatClass returns the present classification for
@@ -484,11 +378,11 @@ int GetBeatCenter(int type)
 ********************************************************/
 
 int GetBeatClass(int type)
-{
+	{
 	if(type == MAXTYPES)
 		return(UNKNOWN) ;
 	return(BeatClassifications[type]) ;
-}
+	}
 
 /******************************************************
 	SetBeatClass sets up a beat classifation for a
@@ -496,17 +390,17 @@ int GetBeatClass(int type)
 ******************************************************/
 
 void SetBeatClass(int type, int beatClass)
-{
+	{
 	BeatClassifications[type] = beatClass ;
-}
+	}
 
 /******************************************************************************
 	NewBeatType starts a new beat type by storing the new beat and its
 	features as the next available beat type.
 ******************************************************************************/
 
-int NewBeatType(float *newBeat )
-{
+int NewBeatType(int *newBeat )
+	{
 	int i, onset, offset, isoLevel, beatBegin, beatEnd ;
 	int mcType, amp ;
 
@@ -516,7 +410,7 @@ int NewBeatType(float *newBeat )
 		++BeatsSinceLastMatch[i] ;
 
 	if(TypeCount < MAXTYPES)
-	{
+		{
 		for(i = 0; i < BEATLGTH; ++i)
 			BeatTemplates[TypeCount][i] = newBeat[i] ;
 
@@ -534,30 +428,30 @@ int NewBeatType(float *newBeat )
 
 		++TypeCount ;
 		return(TypeCount-1) ;
-	}
+		}
 
 	// If we have used all the template space, replace the beat
 	// that has occurred the fewest number of times.
 
 	else
-	{
+		{
 		// Find the template with the fewest occurances,
 		// that hasn't been matched in at least 500 beats.
 
 		mcType = -1 ;
 
 		if(mcType == -1)
-		{
+			{
 			mcType = 0 ;
 			for(i = 1; i < MAXTYPES; ++i)
 				if(BeatCounts[i] < BeatCounts[mcType])
 					mcType = i ;
 				else if(BeatCounts[i] == BeatCounts[mcType])
-				{
+					{
 					if(BeatsSinceLastMatch[i] > BeatsSinceLastMatch[mcType])
 						mcType = i ;
-				}
-		}
+					}
+			}
 
 		// Adjust dominant beat monitor data.
 
@@ -577,10 +471,10 @@ int NewBeatType(float *newBeat )
 		BeatBegins[mcType] = beatBegin ;
 		BeatEnds[mcType] = beatEnd ;
 		BeatsSinceLastMatch[mcType] = 0 ;
-      	BeatAmps[mcType] = amp ;
+      BeatAmps[mcType] = amp ;
 		return(mcType) ;
+		}
 	}
-}
 
 /***************************************************************************
 	BestMorphMatch tests a new beat against all available beat types and
@@ -588,53 +482,53 @@ int NewBeatType(float *newBeat )
 	metric for that type, and the shift used for that match.
 ***************************************************************************/
 
-void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi2,
+void BestMorphMatch(int *newBeat,int *matchType,double *matchIndex, double *mi2,
 	int *shiftAdj)
-{
+	{
 	int type, i, bestMatch, nextBest, minShift, shift, temp ;
 	int bestShift2, nextShift2 ;
 	double bestDiff2, nextDiff2;
 	double beatDiff, minDiff, nextDiff=10000 ;
 
 	if(TypeCount == 0)
-	{
+		{
 		*matchType = 0 ;
 		*matchIndex = 1000 ;		// Make sure there is no match so a new beat is
 		*shiftAdj = 0 ;			// created.
 		return ;
-	}
+		}
 
 	// Compare the new beat to all type beat
 	// types that have been saved.
 
 	for(type = 0; type < TypeCount; ++type)
-	{
+		{
 		beatDiff = CompareBeats(&BeatTemplates[type][0],newBeat,&shift) ;
 		if(type == 0)
-		{
+			{
 			bestMatch = 0 ;
 			minDiff = beatDiff ;
 			minShift = shift ;
-		}
+			}
 		else if(beatDiff < minDiff)
-		{
+			{
 			nextBest = bestMatch ;
 			nextDiff = minDiff ;
 			bestMatch = type ;
 			minDiff = beatDiff ;
 			minShift = shift ;
-		}
+			}
 		else if((TypeCount > 1) && (type == 1))
-		{
+			{
 			nextBest = type ;
 			nextDiff = beatDiff ;
-		}
+			}
 		else if(beatDiff < nextDiff)
-		{
+			{
 			nextBest = type ;
 			nextDiff = beatDiff ;
+			}
 		}
-	}
 
 	// If this beat was close to two different
 	// templates, see if the templates which template
@@ -642,13 +536,13 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 	// Then check whether the two close types can be combined.
 
 	if((minDiff < MATCH_LIMIT) && (nextDiff < MATCH_LIMIT) && (TypeCount > 1))
-	{
+		{
 		// Compare without scaling.
 
 		bestDiff2 = CompareBeats2(&BeatTemplates[bestMatch][0],newBeat,&bestShift2) ;
 		nextDiff2 = CompareBeats2(&BeatTemplates[nextBest][0],newBeat,&nextShift2) ;
 		if(nextDiff2 < bestDiff2)
-		{
+			{
 			temp = bestMatch ;
 			bestMatch = nextBest ;
 			nextBest = temp ;
@@ -657,34 +551,27 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 			nextDiff = temp ;
 			minShift = nextShift2 ;
 			*mi2 = bestDiff2 ;
-		}
+			}
 		else *mi2 = nextDiff2 ;
 
 		beatDiff = CompareBeats(&BeatTemplates[bestMatch][0],&BeatTemplates[nextBest][0],&shift) ;
 
 		if((beatDiff < COMBINE_LIMIT) &&
 			((*mi2 < 1.0) || (!MinimumBeatVariation(nextBest))))
-		{
+			{
 
 			// Combine beats into bestMatch
-			#ifdef OPERATION_COUNTER
-				float_comp_counter+=2;
-			#endif 
 
 			if(bestMatch < nextBest)
-			{
-				for(i = 0; i < BEATLGTH; ++i)
 				{
-					if((i+shift > 0) && (i + shift < BEATLGTH))
+				for(i = 0; i < BEATLGTH; ++i)
 					{
-						#ifdef OPERATION_COUNTER 
-						float_div_counter++;
-						float_add_counter++;
-						#endif
+					if((i+shift > 0) && (i + shift < BEATLGTH))
+						{
 						BeatTemplates[bestMatch][i] += BeatTemplates[nextBest][i+shift] ;
-						BeatTemplates[bestMatch][i] /= 2 ;
+						BeatTemplates[bestMatch][i] >>= 1 ;
+						}
 					}
-				}
 
 				if((BeatClassifications[bestMatch] == NORMAL) || (BeatClassifications[nextBest] == NORMAL))
 					BeatClassifications[bestMatch] = NORMAL ;
@@ -700,21 +587,17 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 				for(type = nextBest; type < TypeCount-1; ++type)
 					BeatCopy(type+1,type) ;
 
-			}
+				}
 
 			// Otherwise combine beats it nextBest.
 
 			else
-			{
-				for(i = 0; i < BEATLGTH; ++i)
 				{
-					#ifdef OPERATION_COUNTER 
-					float_div_counter++;
-					float_add_counter++;
-					#endif
+				for(i = 0; i < BEATLGTH; ++i)
+					{
 					BeatTemplates[nextBest][i] += BeatTemplates[bestMatch][i] ;
-					BeatTemplates[nextBest][i] /= 2 ;
-				}
+					BeatTemplates[nextBest][i] >>= 1 ;
+					}
 
 				if((BeatClassifications[bestMatch] == NORMAL) || (BeatClassifications[nextBest] == NORMAL))
 					BeatClassifications[nextBest] = NORMAL ;
@@ -732,52 +615,46 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 
 
 				bestMatch = nextBest ;
-			}
+				}
 			--TypeCount ;
 			BeatClassifications[TypeCount] = UNKNOWN ;
+			}
 		}
-	}
 	*mi2 = CompareBeats2(&BeatTemplates[bestMatch][0],newBeat,&bestShift2) ;
 	*matchType = bestMatch ;
 	*matchIndex = minDiff ;
 	*shiftAdj = minShift ;
-}
+	}
 
 /***************************************************************************
 	UpdateBeatType updates the beat template and features of a given beat type
 	using a new beat.
 ***************************************************************************/
 
-void UpdateBeatType(int matchType,float *newBeat, double mi2,
+void UpdateBeatType(int matchType,int *newBeat, double mi2,
 	 int shiftAdj)
-{
+	{
 	int i,onset,offset, isoLevel, beatBegin, beatEnd ;
 	int amp ;
 
 	// Update beats since templates were matched.
 
 	for(i = 0; i < TypeCount; ++i)
-	{
+		{
 		if(i != matchType)
 			++BeatsSinceLastMatch[i] ;
 		else BeatsSinceLastMatch[i] = 0 ;
-	}
+		}
 
 	// If this is only the second beat, average it with the existing
 	// template.
 
 	if(BeatCounts[matchType] == 1)
 		for(i = 0; i < BEATLGTH; ++i)
-		{
+			{
 			if((i+shiftAdj >= 0) && (i+shiftAdj < BEATLGTH))
-			{				
-				#ifdef OPERATION_COUNTER 
-				float_div_counter++;
-				float_add_counter++;
-				#endif
-				BeatTemplates[matchType][i] = (BeatTemplates[matchType][i] + newBeat[i+shiftAdj])/2 ;
+				BeatTemplates[matchType][i] = (BeatTemplates[matchType][i] + newBeat[i+shiftAdj])>>1 ;
 			}
-		}
 
 	// Otherwise do a normal update.
 
@@ -801,7 +678,7 @@ void UpdateBeatType(int matchType,float *newBeat, double mi2,
 		MIs[matchType][i] = MIs[matchType][i-1] ;
 	MIs[matchType][0] = mi2 ;
 
-}
+	}
 
 
 /****************************************************************************
@@ -810,37 +687,37 @@ void UpdateBeatType(int matchType,float *newBeat, double mi2,
 ****************************************************************************/
 
 int GetDominantType(void)
-{
+	{
 	int maxCount = 0, maxType = -1 ;
 	int type, totalCount ;
 
 	for(type = 0; type < MAXTYPES; ++type)
-	{
-		if((BeatClassifications[type] == NORMAL) && (BeatCounts[type] > maxCount))
 		{
+		if((BeatClassifications[type] == NORMAL) && (BeatCounts[type] > maxCount))
+			{
 			maxType = type ;
 			maxCount = BeatCounts[type] ;
+			}
 		}
-	}
 
 	// If no normals are found and at least 300 beats have occurred, just use
 	// the most frequently occurring beat.
 
 	if(maxType == -1)
-	{
+		{
 		for(type = 0, totalCount = 0; type < TypeCount; ++type)
 			totalCount += BeatCounts[type] ;
 		if(totalCount > 300)
 			for(type = 0; type < TypeCount; ++type)
 				if(BeatCounts[type] > maxCount)
-				{
+					{
 					maxType = type ;
 					maxCount = BeatCounts[type] ;
-				}
-	}
+					}
+		}
 
 	return(maxType) ;
-}
+	}
 
 
 /***********************************************************************
@@ -848,10 +725,10 @@ int GetDominantType(void)
 ************************************************************************/
 
 void ClearLastNewType(void)
-{
+	{
 	if(TypeCount != 0)
 		--TypeCount ;
-}
+	}
 
 /****************************************************************
 	GetBeatBegin returns the offset from the R-wave for the
@@ -859,9 +736,9 @@ void ClearLastNewType(void)
 *****************************************************************/
 
 int GetBeatBegin(int type)
-{
+	{
 	return(BeatBegins[type]) ;
-}
+	}
 
 /****************************************************************
 	GetBeatEnd returns the offset from the R-wave for the end of
@@ -869,14 +746,14 @@ int GetBeatBegin(int type)
 *****************************************************************/
 
 int GetBeatEnd(int type)
-{
+	{
 	return(BeatEnds[type]) ;
-}
+	}
 
 int GetBeatAmp(int type)
-{
+	{
 	return(BeatAmps[type]) ;
-}
+	}
 
 
 /************************************************************************
@@ -885,25 +762,25 @@ int GetBeatAmp(int type)
 	normal type.
 ************************************************************************/
 
-double DomCompare2(float *newBeat, int domType)
-{
+double DomCompare2(int *newBeat, int domType)
+	{
 	int shift ;
 	return(CompareBeats2(&BeatTemplates[domType][0],newBeat,&shift)) ;
-}
+	}
 
 double DomCompare(int newType, int domType)
-{
+	{
 	int shift ;
 	return(CompareBeats2(&BeatTemplates[domType][0],&BeatTemplates[newType][0],
 		&shift)) ;
-}
+	}
 
 /*************************************************************************
 BeatCopy copies beat data from a source beat to a destination beat.
 *************************************************************************/
 
-inline void BeatCopy(int srcBeat, int destBeat)
-{
+void BeatCopy(int srcBeat, int destBeat)
+	{
 	int i ;
 
 	// Copy template.
@@ -917,10 +794,10 @@ inline void BeatCopy(int srcBeat, int destBeat)
 	BeatWidths[destBeat] = BeatWidths[srcBeat] ;
 	BeatCenters[destBeat] = BeatCenters[srcBeat] ;
 	for(i = 0; i < MAXPREV; ++i)
-	{
+		{
 		PostClass[destBeat][i] = PostClass[srcBeat][i] ;
 		PCRhythm[destBeat][i] = PCRhythm[srcBeat][i] ;
-	}
+		}
 
 	BeatClassifications[destBeat] = BeatClassifications[srcBeat] ;
 	BeatBegins[destBeat] = BeatBegins[srcBeat] ;
@@ -931,7 +808,7 @@ inline void BeatCopy(int srcBeat, int destBeat)
 	// Adjust data in dominant beat monitor.
 
 	AdjustDomData(srcBeat,destBeat) ;
-}
+	}
 
 /********************************************************************
 	Minimum beat variation returns a 1 if the previous eight beats
@@ -939,7 +816,7 @@ inline void BeatCopy(int srcBeat, int destBeat)
 *********************************************************************/
 
 int MinimumBeatVariation(int type)
-{
+	{
 	int i ;
 	for(i = 0; i < MAXTYPES; ++i)
 		if(MIs[type][i] > 0.5)
@@ -947,7 +824,7 @@ int MinimumBeatVariation(int type)
 	if(i == MAXTYPES)
 		return(1) ;
 	else return(0) ;
-}
+	}
 
 /**********************************************************************
 	WideBeatVariation returns true if the average similarity index
@@ -957,7 +834,7 @@ int MinimumBeatVariation(int type)
 #define WIDE_VAR_LIMIT	0.50
 
 int WideBeatVariation(int type)
-{
+	{
 	int i, n ;
 	double aveMI ;
 
@@ -966,68 +843,10 @@ int WideBeatVariation(int type)
 		n = 8 ;
 
 	for(i = 0, aveMI = 0; i <n; ++i)
-	{
-		#ifdef OPERATION_COUNTER 
-		float_add_counter++;
-		#endif
-
 		aveMI += MIs[type][i] ;
-	}
-	
-	#ifdef OPERATION_COUNTER 
-	float_div_counter++;
-	#endif
 
 	aveMI /= n ;
 	if(aveMI > WIDE_VAR_LIMIT)
-	{
-		#ifdef OPERATION_COUNTER
-			float_comp_counter++;
-		#endif
-			return(1) ;
-	}
-
-	
+		return(1) ;
 	else return(0) ;
-}
-
-
-inline void AdjustDomData(int oldType, int newType)
-{
-	int i ;
-
-	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	{
-		if(DMBeatTypes[i] == oldType)
-			DMBeatTypes[i] = newType ;
 	}
-
-	if(newType != MAXTYPES)
-	{
-		DMNormCounts[newType] = DMNormCounts[oldType] ;
-		DMBeatCounts[newType] = DMBeatCounts[oldType] ;
-	}
-
-	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
-
-}
-
-inline void CombineDomData(int oldType, int newType)
-{
-	int i ;
-
-	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	{
-		if(DMBeatTypes[i] == oldType)
-			DMBeatTypes[i] = newType ;
-	}
-
-	if(newType != MAXTYPES)
-	{
-		DMNormCounts[newType] += DMNormCounts[oldType] ;
-		DMBeatCounts[newType] += DMBeatCounts[oldType] ;
-	}
-
-	DMNormCounts[oldType] = DMBeatCounts[oldType] = 0 ;
-
-}

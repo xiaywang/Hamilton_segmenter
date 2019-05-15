@@ -1,6 +1,6 @@
 # file: Makefile	G. Moody	10 April 2003
 #
-# make description file for compiling ourtest & bxbep using gcc
+# make description file for compiling easytest & bxbep using gcc
 #
 # Install the WFDB package (http://www.physionet.org/physiotools/wfdb.shtml)
 # before attempting to compile these programs.
@@ -12,22 +12,21 @@
 # See '00README' in this directory for further information.
 
 # CC is the name of your ANSI/ISO C compiler (might be 'cc' on some platforms).
-CFLAGS = -O3 -g# -std=c11
-CC = gcc $(CFLAGS)
+CC = gcc
 
-ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
- postclas.o analbeat.o tsc_x86.o notch.o
+ETOBJS = easytest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
+ postclas.o analbeat.o qrsfilt.o
 
-all:		ourtest
+all:		easytest easytest2 bxbep
 
-ourtest:	$(ETOBJS) qrsdet.o
-	$(CC) -o ourtest $(ETOBJS) qrsdet.o
+easytest:	$(ETOBJS) qrsdet.o
+	$(CC) -o easytest $(ETOBJS) qrsdet.o -lwfdb
 
-tsc_x86.o:	tsc_x86.c tsc_x86.h
-	$(CC) -c tsc_x86.c
+easytest2:	$(ETOBJS) qrsdet2.o
+	$(CC) -o easytest2 $(ETOBJS) qrsdet2.o -lwfdb
 
-notch.o:	notch.c notch.h
-	$(CC) -c notch.c
+easytest.o:	easytest.c qrsdet.h inputs.h
+	$(CC) -c easytest.c
 
 bdac.o:		bdac.c bdac.h qrsdet.h
 	$(CC) -c bdac.c
@@ -51,14 +50,19 @@ postclas.o:	postclas.c bdac.h
 analbeat.o:	analbeat.c bdac.h
 	$(CC) -c analbeat.c
 
+qrsfilt.o:	qrsfilt.c qrsdet.h
+	$(CC) -c qrsfilt.c
+
 qrsdet.o:	qrsdet.c qrsdet.h
 	$(CC) -c qrsdet.c
 
+qrsdet2.o:	qrsdet2.c qrsdet.h
+	$(CC) -c qrsdet2.c
+
+
+bxbep:		bxbep.c inputs.h
+	$(CC) -o bxbep bxbep.c -lwfdb -lm
+
 
 clean:
-	rm -f *.o *~ ourtest
-	rm -f ./to_plot/*.csv
-
-run:
-	./ourtest
-	python compare_result.py
+	rm -f *.o *~ bxbep easytest easytest2

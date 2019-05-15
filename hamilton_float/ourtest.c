@@ -8,6 +8,7 @@
 #include "bdac.h"
 
 #include "tsc_x86.h"
+#include "notch.h"
 
 // External function prototypes.
 void ResetBDAC(void) ;
@@ -48,7 +49,7 @@ MAINTYPE main()
 	#endif
 
 	int i, delay;
-	float ecg;
+	float ecg, ecgFilt;
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
 	int beatType, beatMatch ;
@@ -88,7 +89,9 @@ for (int flame =0; flame < 1; flame++)
 
 			ecg = ecg_data[SampleCount-1];
 
-			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
+			slowperformance(&ecg, &ecgFilt, 1); // notch filter 1st implementation
+
+			delay = BeatDetectAndClassify(ecgFilt, &beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -97,7 +100,7 @@ for (int flame =0; flame < 1; flame++)
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg);
+			fprintf(fp, "%f\n", ecgFilt);
 			fclose(fp);
 #endif
 

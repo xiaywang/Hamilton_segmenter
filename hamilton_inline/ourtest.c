@@ -7,12 +7,21 @@
 #include "ecg_data.h"
 #include "bdac.h"
 
+#include "config.h"
 #include "tsc_x86.h"
+#include "notch.h"
+
+//needed to init qrsdet, qrsfilt, bdac, classify
+#include "classify.h"
+#include "postclas.h"
+#include "match.h"
+#include "rythmchk.h"
+#include "ecgcodes.h"
 
 // External function prototypes.
 void ResetBDAC(void) ;
-// int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
 
+// int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch) ;
 
 // Global variables.
 
@@ -44,20 +53,99 @@ MAINTYPE main()
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
 		end_Classify = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 	#endif
 
-	int i, delay;
-	float ecg;
+	int i, j, delay;
+	float ecg[MAIN_BLOCK_SIZE], filterOut[MAIN_BLOCK_SIZE];
+	int delayArray[MAIN_BLOCK_SIZE];
 	unsigned char byte ;
 	long SampleCount = 0, lTemp, DetectionTime ;
-	int beatType, beatMatch ;
+	int beatType; 
+	int beatMatch ;
 
 
 
-		// Initialize beat detection and classification.
+		//~~~~~ Initialize beat detection and classification.
+		//~~~ QRSDet init
+		for(i = 0; i < 8; ++i)
+		{
+			noise[i] = 0.0 ;	/* Initialize noise buffer */
+			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+		}
+		maxder=lastmax= initMax= 0.0;
+		qpkcnt  = count = sbpeak = 0 ;
+		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
+		sbcount = MS1500_FLOAT ;
+		
+		max = 0.0;
+		timeSinceMax = 0;
 
-		ResetBDAC() ;
+
+		//~~~ QRSfilt init
+		//lpfilt
+		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+			lp_data[i_init] = 0.f;
+
+		//hpfilt
+		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+			hp_data[i_init] = 0.f;
+
+		//derivative
+		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+			derBuff[i_init] = 0 ;
+		
+		//movint window integration
+		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+			data[i_init] = 0 ;
+
+		//~~~~bdac init
+		RRCount = 0;
+		InitBeatFlag = 1 ;
+		BeatQueCount = 0 ;	// Flush the beat que.
+
+		//~~~Classify init
+		BeatCount = 0 ;
+		ClassifyState = LEARNING ;
+
+		TypeCount = 0 ;
+		for(i = 0; i < MAXTYPES; ++i)
+		{
+			BeatCounts[i] = 0 ;
+			BeatClassifications[i] = UNKNOWN ;
+			for(j = 0; j < 8; ++j)
+			{
+				MIs[i][j] = 0 ;
+			}
+		}
+
+		for(i = 0; i < MAXTYPES; ++i)
+			for(j = 0; j < 8; ++j)
+			{
+				PostClass[i][j] = 0 ;
+				PCRhythm[i][j] = 0 ;
+			}
+		PCInitCount = 0 ;
+
+		runCount = 0 ;
+
+		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+		{
+			DMBeatTypes[i] = -1 ;
+			DMBeatClasses[i] = 0 ;
+		}
+
+		for(i = 0; i < 8; ++i)
+		{
+			DMNormCounts[i] = 0 ;
+			DMBeatCounts[i] = 0 ;
+		}
+		DMIrregCount = 0 ;
+
+
+		// ResetBDAC() ;
 		SampleCount = 0 ;
 #if SAVEFILE
 		FILE *fp;
@@ -69,15 +157,16 @@ MAINTYPE main()
 		fclose(fp);
 #endif
 		// Read data from MIT/BIH file until there is none left.
+
 #ifdef FLAME
 for (int flame =0; flame < 1; flame++)
 {
 	SampleCount=0;
 	ResetBDAC() ;
 #endif
-		while(SampleCount < N_DATA)
+		while(SampleCount < N_DATA- MAIN_BLOCK_SIZE)
+
 			{
-			++SampleCount ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -85,10 +174,15 @@ for (int flame =0; flame < 1; flame++)
 			#endif
 
 			// Pass sample to beat detection and classification.
+			// set buffer to give to bdac and reset delay array
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
 
-			ecg = ecg_data[SampleCount-1];
+			//apply notch filter
+			slowperformance(ecg, filterOut, MAIN_BLOCK_SIZE);
 
-			delay = BeatDetectAndClassify(ecg, &beatType, &beatMatch) ;
+			BeatDetectAndClassify(filterOut, delayArray, MAIN_BLOCK_SIZE, &beatType, &beatMatch) ;
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
 			#ifdef RUNTIME_MEASURE
@@ -97,12 +191,13 @@ for (int flame =0; flame < 1; flame++)
 
 #if SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
-			fprintf(fp, "%f\n", ecg);
+			fprintf(fp, "%f\n", filterOut[0]);
 			fclose(fp);
 #endif
 
 			// If a beat was detected, annotate the beat location
 			// and type.
+<<<<<<< HEAD
 
 			if(delay != 0)
 				{
@@ -110,15 +205,77 @@ for (int flame =0; flame < 1; flame++)
 //#if PRINT
 				//printf("DetectionTime %li\n", DetectionTime);
 //#endif
+=======
+			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
+#if PRINT
+					printf("DetectionTime %li\n", DetectionTime);
+#endif
+>>>>>>> 6c3c86d097405b988d7e3b6c84197de31b9e2ca6
 
 #if SAVEFILE
-				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
-				fprintf(fp, "%ld\n", DetectionTime);
-				fclose(fp);
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
 #endif
 
+					}
 				}
+			SampleCount += MAIN_BLOCK_SIZE;
+			}
+			// clean up for cases where N_DATA is not divisible by MAIN_BLOCK_SIZE
+			if(SampleCount > N_DATA-MAIN_BLOCK_SIZE)
+			{
+			SampleCount;
+			int restLenght = N_DATA - SampleCount; 
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				start_time = start_tsc();
+			#endif
 
+			// Pass sample to beat detection and classification.
+			for(int index = 0; index < restLenght; index++){
+				ecg[index] = ecg_data[SampleCount + index];
+			}
+
+			//apply notch filter
+			slowperformance(ecg, filterOut, restLenght);
+
+			BeatDetectAndClassify(filterOut, delayArray, restLenght, &beatType, &beatMatch) ;
+
+			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
+			#ifdef RUNTIME_MEASURE
+				end_time += stop_tsc(start_time);
+			#endif
+
+#if SAVEFILE
+			fp = fopen("./to_plot/100.csv", "a+");
+			fprintf(fp, "%f\n", filterOut[0]);
+			fclose(fp);
+#endif
+
+			// If a beat was detected, annotate the beat location
+			// and type.
+			for(int index = 0; index < restLenght; index++){
+				delay = delayArray[index];
+				if(delay != 0)
+					{
+					DetectionTime = SampleCount + 1 + index - delay ;
+#if PRINT
+					printf("DetectionTime %li\n", DetectionTime);
+#endif
+
+#if SAVEFILE
+					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
+					fprintf(fp, "%ld\n", DetectionTime);
+					fclose(fp);
+#endif
+
+					}
+				}
 			}
 #ifdef FLAME
 }
@@ -139,14 +296,27 @@ for (int flame =0; flame < 1; flame++)
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
 			#ifdef RUNTIME_QRSDET
+<<<<<<< HEAD
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);
 			#endif
 			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);
+=======
+				printf("QRSdet runtime:   %lli\n", end_QRSDet);
+				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
+			#endif
+			#ifdef RUNTIME_CLASSIFY
+				printf("Classify runtime: %lli\n", end_Classify);
+>>>>>>> 6c3c86d097405b988d7e3b6c84197de31b9e2ca6
 			#endif
 			printf("total runtime:    %lli\n",end_time);
+			#ifdef OPERATION_COUNTER
 			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
 			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
+			#else
+			printf("performance:      %f\n", (double)(259724 )/(double)end_time);
+			printf("performance (w/ comp):      %f\n", (double)(337451 )/(double)end_time);
+			#endif
 		#endif
 		// TODO: filesave
 	#endif
