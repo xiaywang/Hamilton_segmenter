@@ -499,7 +499,6 @@ float QRSFilter(float datum,int init)
 
 	if(init)
 		{
-		printf("init is %i \n", init);
 		
 		// ------- initialize filters ------- //
 

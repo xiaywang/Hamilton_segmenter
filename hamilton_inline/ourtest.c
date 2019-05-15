@@ -1,4 +1,4 @@
-#define SAVEFILE 1
+#define SAVEFILE 0
 #define PRINT 1
 
 #include "stdio.h"
@@ -69,7 +69,12 @@ MAINTYPE main()
 		fclose(fp);
 #endif
 		// Read data from MIT/BIH file until there is none left.
-
+#ifdef FLAME
+for (int flame =0; flame < 1; flame++)
+{
+	SampleCount=0;
+	ResetBDAC() ;
+#endif
 		while(SampleCount < N_DATA)
 			{
 			++SampleCount ;
@@ -102,9 +107,9 @@ MAINTYPE main()
 			if(delay != 0)
 				{
 				DetectionTime = SampleCount - delay ;
-#if PRINT
-				printf("DetectionTime %li\n", DetectionTime);
-#endif
+//#if PRINT
+				//printf("DetectionTime %li\n", DetectionTime);
+//#endif
 
 #if SAVEFILE
 				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
@@ -115,7 +120,9 @@ MAINTYPE main()
 				}
 
 			}
-
+#ifdef FLAME
+}
+#endif
 	#ifdef OPERATION_COUNTER
 		#if PRINT
 			printf("float adds:		%li\n", float_add_counter);
@@ -131,8 +138,12 @@ MAINTYPE main()
 		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
+			#ifdef RUNTIME_QRSDET
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);
+			#endif
+			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);
+			#endif
 			printf("total runtime:    %lli\n",end_time);
 			printf("performance:      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter)/(double)end_time);
 			printf("performance (w/ comp):      %f\n", (double)(float_div_counter+float_mul_counter+float_add_counter+float_comp_counter)/(double)end_time);
