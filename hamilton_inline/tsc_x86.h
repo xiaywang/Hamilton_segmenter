@@ -1,7 +1,8 @@
 #ifndef __TSC_X86_H__
 #define __TSC_X86_H__
 
-	#define OPERATION_COUNTER
+#include "performance.h"
+	//#define OPERATION_COUNTER
 	#ifdef OPERATION_COUNTER
 	long int float_add_counter;
 	long int float_mul_counter;
@@ -83,21 +84,20 @@
 		}
 
 	#endif
-
-	#define RUNTIME_MEASURE
+	//#define RUNTIME_MEASURE
 	#ifdef RUNTIME_MEASURE
 	myInt64 start_time;
 	myInt64 end_time;
 
 		// for QRSDet submeasurements
-		#define RUNTIME_QRSDET
+		//#define RUNTIME_QRSDET
 		#ifdef RUNTIME_QRSDET
 			myInt64 start_QRSDet;
 			myInt64 end_QRSDet;
 		#endif
 
 		// for Classify submeasurements
-		#define RUNTIME_CLASSIFY
+		//#define RUNTIME_CLASSIFY
 		#ifdef RUNTIME_CLASSIFY
 			myInt64 start_Classify;
 			myInt64 end_Classify;
