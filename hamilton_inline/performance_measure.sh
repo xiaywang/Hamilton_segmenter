@@ -83,4 +83,11 @@ make clean all
 
 ./ourtest 2>&1 | tee -a $outputfilename
 
-python3.6 ../display_perf.py $outputfilename
+if command -v python3.6 &>/dev/null; then
+    echo "Python 3.6 is installed"
+    python3.6 ../performance/script/display_perf.py $outputfilename
+else
+    echo "Python 3.6 is not installed"
+    python ../performance/script/display_perf.py $outputfilename
+
+fi

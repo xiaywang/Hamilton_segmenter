@@ -11,7 +11,7 @@ if [ $# -lt 1 ]; then
     echo "${red}Please specify an output name${reset}"
     exit 1
 fi
-echo -e "#define MAIN_BLOCK_SIZE 1000 \n#define FLAME\n" > performance.h
+echo "#define FLAME " > performance.h
 make clean all
 time ./ourtest &
 OUTPUT="$(pidof ourtest)"

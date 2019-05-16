@@ -1,5 +1,5 @@
-#define SAVEFILE 0
-#define PRINT 1
+// #define SAVEFILE 
+// #define PRINT 
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -32,6 +32,7 @@ int ADCZero, ADCUnit, InputFileSampleFrequency ;
 #else
 #define MAINTYPE void
 #endif
+
 
 MAINTYPE main()
 	{	  
@@ -147,7 +148,7 @@ MAINTYPE main()
 
 		// ResetBDAC() ;
 		SampleCount = 0 ;
-#if SAVEFILE
+#ifdef SAVEFILE
 		FILE *fp;
 		fp = fopen("./to_plot/100.csv", "w");
 		fprintf(fp, "ecg_data\n");
@@ -159,7 +160,7 @@ MAINTYPE main()
 		// Read data from MIT/BIH file until there is none left.
 
 #ifdef FLAME
-for (int flame =0; flame < 1; flame++)
+for (int flame =0; flame < 1000000; flame++)
 {
 	SampleCount=0;
 	ResetBDAC() ;
@@ -189,7 +190,7 @@ for (int flame =0; flame < 1; flame++)
 				end_time += stop_tsc(start_time);
 			#endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
 			fprintf(fp, "%f\n", filterOut[0]);
 			fclose(fp);
@@ -203,11 +204,11 @@ for (int flame =0; flame < 1; flame++)
 				if(delay != 0)
 					{
 					DetectionTime = SampleCount + 1 + index - delay ;
-#if DEBUG
+#ifdef DEBUG
 					printf("DetectionTime %li\n", DetectionTime);
 #endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
 					fprintf(fp, "%ld\n", DetectionTime);
 					fclose(fp);
@@ -242,7 +243,7 @@ for (int flame =0; flame < 1; flame++)
 				end_time += stop_tsc(start_time);
 			#endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
 			fprintf(fp, "%f\n", filterOut[0]);
 			fclose(fp);
@@ -255,11 +256,11 @@ for (int flame =0; flame < 1; flame++)
 				if(delay != 0)
 					{
 					DetectionTime = SampleCount + 1 + index - delay ;
-#if PRINT
+#ifdef DEBUG
 					printf("DetectionTime %li\n", DetectionTime);
 #endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 					fp = fopen("./to_plot/DetectionTime100.csv", "a+");
 					fprintf(fp, "%ld\n", DetectionTime);
 					fclose(fp);
@@ -272,7 +273,7 @@ for (int flame =0; flame < 1; flame++)
 }
 #endif
 	#ifdef OPERATION_COUNTER
-		#if PRINT
+		#ifdef PRINT
 			printf("float adds:		%li\n", float_add_counter);
 			printf("float mult:		%li\n", float_mul_counter);
 			printf("float div:		%li\n", float_div_counter);
@@ -285,7 +286,7 @@ for (int flame =0; flame < 1; flame++)
 
 		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
 	#ifdef RUNTIME_MEASURE
-		#if PRINT
+		#ifdef PRINT
 			#ifdef RUNTIME_QRSDET
 
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);

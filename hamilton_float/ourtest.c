@@ -1,5 +1,5 @@
 #define SAVEFILE 0
-#define PRINT 1
+#define PRINT 0
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -71,7 +71,7 @@ MAINTYPE main()
 #endif
 		// Read data from MIT/BIH file until there is none left.
 #ifdef FLAME
-for (int flame =0; flame < 1; flame++)
+for (int flame =0; flame < 1000000; flame++)
 {
 	ResetBDAC() ;
 	SampleCount=0;

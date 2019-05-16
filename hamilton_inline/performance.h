@@ -1,4 +1,6 @@
 #define OPERATION_COUNTER 
 #define RUNTIME_MEASURE 
 #define RUNTIME_QRSDET 
- 
+#define RUNTIME_CLASSIFY 
+#define MAIN_BLOCK_SIZE 1050 
+#define PRINT 
