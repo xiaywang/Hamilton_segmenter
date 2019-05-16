@@ -126,7 +126,7 @@ extern long int float_comp_counter;
 //inline int HFNoiseCheck(float *beat) ;
 inline int TempClass(int rhythmClass, int morphType, int beatWidth, int domWidth,
 	int domType, int hfNoise, int noiseLevel, int blShift, double domIndex) ;
-inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
+static inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset) ;
 inline int GetDomRhythm(void) ;
 inline int GetRunCount(void) ;
 
@@ -683,7 +683,7 @@ inline int TempClass(int rhythmClass, int morphType,
 int NewDom, DomRhythm ;
 int DMBeatRhythms[DM_BUFFER_LENGTH] ;
 
-inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
+static inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int rr, int reset)
 {
 	static int brIndex = 0 ;
 	int i, oldType, runCount_DomMonitor, dom, max ;

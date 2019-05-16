@@ -72,7 +72,6 @@ float QRSFilter(float datum,int init)
 	float fdatum ;
 	if(init)
 		{
-			printf("init is %i \n", init);
 		hpfilt( 0.f, 1 ) ;		// Initialize filters.
 		lpfilt( 0.f, 1 ) ;
 		mvwint( 0.f, 1 ) ;

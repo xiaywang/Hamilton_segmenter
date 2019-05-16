@@ -1,0 +1,24 @@
+float adds:		187465
+float mult:		36862
+float div:		35397
+float comp:		77727
+float total only math:	259724
+float total with comp:	337451
+QRSdet runtime:   1494414
+Classify runtime: 640482
+total runtime:    34120449
+performance:      0.007612
+performance (w/ comp):      0.009890
+Start running baseline 
+
+float adds:		189814
+float mult:		36868
+float div:		41009
+float comp:		76094
+float total only math:	267691
+float total with comp:	343785
+QRSdet runtime:   0
+Classify runtime: 14110298296475049
+total runtime:    2286435
+performance:      0.117078
+performance (w/ comp):      0.150359

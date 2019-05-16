@@ -1,4 +1,4 @@
-#define SAVEFILE 1
+#define SAVEFILE 0
 #define PRINT 1
 
 #include "stdio.h"
@@ -157,7 +157,15 @@ MAINTYPE main()
 		fclose(fp);
 #endif
 		// Read data from MIT/BIH file until there is none left.
-		while(SampleCount <= N_DATA - MAIN_BLOCK_SIZE)
+
+#ifdef FLAME
+for (int flame =0; flame < 1; flame++)
+{
+	SampleCount=0;
+	ResetBDAC() ;
+#endif
+		while(SampleCount < N_DATA- MAIN_BLOCK_SIZE)
+
 			{
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
@@ -189,12 +197,13 @@ MAINTYPE main()
 
 			// If a beat was detected, annotate the beat location
 			// and type.
+
 			for(int index = 0; index < MAIN_BLOCK_SIZE; index++){
 				delay = delayArray[index];
 				if(delay != 0)
 					{
 					DetectionTime = SampleCount + 1 + index - delay ;
-#if PRINT
+#if DEBUG
 					printf("DetectionTime %li\n", DetectionTime);
 #endif
 
@@ -259,7 +268,9 @@ MAINTYPE main()
 					}
 				}
 			}
-
+#ifdef FLAME
+}
+#endif
 	#ifdef OPERATION_COUNTER
 		#if PRINT
 			printf("float adds:		%li\n", float_add_counter);
@@ -276,11 +287,15 @@ MAINTYPE main()
 	#ifdef RUNTIME_MEASURE
 		#if PRINT
 			#ifdef RUNTIME_QRSDET
-				printf("QRSdet runtime:   %lli\n", end_QRSDet);
-				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
+
+			printf("QRSdet runtime:   %lli\n", end_QRSDet);
+			printf("QRSfilt runtime:   %lli\n", end_QRSFilt);
 			#endif
 			#ifdef RUNTIME_CLASSIFY
-				printf("Classify runtime: %lli\n", end_Classify);
+			printf("Classify runtime: %lli\n", end_Classify);
+
+				printf("QRSdet runtime:   %lli\n", end_QRSDet);
+				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
 			#endif
 			printf("total runtime:    %lli\n",end_time);
 			#ifdef OPERATION_COUNTER

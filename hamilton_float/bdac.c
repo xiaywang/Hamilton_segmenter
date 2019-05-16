@@ -237,6 +237,9 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 	else
 		{
 		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
+		#ifdef RUNTIME_CLASSIFY
+		end_Classify += stop_tsc(start_Classify);
+		#endif
 		fidAdj *= SAMPLE_RATE/BEAT_SAMPLE_RATE ;
       }
 
