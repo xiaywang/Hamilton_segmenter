@@ -165,7 +165,7 @@ for (int flame =0; flame < 1000000; flame++)
 	SampleCount=0;
 	ResetBDAC() ;
 #endif
-		while(SampleCount < N_DATA- MAIN_BLOCK_SIZE)
+		while(SampleCount <= N_DATA- MAIN_BLOCK_SIZE)
 
 			{
 

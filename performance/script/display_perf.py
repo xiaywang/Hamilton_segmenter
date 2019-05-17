@@ -54,11 +54,13 @@ if sys.argv[1] == "-i":
 	plt.bar(x, performance)
 	ind = np.arange(len(block_size))
 	ax.set_xticks(ind)
-	ax.set_xticklabels(block_size)
+	block_size_small = [ "{:03.1f}".format(x/1000) for x in block_size]
+	ax.set_xticklabels(block_size_small, {'fontsize': 7})
 	ax.set_ylabel('Flops/cycle')
-	ax.set_xlabel('Input Blocking Size')
+	ax.set_xlabel('Input Block Size(4KB)')
 	ax.set_title('Performance per Block Size')
 	ax.plot(x, performance)
+	plt.savefig(sys.argv[2])
 	plt.show(block=True)
 	# ax2=ax.twinx()
 	# ax2.plot(ax.get_xticks(),

@@ -113,7 +113,7 @@ fi
 
 inputsize_profiling()
 {
-    for (( c=1000; c<=1050; c+=50))
+    for (( c=2200; c<=7200; c+=100))
     do  
         echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n#define MAIN_BLOCK_SIZE $c \n#define PRINT " > performance.h
         make clean all
