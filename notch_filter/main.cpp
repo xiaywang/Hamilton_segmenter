@@ -44,7 +44,7 @@
 /* prototype of the function you need to optimize */
 typedef void(*comp_func)(double *, double *, int);
 
-#define cost_analysis 20.0
+#define cost_analysis 40.0
 #define CYCLES_REQUIRED 1e7
 #define REP 30
 #define MAX_FUNCS 32
@@ -67,6 +67,7 @@ void pipelined0(double* input, double* output, int number_of_samples);
 void pipelined1(double* input, double* output, int number_of_samples);
 void pipelined2(double* input, double* output, int number_of_samples);
 void matrixStyle(double* input, double* output, int number_of_samples);
+void matrixStyle2(double* input, double* output, int number_of_samples);
 
 void add_function(comp_func f, string name, int flop);
 
@@ -90,7 +91,8 @@ void register_functions()
 	add_function(&pipelined0, "pipelined0", 38);
 	add_function(&pipelined1, "pipelined1", 38);
 	add_function(&pipelined2, "pipelined2", 38);
-	add_function(&matrixStyle, "matrixStyle", 38);
+	add_function(&matrixStyle, "matrixStyle", 40);
+	add_function(&matrixStyle2, "matrixStyle2", 40);
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
@@ -251,7 +253,7 @@ double perf_test(comp_func f, string desc, int flops)
 		// printf("N: %i, perf: %f\n", n, (cost_analysis * (n)) / cycles);
 	}
 	
-	return  (cost_analysis * (n)) / cycles;
+	return  (flops * (n)) / cycles;
 }
 
 

@@ -65,6 +65,187 @@ const double new_order2[16] = {
     filter_coefficients[5], filter_coefficients[11], filter_coefficients[17], filter_coefficients[23],
 };
 
+const double matrixCoeffs2[32] = {
+filter_coefficients[4] , // 0
+filter_coefficients[10],
+filter_coefficients[16],
+filter_coefficients[22],
+filter_coefficients[5] ,
+filter_coefficients[11],
+filter_coefficients[17], // 6
+filter_coefficients[23],
+0, 
+new_order1[2]-new_order1[0], 
+0, 
+new_order1[10]-new_order1[8], 
+0, // 12
+new_order1[3]-new_order1[1], 
+0,
+new_order1[11]-new_order1[9], 
+0, 
+0, 
+new_order1[2]-new_order1[0], // 18
+new_order1[6]-new_order1[4],
+0, 
+0, 
+new_order1[3]-new_order1[1], 
+new_order1[7]-new_order1[5],
+0, 
+0, 
+new_order1[6]-new_order1[4], 
+new_order1[2]-new_order1[0], 
+0,
+0, 
+new_order1[7]-new_order1[5],
+new_order1[3]-new_order1[1],
+};
+
+void matrixStyle2(double* input, double* output, int number_of_samples) {
+
+    static double x[NUM_STAGES] = {0}; //z-1 buffers
+    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[2*NUM_STAGES] = {0};
+    double inp_1, outp_1;
+    int i;
+
+    static __m256d vec_x = _mm256_setzero_pd();
+    static __m256d vec_y = _mm256_setzero_pd();
+
+    const __m256d coef_x0 = _mm256_load_pd(matrixCoeffs2);
+    const __m256d coef_y0 = _mm256_load_pd(matrixCoeffs2 + 4);
+    const __m256d coef_x1 = _mm256_load_pd(matrixCoeffs2 + 8);
+    const __m256d coef_y1 = _mm256_load_pd(matrixCoeffs2 +12);
+    const __m256d coef_x2 = _mm256_load_pd(matrixCoeffs2 +16);
+    const __m256d coef_y2 = _mm256_load_pd(matrixCoeffs2 +20);
+    const __m256d coef_x3 = _mm256_load_pd(matrixCoeffs2 +24);
+    const __m256d coef_y3 = _mm256_load_pd(matrixCoeffs2 +28);
+
+    for(i = 0; i < number_of_samples-1; i+=2)
+    {
+        inp_1 = input[i];
+        __m256d vinp_1 = _mm256_broadcast_sd(input+i);
+
+        _mm256_store_pd(x, vec_x);
+        _mm256_store_pd(y, vec_y);
+
+        __m256d perm_x1 = _mm256_permute_pd(vec_x, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_y1 = _mm256_permute_pd(vec_y, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_x2 = _mm256_permute2f128_pd(vec_x, vec_x, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_y2 = _mm256_permute2f128_pd(vec_y, vec_y, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_x3 = _mm256_permute_pd(perm_x2, 0b0100); // make 0 0 1 0 copy
+        __m256d perm_y3 = _mm256_permute_pd(perm_y2, 0b0100); // make 0 0 1 0 copy
+
+        __m256d intermed_0 = _mm256_mul_pd(vec_x, coef_x0);
+        __m256d intermed_1 = _mm256_mul_pd(vec_y, coef_y0);
+        __m256d intermed_2 = _mm256_add_pd(intermed_0, intermed_1);
+        __m256d intermed_3 = _mm256_sub_pd(vinp_1, intermed_2);
+
+        __m256d intermed_4 = _mm256_mul_pd(perm_x1, coef_x1);
+        __m256d intermed_5 = _mm256_mul_pd(perm_y1, coef_y1);
+        __m256d intermed_6 = _mm256_add_pd(intermed_4, intermed_5);
+        __m256d intermed_7 = _mm256_add_pd(intermed_3, intermed_6);
+
+        __m256d intermed_8 = _mm256_mul_pd(perm_x2, coef_x2);
+        __m256d intermed_9 = _mm256_mul_pd(perm_y2, coef_y2);
+        __m256d intermed_10= _mm256_add_pd(intermed_8, intermed_9);
+        __m256d intermed_11= _mm256_add_pd(intermed_7, intermed_10);
+
+        __m256d intermed_12= _mm256_mul_pd(perm_x3, coef_x3);
+        __m256d intermed_13= _mm256_mul_pd(perm_y3, coef_y3);
+        __m256d intermed_14= _mm256_add_pd(intermed_12, intermed_13);
+        __m256d intermed_15= _mm256_add_pd(intermed_11, intermed_14);
+
+
+        outp_1 = inp_1 + x[0]*new_order2[0] + y[0]*new_order2[4] + x[1]*new_order2[1] + y[1]*new_order2[5] + x[2]*new_order2[2] + y[2]*new_order2[6] + x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        output[i] = outp_1;
+
+        inp_1 = input[i+1];
+        vinp_1 = _mm256_broadcast_sd(input+i+1);
+
+        _mm256_store_pd(x, intermed_15);
+        _mm256_store_pd(y, vec_x);
+
+        __m256d perm_x5 = _mm256_permute_pd(intermed_15, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_y5 = _mm256_permute_pd(vec_x, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_x6 = _mm256_permute2f128_pd(intermed_15, intermed_15, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_y6 = _mm256_permute2f128_pd(vec_x, vec_x, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_x7 = _mm256_permute_pd(perm_x6, 0b0100); // make 0 0 1 0 copy
+        __m256d perm_y7 = _mm256_permute_pd(perm_y6, 0b0100); // make 0 0 1 0 copy
+
+        __m256d intermed_16 = _mm256_mul_pd(intermed_15, coef_x0);
+        __m256d intermed_17 = _mm256_mul_pd(vec_x, coef_y0);
+        __m256d intermed_18 = _mm256_add_pd(intermed_16, intermed_17);
+        __m256d intermed_19 = _mm256_sub_pd(vinp_1, intermed_18);
+
+        __m256d intermed_20 = _mm256_mul_pd(perm_x5, coef_x1);
+        __m256d intermed_21 = _mm256_mul_pd(perm_y5, coef_y1);
+        __m256d intermed_22 = _mm256_add_pd(intermed_20, intermed_21);
+        __m256d intermed_23 = _mm256_add_pd(intermed_19, intermed_22);
+
+        __m256d intermed_24 = _mm256_mul_pd(perm_x6, coef_x2);
+        __m256d intermed_25 = _mm256_mul_pd(perm_y6, coef_y2);
+        __m256d intermed_26= _mm256_add_pd(intermed_24, intermed_25);
+        __m256d intermed_27= _mm256_add_pd(intermed_23, intermed_26);
+
+        __m256d intermed_28= _mm256_mul_pd(perm_x7, coef_x3);
+        __m256d intermed_29= _mm256_mul_pd(perm_y7, coef_y3);
+        __m256d intermed_30= _mm256_add_pd(intermed_28, intermed_29);
+        __m256d intermed_31= _mm256_add_pd(intermed_27, intermed_30);
+
+        outp_1 = inp_1 + x[0]*new_order2[0] + y[0]*new_order2[4] + x[1]*new_order2[1] + y[1]*new_order2[5] + x[2]*new_order2[2] + y[2]*new_order2[6] + x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        output[i+1] = outp_1;
+
+        vec_y = intermed_15;
+        vec_x = intermed_31;
+    }
+
+    for(; i < number_of_samples; i++){
+        i++;
+        inp_1 = input[i];
+        __m256d vinp_1 = _mm256_broadcast_sd(input+i);
+
+        _mm256_store_pd(x, vec_x);
+        _mm256_store_pd(y, vec_y);
+
+        __m256d perm_x1 = _mm256_permute_pd(vec_x, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_y1 = _mm256_permute_pd(vec_y, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_x2 = _mm256_permute2f128_pd(vec_x, vec_x, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_y2 = _mm256_permute2f128_pd(vec_y, vec_y, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_x3 = _mm256_permute_pd(perm_x2, 0b0100); // make 0 0 1 0 copy
+        __m256d perm_y3 = _mm256_permute_pd(perm_y2, 0b0100); // make 0 0 1 0 copy
+
+        __m256d intermed_0 = _mm256_mul_pd(vec_x, coef_x0);
+        __m256d intermed_1 = _mm256_mul_pd(vec_y, coef_y0);
+        __m256d intermed_2 = _mm256_add_pd(intermed_0, intermed_1);
+        __m256d intermed_3 = _mm256_sub_pd(vinp_1, intermed_2);
+
+        __m256d intermed_4 = _mm256_mul_pd(perm_x1, coef_x1);
+        __m256d intermed_5 = _mm256_mul_pd(perm_y1, coef_y1);
+        __m256d intermed_6 = _mm256_add_pd(intermed_4, intermed_5);
+        __m256d intermed_7 = _mm256_add_pd(intermed_3, intermed_6);
+
+        __m256d intermed_8 = _mm256_mul_pd(perm_x2, coef_x2);
+        __m256d intermed_9 = _mm256_mul_pd(perm_y2, coef_y2);
+        __m256d intermed_10= _mm256_add_pd(intermed_8, intermed_9);
+        __m256d intermed_11= _mm256_add_pd(intermed_7, intermed_10);
+
+        __m256d intermed_12= _mm256_mul_pd(perm_x3, coef_x3);
+        __m256d intermed_13= _mm256_mul_pd(perm_y3, coef_y3);
+        __m256d intermed_14= _mm256_add_pd(intermed_12, intermed_13);
+        __m256d intermed_15= _mm256_add_pd(intermed_11, intermed_14);
+
+
+        outp_1 = inp_1 + x[0]*new_order2[0] + y[0]*new_order2[4] + x[1]*new_order2[1] + y[1]*new_order2[5] + x[2]*new_order2[2] + y[2]*new_order2[6] + x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        output[i] = outp_1;
+
+        vec_y = vec_x;
+        vec_x = intermed_15;
+    }
+}
+
 const double matrixCoeffs[32] = {
 filter_coefficients[4] , // 0
 filter_coefficients[10],
@@ -340,6 +521,26 @@ void pipelined0(double* input, double* output, int number_of_samples) {
         x[1] = temp[1];
         x[2] = temp[2];
         x[3] = temp[3];
+    }
+
+}
+
+//dumb base implementation
+void slowperformance4(double* input, double* output, int number_of_samples) {
+    static double x[NUM_STAGES] = {0}; //z-1 buffers
+    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp_x = 0; //temporary store of the "fall-through" value
+    double z[number_of_samples]; //temporary output from first SOS-stage
+    for (int i = 0; i < number_of_samples; i++)
+    {
+        z = input[i];
+        for(int j = 0; j < NUM_STAGES; j++){
+            temp_x = z*filter_coefficients[6*j+3] - x[j]*filter_coefficients[6*j+4] - y[j]*filter_coefficients[6*j+5];
+            z = temp_x*filter_coefficients[6*j] + x[j]*filter_coefficients[6*j+1] + y[j]*filter_coefficients[6*j+2];
+            y[j] = x[j];
+            x[j] = temp_x;
+        }
+        output[i] = z;
     }
 
 }
