@@ -47,105 +47,301 @@ const float filter_coefficients[NUM_COEFFS] = {
 1, -4.39053631002551e-05, 0.999894003419208, 1, -0.0195762207185178, 0.965423306433758
 };
 
-const double new_order[16] = {
-    0.0309895216876636, -0.0309895216876636, 0.0195762207185172, -0.0195762207185178, // values 4, 10, 16, 22
-    0.990608187607165, 0.990608187607168, 0.965423306433757, 0.965423306433758, // values 5, 11, 17, 23
-    0.000105999737667783, -0.000105999737667672, 4.39053630995161e-05, -4.39053631002551e-05, // values 1, 7, 13, 19
-    0.999956093608070, 0.999956093608070, 0.999894003419193, 0.999894003419208 // values 2, 8, 14, 20
-};
-
 // #define NUM_COEFFS 12
 // #define NUM_STAGES NUM_COEFFS/6
 // const float filter_coefficients[NUM_COEFFS] = {1.0, 0.000000228016561187872, 0.999999772567283, 1.0, 0.0230135827512062,0.978067688426724, 1.0, -0.000000228016561854005, 0.999999772566322, 1.0, -0.0230135827512065, 0.978067688426719};
 
-// inplementation close to system representation of filter
-void slowperformance4(double* input, double* output, int number_of_samples) {
+const double new_order1[16] = {
+    filter_coefficients[4], filter_coefficients[5], filter_coefficients[1], filter_coefficients[2],
+    filter_coefficients[10], filter_coefficients[11], filter_coefficients[7], filter_coefficients[8],
+    filter_coefficients[16], filter_coefficients[17], filter_coefficients[13], filter_coefficients[14],
+    filter_coefficients[22], filter_coefficients[23], filter_coefficients[19], filter_coefficients[20]
+};
+
+const double new_order2[16] = {
+    new_order1[2]-new_order1[0], new_order1[6]-new_order1[4], new_order1[10]-new_order1[8], new_order1[14]-new_order1[12],
+    new_order1[3]-new_order1[1], new_order1[7]-new_order1[5], new_order1[11]-new_order1[9], new_order1[15]-new_order1[13],
+    filter_coefficients[4], filter_coefficients[10], filter_coefficients[16], filter_coefficients[22],
+    filter_coefficients[5], filter_coefficients[11], filter_coefficients[17], filter_coefficients[23],
+};
+
+const double matrixCoeffs[32] = {
+filter_coefficients[4] , // 0
+filter_coefficients[10],
+filter_coefficients[16],
+filter_coefficients[22],
+filter_coefficients[5] ,
+filter_coefficients[11],
+filter_coefficients[17], // 6
+filter_coefficients[23],
+0, 
+new_order1[2]-new_order1[0], 
+0, 
+new_order1[10]-new_order1[8], 
+0, // 12
+new_order1[3]-new_order1[1], 
+0,
+new_order1[11]-new_order1[9], 
+0, 
+0, 
+new_order1[2]-new_order1[0], // 18
+new_order1[6]-new_order1[4],
+0, 
+0, 
+new_order1[3]-new_order1[1], 
+new_order1[7]-new_order1[5],
+0, 
+0, 
+new_order1[6]-new_order1[4], 
+new_order1[2]-new_order1[0], 
+0,
+0, 
+new_order1[7]-new_order1[5],
+new_order1[3]-new_order1[1],
+};
+
+void matrixStyle(double* input, double* output, int number_of_samples) {
+
     static double x[NUM_STAGES] = {0}; //z-1 buffers
     static double y[NUM_STAGES] = {0}; //z-2 buffers
-    double temp[NUM_STAGES] = {0};
+    double temp[2*NUM_STAGES] = {0};
+    double inp_1, outp_1;
+
+    static __m256d vec_x = _mm256_setzero_pd();
+    static __m256d vec_y = _mm256_setzero_pd();
+
+    const __m256d coef_x0 = _mm256_load_pd(matrixCoeffs);
+    const __m256d coef_y0 = _mm256_load_pd(matrixCoeffs + 4);
+    const __m256d coef_x1 = _mm256_load_pd(matrixCoeffs + 8);
+    const __m256d coef_y1 = _mm256_load_pd(matrixCoeffs +12);
+    const __m256d coef_x2 = _mm256_load_pd(matrixCoeffs +16);
+    const __m256d coef_y2 = _mm256_load_pd(matrixCoeffs +20);
+    const __m256d coef_x3 = _mm256_load_pd(matrixCoeffs +24);
+    const __m256d coef_y3 = _mm256_load_pd(matrixCoeffs +28);
 
     for(int i = 0; i < number_of_samples; i++)
     {
-        // temp only for readability not really part of algorithm
-        x[0] = input[i] - filter_coefficients[4]*x[0] - filter_coefficients[5]*y[0] ;
-        temp[0] = (-filter_coefficients[4]+filter_coefficients[1])*x[0] + (-filter_coefficients[5]+filter_coefficients[2])*y[0];
-        x[1] = input[i] + temp[0] + - filter_coefficients[10]*x[1] - filter_coefficients[11]*y[1];
-        temp[1] = (-filter_coefficients[10]+filter_coefficients[7])*x[1] + (-filter_coefficients[11]+filter_coefficients[8])*y[1];
-        x[2] = input[i] + temp[0] + temp[1] - filter_coefficients[16]*x[1] - filter_coefficients[17]*y[1];
-        temp[2] = (-filter_coefficients[16]+filter_coefficients[13])*x[2] + (-filter_coefficients[17]+filter_coefficients[14])*y[2];
-        x[3] = input[i] + temp[0] + temp[1] + temp[2] - filter_coefficients[22]*x[1] - filter_coefficients[23]*y[1];
-        temp[4] = (-filter_coefficients[22]+filter_coefficients[19])*x[3] + (-filter_coefficients[23]+filter_coefficients[20])*y[3];
+        inp_1 = input[i];
+        __m256d vinp_1 = _mm256_broadcast_sd(input+i);
+
+        //vec_x = _mm256_load_pd(x);
+        //vec_y = _mm256_load_pd(y);
+        _mm256_store_pd(x, vec_x);
+        _mm256_store_pd(y, vec_y);
+
+        __m256d perm_x1 = _mm256_permute_pd(vec_x, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_y1 = _mm256_permute_pd(vec_y, 0b0000); // make 0 0 2 2 copy
+        __m256d perm_x2 = _mm256_permute2f128_pd(vec_x, vec_x, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_y2 = _mm256_permute2f128_pd(vec_y, vec_y, 0b00100000); // make 0 1 0 1 copy
+        __m256d perm_x3 = _mm256_permute_pd(perm_x2, 0b0100); // make 0 0 1 0 copy
+        __m256d perm_y3 = _mm256_permute_pd(perm_y2, 0b0100); // make 0 0 1 0 copy
+
+        //temp[0] = inp_1 - x[0]*matrixCoeffs[0] - y[0]*matrixCoeffs[4];
+        //temp[1] = inp_1 - x[1]*matrixCoeffs[1] - y[1]*matrixCoeffs[5];
+        //temp[2] = inp_1 - x[2]*matrixCoeffs[2] - y[2]*matrixCoeffs[6];
+        //temp[3] = inp_1 - x[3]*matrixCoeffs[3] - y[3]*matrixCoeffs[7];
+        __m256d intermed_0 = _mm256_mul_pd(vec_x, coef_x0);
+        __m256d intermed_1 = _mm256_mul_pd(vec_y, coef_y0);
+        __m256d intermed_2 = _mm256_add_pd(intermed_0, intermed_1);
+        __m256d intermed_3 = _mm256_sub_pd(vinp_1, intermed_2);
+
+        //temp[0] += 0;
+        //temp[1] += x[0]*matrixCoeffs[9]  + y[0]*matrixCoeffs[13];
+        //temp[2] += 0;
+        //temp[3] += x[2]*matrixCoeffs[11] + y[2]*matrixCoeffs[15];
+        __m256d intermed_4 = _mm256_mul_pd(perm_x1, coef_x1);
+        __m256d intermed_5 = _mm256_mul_pd(perm_y1, coef_y1);
+        __m256d intermed_6 = _mm256_add_pd(intermed_4, intermed_5);
+        __m256d intermed_7 = _mm256_add_pd(intermed_3, intermed_6);
+
+        //temp[0] += 0;
+        //temp[1] += 0;
+        //temp[2] += x[0]*matrixCoeffs[18] + y[0]*matrixCoeffs[22];
+        //temp[3] += x[1]*matrixCoeffs[19] + y[1]*matrixCoeffs[23];
+        __m256d intermed_8 = _mm256_mul_pd(perm_x2, coef_x2);
+        __m256d intermed_9 = _mm256_mul_pd(perm_y2, coef_y2);
+        __m256d intermed_10= _mm256_add_pd(intermed_8, intermed_9);
+        __m256d intermed_11= _mm256_add_pd(intermed_7, intermed_10);
+
+
+        //temp[0] += 0;
+        //temp[1] += 0;
+        //temp[2] += x[1]*matrixCoeffs[26] + y[1]*matrixCoeffs[30];
+        //temp[3] += x[0]*matrixCoeffs[27] + y[0]*matrixCoeffs[31];
+        __m256d intermed_12= _mm256_mul_pd(perm_x3, coef_x3);
+        __m256d intermed_13= _mm256_mul_pd(perm_y3, coef_y3);
+        __m256d intermed_14= _mm256_add_pd(intermed_12, intermed_13);
+        __m256d intermed_15= _mm256_add_pd(intermed_11, intermed_14);
+
+
+        outp_1 = inp_1 + x[0]*new_order2[0] + y[0]*new_order2[4] + x[1]*new_order2[1] + y[1]*new_order2[5] + x[2]*new_order2[2] + y[2]*new_order2[6] + x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        output[i] = outp_1;
+
+        //y[0] = x[0];
+        //y[1] = x[1];
+        //y[2] = x[2];
+        //y[3] = x[3];
+        //x[0] = temp[0];
+        //x[1] = temp[1];
+        //x[2] = temp[2];
+        //x[3] = temp[3];
+        vec_y = vec_x;
+        vec_x = intermed_15;
+    }
+
+}
+
+// not using coeficients that are 1 anymore, unrolled for scalar replacement
+void pipelined2(double* input, double* output, int number_of_samples) {
+
+    double x[NUM_STAGES];
+    double y[NUM_STAGES];
+    int i;
+
+    const __m256d coef_x1 = _mm256_load_pd(new_order2);
+    const __m256d coef_y1 = _mm256_load_pd(new_order2 +4);
+    const __m256d coef_x2 = _mm256_load_pd(new_order2 +8);
+    const __m256d coef_y2 = _mm256_load_pd(new_order2 +12);
+    const __m256d mask1 = _mm256_set_pd(0xffffffffffffffff, 0, 0xffffffffffffffff, 0);
+    const __m256d mask2 = _mm256_set_pd(0xffffffffffffffff, 0xffffffffffffffff, 0, 0);
+
+    static __m256d vec_x = _mm256_setzero_pd();
+    static __m256d vec_y = _mm256_setzero_pd();
+
+    for(i = 0; i < number_of_samples; i++)
+    {
+        __m256d inp_1 = _mm256_broadcast_sd(input+i);
+
+        _mm256_store_pd(y, vec_y); // is needed later
+        _mm256_store_pd(x, vec_x); // is needed later
+
+        double outpart = x[3]*new_order1[14] + y[3]*new_order1[15];
+
+        // double intermed_0 = x[0]*new_order2[0] + y[0]*new_order2[4];
+        // double intermed_1 = x[1]*new_order2[1] + y[1]*new_order2[5];
+        // double intermed_2 = x[2]*new_order2[2] + y[2]*new_order2[6];
+        // double intermed_3 = x[3]*new_order2[3] + y[3]*new_order2[7];
+        // double intermed_4 = x[0]*new_order2[8] + y[0]*new_order2[12];
+        // double intermed_5 = x[1]*new_order2[9] + y[1]*new_order2[13];
+        // double intermed_6 = x[2]*new_order2[10] + y[2]*new_order2[14];
+        // double intermed_7 = x[3]*new_order2[11] + y[3]*new_order2[15];
+        __m256d intermed_0 = _mm256_mul_pd(vec_x, coef_x1);
+        __m256d intermed_1 = _mm256_mul_pd(vec_y, coef_y1);
+        __m256d intermed_2 = _mm256_mul_pd(vec_x, coef_x2);
+        __m256d intermed_3 = _mm256_mul_pd(vec_y, coef_y2);
+        __m256d intermed_4 = _mm256_add_pd(intermed_0, intermed_1); // intermed 0-3
+        __m256d intermed_5 = _mm256_add_pd(intermed_2, intermed_3); // intermed 4-7
+
+        //y[0] = x[0];
+        //y[1] = x[1];
+        //y[2] = x[2];
+        //y[3] = x[3];
+        vec_y = vec_x;
+
+        //x[0] = inp_1 - intermed_4;
+        //x[1] = inp_1 - intermed_5 + intermed_0;
+        //x[2] = inp_1 - intermed_6 + intermed_0 + intermed_1;
+        //x[3] = inp_1 - intermed_7 + intermed_0 + intermed_1 + intermed_2;
+        __m256d intermed_6 = _mm256_sub_pd(inp_1, intermed_5); // inp - intermed
+        __m256d intermed_7 = _mm256_hadd_pd(intermed_4, intermed_4); // produces  0+1, 0+1, 2, 2+3
+        __m256d intermed_8 = _mm256_permute2f128_pd(intermed_7, intermed_7, 0); // produces 0+1, 0+1, 0+1, 0+1
+        __m256d intermed_9 = _mm256_permute_pd(intermed_4, 0x0000); // should be 0 0 2 2
+        __m256d intermed_10 = _mm256_and_pd(intermed_9, mask1); // zero 0 zero 2
+        __m256d intermed_11 = _mm256_and_pd(intermed_8, mask2); // zero zero 0+1 0+1
+        vec_x = _mm256_add_pd(intermed_6, intermed_10);
+        vec_x = _mm256_add_pd(vec_x, intermed_11);
+        
+        _mm256_store_pd(x, vec_x); // is needed later
+        double outp_1 = x[3] + outpart;
+
+        output[i] = outp_1;
+
+    }
+
+}
+
+// not using coeficients that are 1 anymore, unrolled for scalar replacement
+void pipelined1(double* input, double* output, int number_of_samples) {
+    static double x[NUM_STAGES] = {0}; //z-1 buffers
+    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[2*NUM_STAGES] = {0};
+    double z[2*NUM_STAGES+1];
+    double inp_1, outp_1, inp_2, outp_2;
+
+    int i;
+
+    for(i = 0; i < number_of_samples; i++)
+    {
+        inp_1 = input[i];
+
+        double intermed_0 = x[0]*new_order2[0] + y[0]*new_order2[4];
+        double intermed_1 = x[1]*new_order2[1] + y[1]*new_order2[5];
+        double intermed_2 = x[2]*new_order2[2] + y[2]*new_order2[6];
+        double intermed_3 = x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        double intermed_4 = x[0]*new_order2[8] + y[0]*new_order2[12];
+        double intermed_5 = x[1]*new_order2[9] + y[1]*new_order2[13];
+        double intermed_6 = x[2]*new_order2[10] + y[2]*new_order2[14];
+        double intermed_7 = x[3]*new_order2[11] + y[3]*new_order2[15];
 
         y[0] = x[0];
         y[1] = x[1];
         y[2] = x[2];
         y[3] = x[3];
 
-        output[i] = input[i] + temp[0] + temp[1] + temp[2] + temp[3];
+        x[0] = inp_1 - intermed_4;
+        x[1] = inp_1 - intermed_5 + intermed_0;
+        x[2] = inp_1 - intermed_6 + intermed_0 + intermed_1;
+        x[3] = inp_1 - intermed_7 + intermed_0 + intermed_1 + intermed_2;
+
+        outp_1 = inp_1 + intermed_0 + intermed_1 + intermed_2 + intermed_3;
+
+        output[i] = outp_1;
+
     }
 
 }
 
-// pipelined
-void pipelined1(double* input, double* output, int number_of_samples) {
+// not using coeficients that are 1 anymore, unrolled for scalar replacement
+void pipelined0(double* input, double* output, int number_of_samples) {
     static double x[NUM_STAGES] = {0}; //z-1 buffers
     static double y[NUM_STAGES] = {0}; //z-2 buffers
-    static double z[NUM_STAGES+1] = {0}; // buffers
-    static double temp[NUM_STAGES] = {0}; //z-2 buffers
-    double temp_0 = 0, temp_1 = 0, temp_2 = 0, temp_3 = 0; //temporary store of the "fall-through" value
-    double z_in, z_0, z_1, z_2, z_3; //temporary output from first SOS-stage
+    double temp[2*NUM_STAGES] = {0};
+    double z[2*NUM_STAGES+1];
+    double inp_1, outp_1, inp_2, outp_2;
 
     int i;
 
-    __m256d vec_x = _mm256_load_pd(x);
-    __m256d vec_y = _mm256_load_pd(y);
-    __m256d vec_z0 = _mm256_load_pd(z);
-    __m256d vec_z1 = _mm256_load_pd(z);
-    __m256d vec_temp0 = _mm256_load_pd(temp);
-    __m256d vec_temp1 = _mm256_load_pd(temp);
-    __m256d vec_fx1 = _mm256_load_pd(new_order);
-    __m256d vec_fx2 = _mm256_load_pd(new_order+8);
-    __m256d vec_fy1 = _mm256_load_pd(new_order+4);
-    __m256d vec_fy2 = _mm256_load_pd(new_order+12);
-
-    for (i = 0; i < number_of_samples; i++)
+    for(i = 0; i < number_of_samples; i++)
     {
-        z[0] = input[i];
+        inp_1 = input[i];
+        inp_2 = input[i+1];
 
-        vec_z0 = _mm256_load_pd(z);
+        double intermed_0 = x[0]*new_order2[0] + y[0]*new_order2[4];
+        double intermed_1 = x[1]*new_order2[1] + y[1]*new_order2[5];
+        double intermed_2 = x[2]*new_order2[2] + y[2]*new_order2[6];
+        double intermed_3 = x[3]*new_order2[3] + y[3]*new_order2[7];
 
-        // temp[0] = z[0] - x[0]*new_order[0] - y[0]*new_order[4];
-        // temp[1] = z[1] - x[1]*new_order[1] - y[1]*new_order[5];
-        // temp[2] = z[2] - x[2]*new_order[2] - y[2]*new_order[6];
-        // temp[3] = z[3] - x[3]*new_order[3] - y[3]*new_order[7];
-        vec_temp0 = _mm256_fnmadd_pd(vec_x, vec_fx1, vec_z0);
-        vec_temp1 = _mm256_fnmadd_pd(vec_y, vec_fy1, vec_temp0);
+        temp[0] = inp_1 - x[0]*new_order1[0] - y[0]*new_order1[1];
+        temp[1] = inp_1 + intermed_0 - x[1]*new_order1[4] - y[1]*new_order1[5];
+        temp[2] = inp_1 + intermed_0 + intermed_1 - x[2]*new_order1[8] - y[2]*new_order1[9];
+        temp[3] = inp_1 + intermed_0 + intermed_1 + intermed_2 - x[3]*new_order1[12] - y[3]*new_order1[13];
 
-        // z[1] = temp[0] + x[0]*new_order[8] + y[0]*new_order[12];
-        // z[2] = temp[1] + x[1]*new_order[9] + y[1]*new_order[13];
-        // z[3] = temp[2] + x[2]*new_order[10] + y[2]*new_order[14];
-        // z[0] = temp[3] + x[3]*new_order[11] + y[3]*new_order[15];
-        vec_z0 = _mm256_fmadd_pd(vec_x, vec_fx2, vec_temp1);
-        vec_z1 = _mm256_fmadd_pd(vec_y, vec_fy2, vec_z0);
-        vec_z0 = vec_z1;
-        _mm256_permute4x64_pd(vec_z0,0x90);
+        outp_1 = inp_1 + intermed_0 + intermed_1 + intermed_2 + intermed_3;
 
-        // x[0] = temp[0];
-        // x[1] = temp[1];
-        // x[2] = temp[2];
-        // x[3] = temp[3];
-        vec_x = vec_temp1;
+        output[i] = outp_1;
 
-        // y[0] = x[0];
-        // y[1] = x[1];
-        // y[2] = x[2];
-        // y[3] = x[3];
-        vec_y = vec_x;
-
-        _mm256_store_pd(z, vec_z0);
-
-        output[i] = z[0];
+        y[0] = x[0];
+        y[1] = x[1];
+        y[2] = x[2];
+        y[3] = x[3];
+        x[0] = temp[0];
+        x[1] = temp[1];
+        x[2] = temp[2];
+        x[3] = temp[3];
     }
+
 }
 
 // not using coeficients that are 1 anymore, unrolled for scalar replacement
@@ -159,27 +355,26 @@ void slowperformance3(double* input, double* output, int number_of_samples) {
     {
         z[0] = input[i];
 
-        temp[0] = z[0] - x[0]*new_order[0] - y[0]*new_order[4];
-        temp[1] = z[1] - x[1]*new_order[1] - y[1]*new_order[5];
-        temp[2] = z[2] - x[2]*new_order[2] - y[2]*new_order[6];
-        temp[3] = z[3] - x[3]*new_order[3] - y[3]*new_order[7];
+        temp[0] = z[0] - x[0]*new_order1[0] - y[0]*new_order1[1];
+        z[1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+        temp[1] = z[1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+        z[2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+        temp[2] = z[2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+        z[3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+        temp[3] = z[3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+        z[4] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
 
-        z[1] = temp[0] + x[0]*new_order[8] + y[0]*new_order[12];
-        z[2] = temp[1] + x[1]*new_order[9] + y[1]*new_order[13];
-        z[3] = temp[2] + x[2]*new_order[10] + y[2]*new_order[14];
-        z[0] = temp[3] + x[3]*new_order[11] + y[3]*new_order[15];
-
-        x[0] = temp[0];
-        x[1] = temp[1];
-        x[2] = temp[2];
-        x[3] = temp[3];
 
         y[0] = x[0];
         y[1] = x[1];
         y[2] = x[2];
         y[3] = x[3];
+        x[0] = temp[0];
+        x[1] = temp[1];
+        x[2] = temp[2];
+        x[3] = temp[3];
 
-        output[i] = z[0];
+        output[i] = z[4];
     }
 
 }
