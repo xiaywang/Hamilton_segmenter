@@ -2,5 +2,4 @@
 #define RUNTIME_MEASURE 
 #define RUNTIME_QRSDET 
 #define RUNTIME_CLASSIFY 
-#define MAIN_BLOCK_SIZE 7200 
-#define PRINT 
+ 

@@ -428,6 +428,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 *  is then taken to be the ratio of the maximum averaged highpassed signal
 *  to the QRS amplitude.
 **************************************************************************/
+// Xia: filter here to be optimized
 
 #define AVELENGTH	BEAT_MS50
 #define AVELENGTH_FLOAT	BEAT_MS50_FLOAT

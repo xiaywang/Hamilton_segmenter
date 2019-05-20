@@ -7,6 +7,12 @@
 
 // define all version numbers
 #define QRSFILT_OPT 0
-#define INIT_INLINE 0
+#define INIT_INLINE 1
+
+#define BDAC_OPT 1
+
+#define AVX_OPT 1
+
+#define NOISECHK_OPT 1
 
 #endif

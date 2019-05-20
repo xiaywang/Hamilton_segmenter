@@ -82,6 +82,87 @@ int GetNoiseEstimate()
 
 ***********************************************************************/
 
+#if(NOISECHK==1)
+
+int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
+{
+	int ptr, i;
+	int ncStart, ncEnd;
+	float ncMax, ncMin ;
+	double noiseIndex ;
+
+	NoiseBuffer[NBPtr] = datum ;
+	if(++NBPtr == NB_LENGTH)
+		NBPtr = 0 ;
+
+	// Check for noise in region that is 300 ms following
+	// last R-wave and 250 ms preceding present R-wave.
+
+	ncStart = delay+RR-beatEnd ;	// Calculate offset to end of previous beat.
+	ncEnd = delay+beatBegin ;		// Calculate offset to beginning of this beat.
+	if(ncStart > ncEnd + MS250)
+		ncStart = ncEnd + MS250 ;
+
+
+	// Estimate noise if delay indicates a beat has been detected,
+	// the delay is not to long for the data buffer, and there is
+	// some space between the end of the last beat and the beginning
+	// of this beat.
+
+	int delta_i = ncStart-ncEnd;
+	float invdelta_i = 1/delta_i;
+
+	if((delay != 0) && (ncStart < NB_LENGTH) && (ncStart > ncEnd))
+	{
+
+		ptr = NBPtr - ncStart ;	// Find index to end of last beat in
+		if(ptr < 0)					// the circular buffer.
+			ptr += NB_LENGTH ;
+
+		// Find the maximum and minimum values in the
+		// isoelectric region between beats.
+
+		ncMax = ncMin = NoiseBuffer[ptr] ;
+		for(i = 0; i < delta_i; ++i)
+		{
+			#ifdef OPERATION_COUNTER
+			float_comp_counter+=2;
+			#endif
+			if(NoiseBuffer[ptr] > ncMax)
+			{
+				ncMax = NoiseBuffer[ptr] ;
+				#ifdef OPERATION_COUNTER
+				float_comp_counter--;
+				#endif
+			}
+			else if(NoiseBuffer[ptr] < ncMin)
+			{
+				ncMin = NoiseBuffer[ptr] ;
+			}
+			if(++ptr == NB_LENGTH)
+				ptr = 0 ;
+		}
+
+		// The noise index is the ratio of the signal variation
+		// over the isoelectric window length, scaled by 10.
+
+		noiseIndex = (ncMax-ncMin) ;
+		noiseIndex *= invdelta_i ;
+		NoiseEstimate = noiseIndex * 10 ;
+		#ifdef OPERATION_COUNTER
+			float_add_counter += 2; // also counting the (ncStart-ncEnd) as it is at some point converted to float and could be before computation
+			float_mul_counter += 1;
+			float_div_counter += 1;
+		#endif
+	}
+	else
+		NoiseEstimate = 0 ;
+	return(NoiseEstimate) ;
+}
+
+#else
+
+
 int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 {
 	int ptr, i;
@@ -155,3 +236,4 @@ int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 	return(NoiseEstimate) ;
 }
 
+#endif

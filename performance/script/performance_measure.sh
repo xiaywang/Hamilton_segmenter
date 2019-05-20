@@ -73,18 +73,18 @@ flops_profilinig()
 {
 if [ $mode == 'all' ]
 	then
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n " > performance.h
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n " > ../hamilton_float/performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n#define MAIN_BLOCK_SIZE 2200 \n#define PRINT \n" > performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n#define PRINT \n " > ../hamilton_float/performance.h
 
 elif [ $mode == 'qrsdet' ]
 	then
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n " > performance.h
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n " > ../hamilton_float/performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define PRINT \n " > performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n #define PRINT \n" > ../hamilton_float/performance.h
 
 elif [ $mode == 'classify' ]
 	then
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_CLASSIFY \n " > performance.h
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_CLASSIFY \n " > ../hamilton_float/performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_CLASSIFY \n#define PRINT \n " > performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_CLASSIFY \n#define PRINT \n " > ../hamilton_float/performance.h
 
 else
 echo "Please specify the correct profiling mode: all, qrstdet, classify".
@@ -100,6 +100,7 @@ cd ../hamilton_float
 make clean all
 
 ./ourtest 2>&1 | tee -a $outputfilename
+
 
 if command -v python3.6 &>/dev/null; then
     echo "${green}Python 3.6 is installed${reset}"

@@ -71,11 +71,33 @@ MAINTYPE main()
 	#if INIT_INLINE == 1
 		//~~~~~ Initialize beat detection and classification.
 		//~~~ QRSDet init
-		for(i = 0; i < 8; ++i)
-		{
-			noise[i] = 0.0 ;	/* Initialize noise buffer */
-			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
-		}
+		#ifndef QRSDET_LOOP_UNROLL
+			for(i = 0; i < 8; ++i)
+			{
+				noise[i] = 0.0 ;	/* Initialize noise buffer */
+				rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+			}
+		#endif
+
+		#ifdef QRSDET_LOOP_UNROLL
+			noise[0] = 0.0;
+			noise[1] = 0.0;
+			noise[2] = 0.0;
+			noise[3] = 0.0;
+			noise[4] = 0.0;
+			noise[5] = 0.0;
+			noise[6] = 0.0;
+			noise[7] = 0.0;
+			
+			rrbuf[0] = MS1000_FLOAT ;
+			rrbuf[1] = MS1000_FLOAT ;
+			rrbuf[2] = MS1000_FLOAT ;
+			rrbuf[3] = MS1000_FLOAT ;
+			rrbuf[4] = MS1000_FLOAT ;
+			rrbuf[5] = MS1000_FLOAT ;
+			rrbuf[6] = MS1000_FLOAT ;
+			rrbuf[7] = MS1000_FLOAT ;
+		#endif
 		maxder=lastmax= initMax= 0.0;
 		qpkcnt  = count = sbpeak = 0 ;
 		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
@@ -168,11 +190,33 @@ MAINTYPE main()
 		#if INIT_INLINE == 1
 			//~~~~~ Initialize beat detection and classification.
 			//~~~ QRSDet init
-			for(i = 0; i < 8; ++i)
-			{
-				noise[i] = 0.0 ;	/* Initialize noise buffer */
-				rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
-			}
+			#ifndef QRSDET_LOOP_UNROLL
+				for(i = 0; i < 8; ++i)
+				{
+					noise[i] = 0.0 ;	/* Initialize noise buffer */
+					rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+				}
+			#endif
+
+			#ifdef QRSDET_LOOP_UNROLL
+				noise[0] = 0.0;
+				noise[1] = 0.0;
+				noise[2] = 0.0;
+				noise[3] = 0.0;
+				noise[4] = 0.0;
+				noise[5] = 0.0;
+				noise[6] = 0.0;
+				noise[7] = 0.0;
+				
+				rrbuf[0] = MS1000_FLOAT ;
+				rrbuf[1] = MS1000_FLOAT ;
+				rrbuf[2] = MS1000_FLOAT ;
+				rrbuf[3] = MS1000_FLOAT ;
+				rrbuf[4] = MS1000_FLOAT ;
+				rrbuf[5] = MS1000_FLOAT ;
+				rrbuf[6] = MS1000_FLOAT ;
+				rrbuf[7] = MS1000_FLOAT ;
+			#endif
 			maxder=lastmax= initMax= 0.0;
 			qpkcnt  = count = sbpeak = 0 ;
 			initBlank = preBlankCnt = 0; // DDPtr = 0 ;
@@ -375,9 +419,6 @@ MAINTYPE main()
 			#endif
 			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);
-
-				printf("QRSdet runtime:   %lli\n", end_QRSDet);
-				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
 			#endif
 			printf("total runtime:    %lli\n",end_time);
 			#ifdef OPERATION_COUNTER
