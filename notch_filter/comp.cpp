@@ -102,14 +102,14 @@ new_order1[3]-new_order1[1],
 
 void matrixStyle2(double* input, double* output, int number_of_samples) {
 
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};
     double inp_1, outp_1;
     int i;
 
-    static __m256d vec_x = _mm256_setzero_pd();
-    static __m256d vec_y = _mm256_setzero_pd();
+    __m256d vec_x = _mm256_setzero_pd();
+    __m256d vec_y = _mm256_setzero_pd();
 
     const __m256d coef_x0 = _mm256_load_pd(matrixCoeffs2);
     const __m256d coef_y0 = _mm256_load_pd(matrixCoeffs2 + 4);
@@ -283,13 +283,13 @@ new_order1[3]-new_order1[1],
 
 void matrixStyle(double* input, double* output, int number_of_samples) {
 
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};
     double inp_1, outp_1;
 
-    static __m256d vec_x = _mm256_setzero_pd();
-    static __m256d vec_y = _mm256_setzero_pd();
+    __m256d vec_x = _mm256_setzero_pd();
+    __m256d vec_y = _mm256_setzero_pd();
 
     const __m256d coef_x0 = _mm256_load_pd(matrixCoeffs);
     const __m256d coef_y0 = _mm256_load_pd(matrixCoeffs + 4);
@@ -444,8 +444,8 @@ void pipelined2(double* input, double* output, int number_of_samples) {
 
 // not using coeficients that are 1 anymore, unrolled for scalar replacement
 void pipelined1(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};
     double z[2*NUM_STAGES+1];
     double inp_1, outp_1, inp_2, outp_2;
@@ -486,8 +486,8 @@ void pipelined1(double* input, double* output, int number_of_samples) {
 
 // not using coeficients that are 1 anymore, unrolled for scalar replacement
 void pipelined0(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};
     double z[2*NUM_STAGES+1];
     double inp_1, outp_1, inp_2, outp_2;
@@ -526,29 +526,228 @@ void pipelined0(double* input, double* output, int number_of_samples) {
 }
 
 //dumb base implementation
-void slowperformance4(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
-    double temp_x = 0; //temporary store of the "fall-through" value
-    double z[number_of_samples]; //temporary output from first SOS-stage
-    for (int i = 0; i < number_of_samples; i++)
+void reversed3(double* input, double* output, int number_of_samples) {
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[NUM_STAGES] = {0}; //z-2 buffers
+    double* z = (double*) calloc(NUM_STAGES*number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+
+    int i = 0;
+
+    z[0] = input[0];
+    temp[0] = z[0] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[number_of_samples] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    temp[1] = z[number_of_samples] - x[1]*new_order1[4] - y[1]*new_order1[5];
+    z[2*number_of_samples] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+    y[1] = x[1];
+    x[1] = temp[1];
+
+    temp[2] = z[2*number_of_samples] - x[2]*new_order1[8] - y[2]*new_order1[9];
+    z[3*number_of_samples] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+    y[2] = x[2];
+    x[2] = temp[2];
+
+    z[1] = input[1];
+    temp[0] = z[1] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[number_of_samples+1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    temp[1] = z[number_of_samples+1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+    z[2*number_of_samples+1] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+    y[1] = x[1];
+    x[1] = temp[1];
+
+    z[2] = input[2];
+    temp[0] = z[2] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[number_of_samples+2] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    for(i = 0; i < number_of_samples; i++)
     {
-        z = input[i];
-        for(int j = 0; j < NUM_STAGES; j++){
-            temp_x = z*filter_coefficients[6*j+3] - x[j]*filter_coefficients[6*j+4] - y[j]*filter_coefficients[6*j+5];
-            z = temp_x*filter_coefficients[6*j] + x[j]*filter_coefficients[6*j+1] + y[j]*filter_coefficients[6*j+2];
-            y[j] = x[j];
-            x[j] = temp_x;
+        if(i+3 < number_of_samples){
+            z[(i+3)] = input[(i+3)];
+            temp[0] = z[(i+3)] - x[0]*new_order1[0] - y[0]*new_order1[1];
+            z[number_of_samples+(i+3)] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+            y[0] = x[0];
+            x[0] = temp[0];
         }
-        output[i] = z;
+
+        if(i+2 < number_of_samples){
+            temp[1] = z[number_of_samples+(i+2)] - x[1]*new_order1[4] - y[1]*new_order1[5];
+            z[2*number_of_samples+(i+2)] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+            y[1] = x[1];
+            x[1] = temp[1];
+        }
+
+        if(i+1 < number_of_samples){
+            temp[2] = z[2*number_of_samples+(i+1)] - x[2]*new_order1[8] - y[2]*new_order1[9];
+            z[3*number_of_samples+(i+1)] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+            y[2] = x[2];
+            x[2] = temp[2];
+        }
+
+        temp[3] = z[3*number_of_samples+i] - x[3]*new_order1[12] - y[3]*new_order1[13];
+        output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+        y[3] = x[3];
+        x[3] = temp[3];
     }
 
+    free(z);
+}
+
+//dumb base implementation
+void reversed2(double* input, double* output, int number_of_samples) {
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[NUM_STAGES] = {0}; //z-2 buffers
+    double* z = (double*) calloc(NUM_STAGES*number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+
+    int i = 0;
+
+    z[0] = input[0];
+    temp[0] = z[0] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    temp[1] = z[1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+    z[2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+    y[1] = x[1];
+    x[1] = temp[1];
+
+    temp[2] = z[2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+    z[3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+    y[2] = x[2];
+    x[2] = temp[2];
+
+    z[NUM_STAGES] = input[1];
+    temp[0] = z[NUM_STAGES] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[NUM_STAGES+1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    temp[1] = z[NUM_STAGES+1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+    z[NUM_STAGES+2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+    y[1] = x[1];
+    x[1] = temp[1];
+
+    z[2*NUM_STAGES] = input[2];
+    temp[0] = z[2*NUM_STAGES] - x[0]*new_order1[0] - y[0]*new_order1[1];
+    z[2*NUM_STAGES+1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+    y[0] = x[0];
+    x[0] = temp[0];
+
+    for(i = 0; i < number_of_samples -3; i++)
+    {
+        z[(i+3)*NUM_STAGES] = input[(i+3)];
+        temp[0] = z[(i+3)*NUM_STAGES] - x[0]*new_order1[0] - y[0]*new_order1[1];
+        z[(i+3)*NUM_STAGES+1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+        y[0] = x[0];
+        x[0] = temp[0];
+
+        temp[1] = z[(i+2)*NUM_STAGES+1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+        z[(i+2)*NUM_STAGES+2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+        y[1] = x[1];
+        x[1] = temp[1];    
+    
+        temp[2] = z[(i+1)*NUM_STAGES+2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+        z[(i+1)*NUM_STAGES+3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+        y[2] = x[2];
+        x[2] = temp[2];    
+
+        temp[3] = z[i*NUM_STAGES+3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+        output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+        y[3] = x[3];
+        x[3] = temp[3];
+    }
+
+    temp[1] = z[(i+2)*NUM_STAGES+1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+    z[(i+2)*NUM_STAGES+2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+    y[1] = x[1];
+    x[1] = temp[1];    
+
+    temp[2] = z[(i+1)*NUM_STAGES+2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+    z[(i+1)*NUM_STAGES+3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+    y[2] = x[2];
+    x[2] = temp[2];    
+
+    temp[3] = z[i*NUM_STAGES+3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+    output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+    y[3] = x[3];
+    x[3] = temp[3];
+
+    i = number_of_samples -2;
+    temp[2] = z[(i+1)*NUM_STAGES+2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+    z[(i+1)*NUM_STAGES+3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+    y[2] = x[2];
+    x[2] = temp[2];    
+
+    temp[3] = z[i*NUM_STAGES+3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+    output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+    y[3] = x[3];
+    x[3] = temp[3];
+
+    i = number_of_samples -1;
+    temp[3] = z[i*NUM_STAGES+3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+    output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+    y[3] = x[3];
+    x[3] = temp[3];
+
+    free(z);
+}
+
+//dumb base implementation
+void reversed(double* input, double* output, int number_of_samples) {
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[NUM_STAGES] = {0}; //temporary store of the "fall-through" value
+    double* z = (double*) calloc(NUM_STAGES*number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+
+    for(int i = 0; i < number_of_samples; i++)
+    {
+        z[i*NUM_STAGES] = input[i];
+        temp[0] = z[i*NUM_STAGES] - x[0]*new_order1[0] - y[0]*new_order1[1];
+        z[i*NUM_STAGES+1] = temp[0] + x[0]*new_order1[2] + y[0]*new_order1[3];
+        y[0] = x[0];
+        x[0] = temp[0];
+    }
+
+    for(int i = 0; i < number_of_samples; i++)
+    {
+        temp[1] = z[i*NUM_STAGES+1] - x[1]*new_order1[4] - y[1]*new_order1[5];
+        z[i*NUM_STAGES+2] = temp[1] + x[1]*new_order1[6] + y[1]*new_order1[7];
+        y[1] = x[1];
+        x[1] = temp[1];
+    }
+    
+    for(int i = 0; i < number_of_samples; i++)
+    {
+        temp[2] = z[i*NUM_STAGES+2] - x[2]*new_order1[8] - y[2]*new_order1[9];
+        z[i*NUM_STAGES+3] = temp[2] + x[2]*new_order1[10] + y[2]*new_order1[11];
+        y[2] = x[2];
+        x[2] = temp[2];
+    }
+    
+    for(int i = 0; i < number_of_samples; i++)
+    {
+        temp[3] = z[i*NUM_STAGES+3] - x[3]*new_order1[12] - y[3]*new_order1[13];
+        output[i] = temp[3] + x[3]*new_order1[14] + y[3]*new_order1[15];
+        y[3] = x[3];
+        x[3] = temp[3];
+    }
+
+    free(z);
 }
 
 // not using coeficients that are 1 anymore, unrolled for scalar replacement
 void slowperformance3(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[NUM_STAGES] = {0};
     double z[NUM_STAGES+1];
 
@@ -582,8 +781,8 @@ void slowperformance3(double* input, double* output, int number_of_samples) {
 
 // not using coeficients that are 1 anymore, unrolled for scalar replacement
 void slowperformance2(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp_0 = 0, temp_1 = 0, temp_2 = 0, temp_3 = 0; //temporary store of the "fall-through" value
     double z, z_0, z_1, z_2, z_3; //temporary output from first SOS-stage
 
@@ -619,8 +818,8 @@ void slowperformance2(double* input, double* output, int number_of_samples) {
 
 //dumb base implementation
 void slowperformance(double* input, double* output, int number_of_samples) {
-    static double x[NUM_STAGES] = {0}; //z-1 buffers
-    static double y[NUM_STAGES] = {0}; //z-2 buffers
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp_x = 0; //temporary store of the "fall-through" value
     double z; //temporary output from first SOS-stage
     for (int i = 0; i < number_of_samples; i++)
