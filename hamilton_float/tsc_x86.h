@@ -94,6 +94,8 @@
 		#ifdef RUNTIME_QRSDET
 			myInt64 start_QRSDet;
 			myInt64 end_QRSDet;
+			myInt64 start_QRSFilt;
+			myInt64 end_QRSFilt;
 		#endif
 
 		// for Classify submeasurements
