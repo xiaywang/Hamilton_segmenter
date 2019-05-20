@@ -241,6 +241,9 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 	// Classify all other beats.
 	else
 		{
+		#ifdef RUNTIME_CLASSIFY
+			start_Classify = start_tsc();
+		#endif
 		*beatType = Classify(BeatBuffer,rr,noiseEst,beatMatch,&fidAdj,0) ;
 		#ifdef RUNTIME_CLASSIFY
 		end_Classify += stop_tsc(start_Classify);
