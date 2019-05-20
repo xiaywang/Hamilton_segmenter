@@ -86,12 +86,13 @@ int BigeminyFlag ;
 /***************************************************************************
 	ResetRhythmChk() resets static variables used for rhythm classification.
 ****************************************************************************/
-
+/*
 void ResetRhythmChk(void)
 {
 	BeatCount = 0 ;
 	ClassifyState = LEARNING ;
 }
+*/
 
 /*****************************************************************************
 	RhythmChk() takes an R-to-R interval as input and, based on previous R-to-R
@@ -486,26 +487,26 @@ int RhythmChk(int rr)
 /***********************************************************************
 	RRMatch() test whether two intervals are within 12.5% of their mean.
 ************************************************************************/
-
+/*
 int RRMatch(int rr0,int rr1)
 {
 	if(abs(rr0-rr1) < ((rr0+rr1)>>3))
 		return(1) ;
 	else return(0) ;
 }
-
+*/
 /************************************************************************
 	RRShort() tests whether an interval is less than 75% of the previous
 	interval.
 *************************************************************************/
-
+/*
 int RRShort(int rr0, int rr1)
 {
 	if(rr0 < rr1-(rr1>>2))
 		return(1) ;
 	else return(0) ;
 }
-
+*/
 /*************************************************************************
 	IsBigeminy() allows external access to the bigeminy flag to check whether
 	a bigeminal rhythm is in progress.
@@ -519,7 +520,7 @@ int IsBigeminy(void)
 /**************************************************************************
  Check for short interval in very regular rhythm.
 **************************************************************************/
-
+/*
 int RRShort2(int *rrIntervals, int *rrTypes)
 {
 	int rrMean = 0, i, nnCount ;
@@ -557,4 +558,4 @@ int RRMatch2(int rr0,int rr1)
 		return(1) ;
 	else return(0) ;
 }
-
+*/
