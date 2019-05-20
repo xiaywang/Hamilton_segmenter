@@ -6,6 +6,6 @@
 //#define MAIN_BLOCK_SIZE 1000
 
 // define all version numbers
-#define QRSFILT_OPT 0
+#define QRSFILT_OPT 1
 
 #endif
