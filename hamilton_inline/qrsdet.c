@@ -80,8 +80,10 @@ Returns:
         extern long int float_comp_counter;
 #endif
 
+#define QRSFILT_LOOP_UNROLL
+#define QRSDET_LOOP_UNROLL
 
-#define QRSFILT_SCALER
+#define QRS_SCALAR
 // Local Prototypes.
 
 void QRSFilter(float* datum, float* output, int sampleLength, int init) ;
@@ -155,11 +157,36 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 
 	if( init )
 	{
+		#ifndef QRSDET_LOOP_UNROLL
 		for(i = 0; i < 8; ++i)
 		{
 			noise[i] = 0.0 ;	/* Initialize noise buffer */
 			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
 		}
+		#endif
+
+		#ifdef QRSDET_LOOP_UNROLL
+		noise[0] = 0.0;
+		noise[1] = 0.0;
+		noise[2] = 0.0;
+		noise[3] = 0.0;
+		noise[4] = 0.0;
+		noise[5] = 0.0;
+		noise[6] = 0.0;
+		noise[7] = 0.0;
+		
+		rrbuf[0] = MS1000_FLOAT ;
+		rrbuf[1] = MS1000_FLOAT ;
+		rrbuf[2] = MS1000_FLOAT ;
+		rrbuf[3] = MS1000_FLOAT ;
+		rrbuf[4] = MS1000_FLOAT ;
+		rrbuf[5] = MS1000_FLOAT ;
+		rrbuf[6] = MS1000_FLOAT ;
+		rrbuf[7] = MS1000_FLOAT ;
+
+		#endif
+
+
 		maxder=lastmax= initMax= 0.0;
 		qpkcnt  = count = sbpeak = 0 ;
 		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
@@ -527,13 +554,13 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			// ------- initialize filters ------- //
 
 			//lpfilt
-			#ifndef QRSFILT_SCALER
+			#ifndef QRSFILT_LOOP_UNROLL
 			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
 				lp_data[i_init] = 0.f;
 			#endif
 
-			#ifdef QRSFILT_SCALER
-			//Scaler replacement with LPBUFFER_LGTH = 10
+			#ifdef QRSFILT_LOOP_UNROLL
+			//LOOP_UNROLL replacement with LPBUFFER_LGTH = 10
 			lp_data[0] = 0.f;
 			lp_data[1] = 0.f;
 			lp_data[2] = 0.f;
@@ -546,12 +573,12 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			lp_data[9] = 0.f;
 			#endif
 			//hpfilt
-			#ifndef QRSFILT_SCALER
+			#ifndef QRSFILT_LOOP_UNROLL
 			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
 				hp_data[i_init] = 0.f;
 			#endif
-			//Scaler replacement with HPBUFFER_LGTH = 25
-			#ifdef QRSFILT_SCALER
+			//LOOP_UNROLL  with HPBUFFER_LGTH = 25
+			#ifdef QRSFILT_LOOP_UNROLL
 			hp_data[0] = 0.f;
 			hp_data[1] = 0.f;
 			hp_data[2] = 0.f;
@@ -579,24 +606,24 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			hp_data[24] = 0.f;
 			#endif
 			//derivative
-			#ifndef QRSFILT_SCALER
+			#ifndef QRSFILT_LOOP_UNROLL
 			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
 				derBuff[i_init] = 0 ;
 			#endif
-			// scaler replacement with DERIV_LENGTH	2
-			#ifdef QRSFILT_SCALER
+			// LOOP unroll with DERIV_LENGTH	2
+			#ifdef QRSFILT_LOOP_UNROLL
 			derBuff[0] = 0 ;
 			derBuff[1] = 0 ;
 			#endif
 			//movint window integration
-			// scaler replacement WINDOW_WIDTH	16
-			#ifndef QRSFILT_SCALER
+			// LOOP_UNROLL replacement WINDOW_WIDTH	16
+			#ifndef QRSFILT_LOOP_UNROLL
 			
 			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
 				data[i_init] = 0 ;
 
 			#endif
-			#ifdef QRSFILT_SCALER
+			#ifdef QRSFILT_LOOP_UNROLL
 			data[0] = 0 ;
 			data[1] = 0 ;
 			data[2] = 0 ;
