@@ -42,9 +42,9 @@
 #include "matlab_data.h"
 
 /* prototype of the function you need to optimize */
-typedef void(*comp_func)(double *, double *, double*, int);
+typedef void(*comp_func)(double *, double *, int);
 
-#define cost_analysis 20.0
+#define cost_analysis 40.0
 #define CYCLES_REQUIRED 1e7
 #define REP 30
 #define MAX_FUNCS 32
@@ -59,7 +59,17 @@ void register_functions();
 double perf_test(comp_func f, string desc, int flops);
 
 
-void slowperformance(double* input, double* output, double* filter_coef, int number_of_samples);
+void slowperformance(double* input, double* output, int number_of_samples);
+void slowperformance2(double* input, double* output, int number_of_samples);
+void slowperformance3(double* input, double* output, int number_of_samples);
+void reversed(double* input, double* output, int number_of_samples);
+void reversed2(double* input, double* output, int number_of_samples);
+void reversed3(double* input, double* output, int number_of_samples);
+void pipelined0(double* input, double* output, int number_of_samples);
+void pipelined1(double* input, double* output, int number_of_samples);
+void pipelined2(double* input, double* output, int number_of_samples);
+void matrixStyle(double* input, double* output, int number_of_samples);
+void matrixStyle2(double* input, double* output, int number_of_samples);
 
 void add_function(comp_func f, string name, int flop);
 
@@ -76,7 +86,17 @@ int numFuncs = 0;
 */
 void register_functions()
 {
-	add_function(&slowperformance, "Slow Performance", 12);
+	add_function(&slowperformance, "Slow Performance", 40);
+	// add_function(&slowperformance2, "Slow Performance2", 32);
+	// add_function(&slowperformance3, "Slow Performance3", 32);
+	// add_function(&reversed, "reversed", 32);
+	add_function(&reversed2, "reversed2", 32);
+	add_function(&reversed3, "reversed3", 32);
+	// add_function(&pipelined0, "pipelined0", 38);
+	// add_function(&pipelined1, "pipelined1", 38);
+	// add_function(&pipelined2, "pipelined2", 38);
+	// add_function(&matrixStyle, "matrixStyle", 40);
+	// add_function(&matrixStyle2, "matrixStyle2", 40);
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
@@ -86,6 +106,9 @@ double nrm_sqr_diff(double *x, double *y, int n) {
     for(int i = 0; i < n; i++) {
     	// printf("%f matlab %f\n",x[i],y[i] );
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
+        if(nrm_sqr > EPS){
+        	return nrm_sqr;
+        }
     }
     return nrm_sqr;
 }
@@ -129,15 +152,19 @@ int main(int argc, char **argv)
     {
     	output_old[i] = 0.0;
     }
-
+    double exampleOut[sample_length];
 	for (i = 0; i < numFuncs; i++)
 	{
 		memcpy(output, output_old, sample_length*sizeof(double));
 		comp_func f = userFuncs[i];
-		f(matlab_input, output , filter_coefficients, n);
-		double error = nrm_sqr_diff(output, matlab_loop_output, sample_length);
-		if (error > EPS)
-			cout << "ERROR!!!!  the results for the " << i << "th function are different to the previous" << std::endl;
+		f(matlab_input, output, n);
+		if(i == 0){
+			memcpy(exampleOut, output, sample_length*sizeof(double));
+		} else {
+			double error = nrm_sqr_diff(output, exampleOut, sample_length);
+			if (error > EPS)
+				cout << "ERROR!!!!  the results for the " << i << "th function are different to the previous" << std::endl;
+		}
 	}
 
 
@@ -146,7 +173,7 @@ int main(int argc, char **argv)
 	{
         cout << endl << "Running: " << funcNames[i] << endl;
 		perf = perf_test(userFuncs[i], funcNames[i], funcFlops[i]);
-        // cout << perf << " flops per cycle" << endl;
+        cout << perf << " flops per cycle" << endl;
 	}
 
 	return 0;
@@ -187,7 +214,7 @@ double perf_test(comp_func f, string desc, int flops)
 
 	for (int i = 5000; i<=120000; i+=5000)
 	{
-		n = i - number_filter_coefficients;
+		n = i;
 
 		// Warm-up phase: we determine a number of executions that allows
 		// the code to be executed for at least CYCLES_REQUIRED cycles.
@@ -196,7 +223,7 @@ double perf_test(comp_func f, string desc, int flops)
 			num_runs = num_runs * multiplier;
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; i++) {
-				f(matlab_input, output , filter_coefficients, n);
+				f(matlab_input, output, n);
 			}
 			end = stop_tsc(start);
 
@@ -214,7 +241,7 @@ double perf_test(comp_func f, string desc, int flops)
 
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; ++i) {
-				f(matlab_input, output , filter_coefficients, n);
+				f(matlab_input, output, n);
 			}
 			end = stop_tsc(start);
 
@@ -227,10 +254,10 @@ double perf_test(comp_func f, string desc, int flops)
 		}
 		cyclesList.sort();
 		cycles = cyclesList.front();
-		printf("%f\n", (cost_analysis * (n - number_filter_coefficients)) / cycles);
+		printf("N: %i, perf: %f\n", n, (cost_analysis * (n)) / cycles);
 	}
 	
-	return  (cost_analysis * (n - number_filter_coefficients)) / cycles;
+	return  (flops * (n)) / cycles;
 }
 
 

@@ -124,8 +124,15 @@ int QRSDet( float datum, int init )
 		Peak(0.0,1) ;
 		}
 
+	#ifdef RUNTIME_QRSDET
+		start_QRSFilt = start_tsc();
+	#endif
+
 	fdatum = QRSFilter(datum,0) ;	/* Filter data. */
 
+	#ifdef RUNTIME_QRSDET
+		end_QRSFilt += stop_tsc(start_QRSFilt);
+	#endif
 
 	/* Wait until normal detector is ready before calling early detections. */
 

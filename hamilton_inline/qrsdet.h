@@ -78,7 +78,7 @@ MA 02143 USA).  For updates to this software, please visit our website
 
 float noise[8], rrbuf[8];
 float sbcount, maxder, lastmax, initMax, max;
-int qpkcnt, qpkcnt, count, sbpeak, initBlank, preBlankCnt, timeSinceMax;
+int qpkcnt, count, sbpeak, initBlank, preBlankCnt, timeSinceMax;
 
 // data buffer for lpfilt
 float lp_data[LPBUFFER_LGTH];

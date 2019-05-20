@@ -244,7 +244,7 @@ void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, 
 
 		//printf("%d\n", BEATLGTH); // 100
 #if(AVX_OPT==1)
-		printf("BDAC OPT AND AVX OPT\n");
+		//printf("BDAC OPT AND AVX OPT\n");
 		__m256 scalar05 = _mm256_set1_ps(0.5);
 		for(i = 0; i < BEATLGTH/16; i+=16)
 		{
