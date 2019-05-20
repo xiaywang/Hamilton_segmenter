@@ -294,9 +294,6 @@ for (int flame =0; flame < 1000000; flame++)
 			#endif
 			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);
-
-				printf("QRSdet runtime:   %lli\n", end_QRSDet);
-				printf("QRSdet runtime:   %lli\n", end_QRSFilt);
 			#endif
 			printf("total runtime:    %lli\n",end_time);
 			#ifdef OPERATION_COUNTER
