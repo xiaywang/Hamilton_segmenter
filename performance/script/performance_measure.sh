@@ -101,6 +101,7 @@ make clean all
 
 ./ourtest 2>&1 | tee -a $outputfilename
 
+
 if command -v python3.6 &>/dev/null; then
     echo "${green}Python 3.6 is installed${reset}"
     python3.6 ../performance/script/display_perf.py -p $outputfilename

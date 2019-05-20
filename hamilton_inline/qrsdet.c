@@ -155,67 +155,78 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 
 	/*	Initialize all buffers to 0 on the first call.	*/
 
-	if( init )
-	{
-		#ifndef QRSDET_LOOP_UNROLL
-		for(i = 0; i < 8; ++i)
+	#if INIT_INLINE == 0
+		if( init )
 		{
-			noise[i] = 0.0 ;	/* Initialize noise buffer */
-			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+			#ifndef QRSDET_LOOP_UNROLL
+			for(i = 0; i < 8; ++i)
+			{
+				noise[i] = 0.0 ;	/* Initialize noise buffer */
+				rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+			}
+			#endif
+
+			#ifdef QRSDET_LOOP_UNROLL
+			noise[0] = 0.0;
+			noise[1] = 0.0;
+			noise[2] = 0.0;
+			noise[3] = 0.0;
+			noise[4] = 0.0;
+			noise[5] = 0.0;
+			noise[6] = 0.0;
+			noise[7] = 0.0;
+			
+			rrbuf[0] = MS1000_FLOAT ;
+			rrbuf[1] = MS1000_FLOAT ;
+			rrbuf[2] = MS1000_FLOAT ;
+			rrbuf[3] = MS1000_FLOAT ;
+			rrbuf[4] = MS1000_FLOAT ;
+			rrbuf[5] = MS1000_FLOAT ;
+			rrbuf[6] = MS1000_FLOAT ;
+			rrbuf[7] = MS1000_FLOAT ;
+
+			#endif
+
+
+			maxder=lastmax= initMax= 0.0;
+			qpkcnt  = count = sbpeak = 0 ;
+			initBlank = preBlankCnt = 0; // DDPtr = 0 ;
+			sbcount = MS1500_FLOAT ;
+			float dummyData = 0.0f;
+			float dummyOut;
+			#if QRSFILT_OPT == 0
+				QRSFilter(&dummyData,&dummyOut,1,1) ;	/* initialize filters. */
+			#endif
+			#if QRSFILT_OPT == 1
+				qrsfilt_opt1(&dummyData,&dummyOut,1,1);
+			#endif
+			
+			//Peak(0.0,1) ; -- initialize Peak variables
+			max = 0.0;
+			timeSinceMax = 0;
+			
+			for(int index = 0; index < sampleLength; index++){ // should only ever be entered with sampleLenght = 1, but use loop to be sure
+				delayArray[index] = 0;
+			}
 		}
-		#endif
-
-		#ifdef QRSDET_LOOP_UNROLL
-		noise[0] = 0.0;
-		noise[1] = 0.0;
-		noise[2] = 0.0;
-		noise[3] = 0.0;
-		noise[4] = 0.0;
-		noise[5] = 0.0;
-		noise[6] = 0.0;
-		noise[7] = 0.0;
-		
-		rrbuf[0] = MS1000_FLOAT ;
-		rrbuf[1] = MS1000_FLOAT ;
-		rrbuf[2] = MS1000_FLOAT ;
-		rrbuf[3] = MS1000_FLOAT ;
-		rrbuf[4] = MS1000_FLOAT ;
-		rrbuf[5] = MS1000_FLOAT ;
-		rrbuf[6] = MS1000_FLOAT ;
-		rrbuf[7] = MS1000_FLOAT ;
-
-		#endif
-
-
-		maxder=lastmax= initMax= 0.0;
-		qpkcnt  = count = sbpeak = 0 ;
-		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
-		sbcount = MS1500_FLOAT ;
-		float dummyData = 0.0f;
-		float dummyOut;
-		QRSFilter(&dummyData,&dummyOut,1,1) ;	/* initialize filters. */
-		
-		//Peak(0.0,1) ; -- initialize Peak variables
-		max = 0.0;
-		timeSinceMax = 0;
-		
-		for(int index = 0; index < sampleLength; index++){ // should only ever be entered with sampleLenght = 1, but use loop to be sure
-			delayArray[index] = 0;
-		}
-		return;
-	}
+	#endif
 
 
 
-		#ifdef RUNTIME_QRSDET
-			start_QRSFilt = start_tsc();
-		#endif
-		
+	#ifdef RUNTIME_QRSDET
+		start_QRSFilt = start_tsc();
+	#endif
+	
+	#if QRSFILT_OPT == 0
 		QRSFilter(datum, fdatum, sampleLength,0) ;	/* Filter data. */
+	#endif
+	#if QRSFILT_OPT == 1
+		qrsfilt_opt1(datum, fdatum, sampleLength,0);
+	#endif
 
-		#ifdef RUNTIME_QRSDET
-			end_QRSFilt += stop_tsc(start_QRSFilt);
-		#endif
+	#ifdef RUNTIME_QRSDET
+		end_QRSFilt += stop_tsc(start_QRSFilt);
+	#endif
 
 	for(int index = 0; index < sampleLength; index++){
 		int QrsDelay = 0 ;
@@ -533,8 +544,9 @@ float thresh(float qmedian, float nmedian)
 #if QRSFILT_OPT == 1
 
 void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
+{
+	for(int index = 0; index < sampleLength; index++)
 	{
-	for(int index = 0; index < sampleLength; index++){
 		// data buffer for lpfilt
 		static float lp_data[LPBUFFER_LGTH];
 
@@ -547,10 +559,10 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// data buffer for moving window average
 		static float data[WINDOW_WIDTH];
 	    
-
+		#if INIT_INLINE == 0
 		if(init)
-			{
-			
+		{
+			#ifndef QRSFILT_LOOP_UNROLL			
 			// ------- initialize filters ------- //
 
 			//lpfilt
@@ -641,13 +653,15 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			data[14] = 0 ;
 			data[15] = 0 ;
 			#endif
-			
-			for(int i = 0; i < sampleLength; i++){
-				filtOutput[i] = 0;
-			}
+			#ifndef QRSFILT_LOOP_UNROLL
+				for(int i = 0; i < sampleLength; i++)
+				{
+					filtOutput[i] = 0;
+				}
+			#endif
 			return;
-			}
-
+		}
+		#endif
 
 		// ---------- Low pass filter data ---------- //
 		// y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]
@@ -665,18 +679,9 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 
 		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
 		static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
-		static float hp_y = 0;
-		static float sum = 0 ;
 		static int lp_ptr = 0;
-		static int hp_ptr = 0;
-		static int derI = 0;
-	    static int ptr = 0 ;
 		int halfPtr;
-		float fdatum ;
 		float y0;
-		float z;
-		float y;
-		float output;
 
 		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
 		if(halfPtr < 0)							// to x[n-6].
@@ -705,9 +710,12 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		#ifdef OPERATION_COUNTER
 		  float_comp_counter++;
 		#endif
-		if((sum / (float)WINDOW_WIDTH) > 32000.f){
+		if((sum / (float)WINDOW_WIDTH) > 32000.f)
+		{
 			output = 32000.f ;
-		} else {
+		} 
+		else 
+		{
 			output = sum / (float)WINDOW_WIDTH ;
 			#ifdef OPERATION_COUNTER
 			float_div_counter += 1;
@@ -729,11 +737,13 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			float_div_counter += 4;
 		#endif
 		filtOutput[index] = output;
-		}
-	return;
 	}
+	return;
+}
 
 #else
+
+
 
 /*****************************************************************************
 FILE:  qrsfilt.cpp
@@ -781,35 +791,35 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// data buffer for moving window average
 		static float data[WINDOW_WIDTH];
 	    
-
-		if(init)
+		#if INIT_INLINE == 0
+			if(init)
 			{
-			
-			// ------- initialize filters ------- //
+				
+				// ------- initialize filters ------- //
 
-			//lpfilt
-			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-				lp_data[i_init] = 0.f;
+				//lpfilt
+				for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+					lp_data[i_init] = 0.f;
 
-			//hpfilt
-			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-				hp_data[i_init] = 0.f;
+				//hpfilt
+				for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+					hp_data[i_init] = 0.f;
 
-			//derivative
-			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-				derBuff[i_init] = 0 ;
-			
-			//movint window integration
-			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-				data[i_init] = 0 ;
-			
-			for(int index = 0; index < sampleLength; index++){
-				filtOutput[index] = 0;
+				//derivative
+				for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+					derBuff[i_init] = 0 ;
+				
+				//movint window integration
+				for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+					data[i_init] = 0 ;
+				
+				for(int index = 0; index < sampleLength; index++){
+					filtOutput[index] = 0;
+				}
+
+				return;
 			}
-
-			return;
-			}
-
+		#endif
 
 	// ---------- Low pass filter data ---------- //
 
@@ -954,3 +964,251 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		return;
 	}
 #endif
+
+void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init) 
+{
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
+        
+	#if INIT_INLINE == 0
+	if(init)
+	{
+		#ifndef QRSFILT_LOOP_UNROLL			
+		// ------- initialize filters ------- //
+
+		//lpfilt
+		#ifndef QRSFILT_LOOP_UNROLL
+		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+			lp_data[i_init] = 0.f;
+		#endif
+
+		#ifdef QRSFILT_LOOP_UNROLL
+		//LOOP_UNROLL replacement with LPBUFFER_LGTH = 10
+		lp_data[0] = 0.f;
+		lp_data[1] = 0.f;
+		lp_data[2] = 0.f;
+		lp_data[3] = 0.f;
+		lp_data[4] = 0.f;
+		lp_data[5] = 0.f;
+		lp_data[6] = 0.f;
+		lp_data[7] = 0.f;
+		lp_data[8] = 0.f;
+		lp_data[9] = 0.f;
+		#endif
+		//hpfilt
+		#ifndef QRSFILT_LOOP_UNROLL
+		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+			hp_data[i_init] = 0.f;
+		#endif
+		//LOOP_UNROLL  with HPBUFFER_LGTH = 25
+		#ifdef QRSFILT_LOOP_UNROLL
+		hp_data[0] = 0.f;
+		hp_data[1] = 0.f;
+		hp_data[2] = 0.f;
+		hp_data[3] = 0.f;
+		hp_data[4] = 0.f;
+		hp_data[5] = 0.f;
+		hp_data[6] = 0.f;
+		hp_data[7] = 0.f;
+		hp_data[8] = 0.f;
+		hp_data[9] = 0.f;
+		hp_data[10] = 0.f;
+		hp_data[11] = 0.f;
+		hp_data[12] = 0.f;
+		hp_data[13] = 0.f;
+		hp_data[14] = 0.f;
+		hp_data[15] = 0.f;
+		hp_data[16] = 0.f;
+		hp_data[17] = 0.f;
+		hp_data[18] = 0.f;
+		hp_data[19] = 0.f;
+		hp_data[20] = 0.f;
+		hp_data[21] = 0.f;
+		hp_data[22] = 0.f;
+		hp_data[23] = 0.f;
+		hp_data[24] = 0.f;
+		#endif
+		//derivative
+		#ifndef QRSFILT_LOOP_UNROLL
+		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+			derBuff[i_init] = 0 ;
+		#endif
+		// LOOP unroll with DERIV_LENGTH	2
+		#ifdef QRSFILT_LOOP_UNROLL
+		derBuff[0] = 0 ;
+		derBuff[1] = 0 ;
+		#endif
+		//movint window integration
+		// LOOP_UNROLL replacement WINDOW_WIDTH	16
+		#ifndef QRSFILT_LOOP_UNROLL
+		
+		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+			data[i_init] = 0 ;
+
+		#endif
+		#ifdef QRSFILT_LOOP_UNROLL
+		data[0] = 0 ;
+		data[1] = 0 ;
+		data[2] = 0 ;
+		data[3] = 0 ;
+		data[4] = 0 ;
+		data[5] = 0 ;
+		data[6] = 0 ;
+		data[7] = 0 ;
+		data[8] = 0 ;
+		data[9] = 0 ;
+		data[10] = 0 ;
+		data[11] = 0 ;
+		data[12] = 0 ;
+		data[13] = 0 ;
+		data[14] = 0 ;
+		data[15] = 0 ;
+		#endif
+		#ifndef QRSFILT_LOOP_UNROLL
+			for(int i = 0; i < sampleLength; i++){
+				filtOutput[i] = 0;
+			}
+		#endif
+		return;
+	}
+	#endif
+
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0, sum_window = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y, output_temp;
+    float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
+    float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
+    float window_width_inv = 1/ (float)WINDOW_WIDTH;
+    int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
+    int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
+    int i;
+    for(i=0; i < samples_to_process - BLOCKING_SIZE_QRSFILT + 1; i+= BLOCKING_SIZE_QRSFILT)
+    {
+        for(int j=0; j < BLOCKING_SIZE_QRSFILT; j++)
+        {
+            index = i + j;
+            halfPtr = lp_ptr- lpbuffer_lgth_half ;    // Use halfPtr to index
+            if(halfPtr < 0)                         // to x[n-6].
+                halfPtr += LPBUFFER_LGTH ;
+
+            y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+            y2 = y1;
+            y1 = y0;
+            fdatum = y0 * lpbuffer_sqr_div_4;
+            lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+            
+            hp_y += fdatum - hp_data[hp_ptr];
+            halfPtr = hp_ptr- hpbuffer_lgth_half ;
+            if(halfPtr < 0)
+                halfPtr += HPBUFFER_LGTH ;
+            hp_data[hp_ptr] = fdatum ;
+            fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+            y = fdatum - derBuff[derI] ;
+            derBuff[derI] = fdatum;
+            fdatum = y;
+            fdatum = fabs(fdatum) ;             // Take the absolute value.
+            sum += fdatum - data[ptr] ;
+            data[ptr] = fdatum ;
+
+            // #ifdef OPERATION_COUNTER
+            // float_comp_counter++;
+            // #endif
+            sum_window = sum * window_width_inv;
+            if((sum_window) > 32000.f)
+            {
+                output_temp = 32000.f ;
+            } 
+            else 
+            {
+                output_temp = sum_window ;
+                // #ifdef OPERATION_COUNTER
+                // float_div_counter += 1;
+                // #endif
+            }
+
+            if(++lp_ptr == LPBUFFER_LGTH)   // the circular buffer and update
+                lp_ptr = 0 ;                    // the buffer pointer.
+            if(derI == 0)
+                derI = 1 ;
+            else
+                derI = 0 ;
+            if(++hp_ptr == HPBUFFER_LGTH)
+                hp_ptr = 0 ;
+            if(++ptr == WINDOW_WIDTH)
+                ptr = 0 ;
+            
+            // #ifdef OPERATION_COUNTER
+            //     float_add_counter += 10;
+            //     float_mul_counter++;
+            //     float_div_counter += 4;
+            // #endif
+            output[index] = output_temp;
+        }
+    }
+    for(; i < samples_to_process; i++)
+    {
+        halfPtr = lp_ptr- lpbuffer_lgth_half ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
+
+        y0 = (y1*2.0f) - y2 + input[i] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 * lpbuffer_sqr_div_4;
+        lp_data[lp_ptr] = input[i] ;            // Stick most recent sample into
+        
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr- hpbuffer_lgth_half ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum - data[ptr] ;
+        data[ptr] = fdatum ;
+
+        // #ifdef OPERATION_COUNTER
+        // float_comp_counter++;
+        // #endif
+        sum_window = sum * window_width_inv;
+        if((sum_window) > 32000.f)
+        {
+            output_temp = 32000.f ;
+        } 
+        else 
+        {
+            output_temp = sum_window ;
+            // #ifdef OPERATION_COUNTER
+            // float_div_counter += 1;
+            // #endif
+        }
+
+        if(++lp_ptr == LPBUFFER_LGTH)   // the circular buffer and update
+            lp_ptr = 0 ;                    // the buffer pointer.
+        if(derI == 0)
+            derI = 1 ;
+        else
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+        
+        // #ifdef OPERATION_COUNTER
+        //     float_add_counter += 10;
+        //     float_mul_counter++;
+        //     float_div_counter += 4;
+        // #endif
+        output[i] = output_temp;
+    }
+}

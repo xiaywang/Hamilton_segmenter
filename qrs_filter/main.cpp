@@ -47,7 +47,9 @@
 /* prototype of the function you need to optimize */
 typedef void(*comp_func)(float *, float *, int);
 
-#define cost_analysis 20.0
+#define cost_analysis 18.0
+#define cost_analysis_blocking_no_division 16.0
+#define cost_analysis_blocking_no_division_fact 15.0
 #define CYCLES_REQUIRED 1e7
 #define REP 30
 #define MAX_FUNCS 32
@@ -62,7 +64,17 @@ void register_functions();
 double perf_test(comp_func f, string desc, int flops);
 
 
-void slowperformance(float* input, float* output, int sample_length);
+void slowperformance(float* input, float* output, int samples_to_process);
+void blocking(float* input, float* output, int samples_to_process);
+void blocking_no_divisions1(float* input, float* output, int samples_to_process);
+void blocking_no_divisions2(float* input, float* output, int samples_to_process);
+void blocking_no_divisions2_derI(float* input, float* output, int samples_to_process);
+void blocking_no_divisions2_derI_precomp_sum(float* input, float* output, int samples_to_process);
+void no_divisions2_derI_precomp_sum(float* input, float* output, int samples_to_process);
+void no_division(float* input, float* output, int samples_to_process);
+void blocking_no_divisions_unrolled(float* input, float* output, int samples_to_process); 
+
+
 
 void add_function(comp_func f, string name, int flop);
 
@@ -79,10 +91,20 @@ int numFuncs = 0;
 */
 void register_functions()
 {
-	add_function(&slowperformance, "Slow Performance", 12);
+	// add_function(&slowperformance, "Slow Performance", cost_analysis);
+	
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
-	// add_function(&blocking, "Blocking", 12);
+
+	// add_function(&blocking, "Blocking", cost_analysis);
+	// add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
+	// add_function(&blocking_no_divisions2, "Blocking precomp div and constant", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions2_derI, "Blocking precomp div and constant, derI short", cost_analysis_blocking_no_division);
+	add_function(&blocking_no_divisions2_derI_precomp_sum, "Blocking precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
+	add_function(&no_divisions2_derI_precomp_sum, "Precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
+	// add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
+	// add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
 }
 
 double nrm_sqr_diff(float *x, float *y, int n) {
@@ -136,15 +158,17 @@ int main(int argc, char **argv)
     {
     	output_old[i] = 0.0;
     }
-
+    cout << "testing functions for correctness"<<endl;
 	for (i = 0; i < numFuncs; i++)
 	{
 		memcpy(output, output_old, used_samples*sizeof(float));
 		comp_func f = userFuncs[i];
-		f(filter_input, output, i);
+		f(filter_input, output, used_samples);
 		double error = nrm_sqr_diff(output, qrsfilt_output, used_samples);
 		if (error > EPS)
-			cout << "ERROR!!!!  the results for the " << i << "th function are different to the previous" << std::endl;
+			cout << i << " function is WRONG! "<< error << endl;
+		else
+			cout << i << " function is CORRECT! "<< error << endl;
 	}
 
 
@@ -187,13 +211,17 @@ double perf_test(comp_func f, string desc, int flops)
 	long num_runs = 16;
 	double multiplier = 1;
 	myInt64 start, end;
+	double average = 0.0;
+	double total_cycles = 0.0;
+	double average_count = 0.0;
 
 	//new variables, n for #loop iterations
 	float output[used_samples];
-	int n, i;
+	int n, i, input_length;
 
-	for (i = 500; i<=used_samples-500; i+=500)
+	for (input_length = 500; input_length<=used_samples-500; input_length+=500)
 	{
+		// cout << "input_length = " << input_length << endl;
 		// Warm-up phase: we determine a number of executions that allows
 		// the code to be executed for at least CYCLES_REQUIRED cycles.
 		// This helps excluding timing overhead when measuring small runtimes.
@@ -201,7 +229,7 @@ double perf_test(comp_func f, string desc, int flops)
 			num_runs = num_runs * multiplier;
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; i++) {
-				f(qrsfilt_input, output , i);
+				f(qrsfilt_input, output , input_length);
 			}
 			end = stop_tsc(start);
 
@@ -219,7 +247,7 @@ double perf_test(comp_func f, string desc, int flops)
 
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; ++i) {
-				f(qrsfilt_input, output , i);
+				f(qrsfilt_input, output , input_length);
 			}
 			end = stop_tsc(start);
 
@@ -232,10 +260,14 @@ double perf_test(comp_func f, string desc, int flops)
 		}
 		cyclesList.sort();
 		cycles = cyclesList.front();
-		printf("%f\n", (cost_analysis * i) / cycles);
+		printf("%f\n", (flops * input_length) / cycles);
+		total_cycles += cycles;
+		average += (flops * input_length) / cycles;
+		average_count+= 1;
+		// printf("%f cycles\n", cycles);
 	}
-	
-	return  (cost_analysis * i) / cycles;
+	printf("average %f\ntotal of %f cycles\n", average/average_count, total_cycles);
+	return  (flops * input_length) / cycles;
 }
 
 

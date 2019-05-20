@@ -205,16 +205,17 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	static int lastIsoLevel=0, lastRhythmClass = UNKNOWN, lastBeatWasNew = 0 ;
 
 	// If initializing...
-
-	// if(init)
-	// {
-	// 	ResetRhythmChk() ;
-	// 	ResetMatch() ;
-	// 	ResetPostClassify() ;
-	// 	runCount = 0 ;
-	// 	DomMonitor(0, 0, 0, 0, 1) ;
-	// 	return(0) ;
-	// }
+	#if INIT_INLINE == 1
+		if(init)
+		{
+			ResetRhythmChk() ;
+			ResetMatch() ;
+			ResetPostClassify() ;
+			runCount = 0 ;
+			DomMonitor(0, 0, 0, 0, 1) ;
+			return(0) ;
+		}
+	#endif
 
 	hfNoise = HFNoiseCheck(newBeat) ;	// Check for muscle noise.
 	rhythmClass = RhythmChk(rr) ;			// Check the rhythm.
@@ -427,6 +428,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 *  is then taken to be the ratio of the maximum averaged highpassed signal
 *  to the QRS amplitude.
 **************************************************************************/
+// Xia: filter here to be optimized
 
 #define AVELENGTH	BEAT_MS50
 #define AVELENGTH_FLOAT	BEAT_MS50_FLOAT

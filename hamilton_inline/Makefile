@@ -12,7 +12,7 @@
 # See '00README' in this directory for further information.
 
 # CC is the name of your ANSI/ISO C compiler (might be 'cc' on some platforms).
-CFLAGS = -O3 -g# -std=c11
+CFLAGS = -O3 -g -mavx # -std=c11
 CC = gcc $(CFLAGS)
 
 ETOBJS = ourtest.o bdac.o classify.o rythmchk.o noisechk.o match.o \
