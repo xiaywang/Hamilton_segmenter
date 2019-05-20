@@ -81,6 +81,7 @@ Returns:
 #endif
 
 
+#define QRSFILT_SCALER
 // Local Prototypes.
 
 void QRSFilter(float* datum, float* output, int sampleLength, int init) ;
@@ -526,20 +527,93 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			// ------- initialize filters ------- //
 
 			//lpfilt
+			#ifndef QRSFILT_SCALER
 			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
 				lp_data[i_init] = 0.f;
+			#endif
 
+			#ifdef QRSFILT_SCALER
+			//Scaler replacement with LPBUFFER_LGTH = 10
+			lp_data[0] = 0.f;
+			lp_data[1] = 0.f;
+			lp_data[2] = 0.f;
+			lp_data[3] = 0.f;
+			lp_data[4] = 0.f;
+			lp_data[5] = 0.f;
+			lp_data[6] = 0.f;
+			lp_data[7] = 0.f;
+			lp_data[8] = 0.f;
+			lp_data[9] = 0.f;
+			#endif
 			//hpfilt
+			#ifndef QRSFILT_SCALER
 			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
 				hp_data[i_init] = 0.f;
-
+			#endif
+			//Scaler replacement with HPBUFFER_LGTH = 25
+			#ifdef QRSFILT_SCALER
+			hp_data[0] = 0.f;
+			hp_data[1] = 0.f;
+			hp_data[2] = 0.f;
+			hp_data[3] = 0.f;
+			hp_data[4] = 0.f;
+			hp_data[5] = 0.f;
+			hp_data[6] = 0.f;
+			hp_data[7] = 0.f;
+			hp_data[8] = 0.f;
+			hp_data[9] = 0.f;
+			hp_data[10] = 0.f;
+			hp_data[11] = 0.f;
+			hp_data[12] = 0.f;
+			hp_data[13] = 0.f;
+			hp_data[14] = 0.f;
+			hp_data[15] = 0.f;
+			hp_data[16] = 0.f;
+			hp_data[17] = 0.f;
+			hp_data[18] = 0.f;
+			hp_data[19] = 0.f;
+			hp_data[20] = 0.f;
+			hp_data[21] = 0.f;
+			hp_data[22] = 0.f;
+			hp_data[23] = 0.f;
+			hp_data[24] = 0.f;
+			#endif
 			//derivative
+			#ifndef QRSFILT_SCALER
 			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
 				derBuff[i_init] = 0 ;
-			
+			#endif
+			// scaler replacement with DERIV_LENGTH	2
+			#ifdef QRSFILT_SCALER
+			derBuff[0] = 0 ;
+			derBuff[1] = 0 ;
+			#endif
 			//movint window integration
+			// scaler replacement WINDOW_WIDTH	16
+			#ifndef QRSFILT_SCALER
+			
 			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
 				data[i_init] = 0 ;
+
+			#endif
+			#ifdef QRSFILT_SCALER
+			data[0] = 0 ;
+			data[1] = 0 ;
+			data[2] = 0 ;
+			data[3] = 0 ;
+			data[4] = 0 ;
+			data[5] = 0 ;
+			data[6] = 0 ;
+			data[7] = 0 ;
+			data[8] = 0 ;
+			data[9] = 0 ;
+			data[10] = 0 ;
+			data[11] = 0 ;
+			data[12] = 0 ;
+			data[13] = 0 ;
+			data[14] = 0 ;
+			data[15] = 0 ;
+			#endif
 			
 			for(int i = 0; i < sampleLength; i++){
 				filtOutput[i] = 0;
