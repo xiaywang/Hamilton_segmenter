@@ -73,7 +73,7 @@ flops_profilinig()
 {
 if [ $mode == 'all' ]
 	then
-		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n " > performance.h
+		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n#define MAIN_BLOCK_SIZE 2200 \n" > performance.h
 		echo -e "#define OPERATION_COUNTER \n#define RUNTIME_MEASURE \n#define RUNTIME_QRSDET \n#define RUNTIME_CLASSIFY \n " > ../hamilton_float/performance.h
 
 elif [ $mode == 'qrsdet' ]
