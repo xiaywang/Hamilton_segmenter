@@ -7,5 +7,6 @@
 
 // define all version numbers
 #define QRSFILT_OPT 0
+#define INIT_INLINE 0
 
 #endif

@@ -152,42 +152,44 @@ void QRSDet( float* datum, int* delayArray, int sampleLength, int init )
 
 	/*	Initialize all buffers to 0 on the first call.	*/
 
-	if( init )
-	{
-		for(i = 0; i < 8; ++i)
+	#if INIT_INLINE == 0
+		if( init )
 		{
-			noise[i] = 0.0 ;	/* Initialize noise buffer */
-			rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+			for(i = 0; i < 8; ++i)
+			{
+				noise[i] = 0.0 ;	/* Initialize noise buffer */
+				rrbuf[i] = MS1000_FLOAT ;/* and R-to-R interval buffer. */
+			}
+			maxder=lastmax= initMax= 0.0;
+			qpkcnt  = count = sbpeak = 0 ;
+			initBlank = preBlankCnt = 0; // DDPtr = 0 ;
+			sbcount = MS1500_FLOAT ;
+			float dummyData = 0.0f;
+			float dummyOut;
+			QRSFilter(&dummyData,&dummyOut,1,1) ;	/* initialize filters. */
+			
+			//Peak(0.0,1) ; -- initialize Peak variables
+			max = 0.0;
+			timeSinceMax = 0;
+			
+			for(int index = 0; index < sampleLength; index++){ // should only ever be entered with sampleLenght = 1, but use loop to be sure
+				delayArray[index] = 0;
+			}
+			return;
 		}
-		maxder=lastmax= initMax= 0.0;
-		qpkcnt  = count = sbpeak = 0 ;
-		initBlank = preBlankCnt = 0; // DDPtr = 0 ;
-		sbcount = MS1500_FLOAT ;
-		float dummyData = 0.0f;
-		float dummyOut;
-		QRSFilter(&dummyData,&dummyOut,1,1) ;	/* initialize filters. */
-		
-		//Peak(0.0,1) ; -- initialize Peak variables
-		max = 0.0;
-		timeSinceMax = 0;
-		
-		for(int index = 0; index < sampleLength; index++){ // should only ever be entered with sampleLenght = 1, but use loop to be sure
-			delayArray[index] = 0;
-		}
-		return;
-	}
+	#endif
 
 
 
-		#ifdef RUNTIME_QRSDET
-			start_QRSFilt = start_tsc();
-		#endif
-		
-		QRSFilter(datum, fdatum, sampleLength,0) ;	/* Filter data. */
+	#ifdef RUNTIME_QRSDET
+		start_QRSFilt = start_tsc();
+	#endif
+	
+	QRSFilter(datum, fdatum, sampleLength,0) ;	/* Filter data. */
 
-		#ifdef RUNTIME_QRSDET
-			end_QRSFilt += stop_tsc(start_QRSFilt);
-		#endif
+	#ifdef RUNTIME_QRSDET
+		end_QRSFilt += stop_tsc(start_QRSFilt);
+	#endif
 
 	for(int index = 0; index < sampleLength; index++){
 		int QrsDelay = 0 ;
@@ -519,34 +521,34 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// data buffer for moving window average
 		static float data[WINDOW_WIDTH];
 	    
-
-		if(init)
+		#if INIT_INLINE == 1
+			if(init)
 			{
-			
-			// ------- initialize filters ------- //
+				
+				// ------- initialize filters ------- //
 
-			//lpfilt
-			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-				lp_data[i_init] = 0.f;
+				//lpfilt
+				for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+					lp_data[i_init] = 0.f;
 
-			//hpfilt
-			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-				hp_data[i_init] = 0.f;
+				//hpfilt
+				for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+					hp_data[i_init] = 0.f;
 
-			//derivative
-			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-				derBuff[i_init] = 0 ;
-			
-			//movint window integration
-			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-				data[i_init] = 0 ;
-			
-			for(int i = 0; i < sampleLength; i++){
-				filtOutput[i] = 0;
+				//derivative
+				for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+					derBuff[i_init] = 0 ;
+				
+				//movint window integration
+				for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+					data[i_init] = 0 ;
+				
+				for(int i = 0; i < sampleLength; i++){
+					filtOutput[i] = 0;
+				}
+				return;
 			}
-			return;
-			}
-
+		#endif
 
 		// ---------- Low pass filter data ---------- //
 		// y[n] = 2*y[n-1] - y[n-2] + x[n] - 2*x[t-24 ms] + x[t-48 ms]
@@ -680,35 +682,35 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// data buffer for moving window average
 		static float data[WINDOW_WIDTH];
 	    
-
-		if(init)
+		#if INIT_INLINE == 1
+			if(init)
 			{
-			
-			// ------- initialize filters ------- //
+				
+				// ------- initialize filters ------- //
 
-			//lpfilt
-			for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-				lp_data[i_init] = 0.f;
+				//lpfilt
+				for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+					lp_data[i_init] = 0.f;
 
-			//hpfilt
-			for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-				hp_data[i_init] = 0.f;
+				//hpfilt
+				for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+					hp_data[i_init] = 0.f;
 
-			//derivative
-			for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-				derBuff[i_init] = 0 ;
-			
-			//movint window integration
-			for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-				data[i_init] = 0 ;
-			
-			for(int index = 0; index < sampleLength; index++){
-				filtOutput[index] = 0;
+				//derivative
+				for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+					derBuff[i_init] = 0 ;
+				
+				//movint window integration
+				for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+					data[i_init] = 0 ;
+				
+				for(int index = 0; index < sampleLength; index++){
+					filtOutput[index] = 0;
+				}
+
+				return;
 			}
-
-			return;
-			}
-
+		#endif
 
 	// ---------- Low pass filter data ---------- //
 

@@ -1,4 +1,5 @@
 #define used_samples 7200
+#define BLOCKING_SIZE 5
 extern float qrsfilt_output[used_samples];
 extern float qrsfilt_input[used_samples];
 
