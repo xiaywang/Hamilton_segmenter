@@ -41,6 +41,8 @@ MAINTYPE main()
 		#ifdef RUNTIME_QRSDET
 		start_QRSDet = 0;
 		end_QRSDet = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
@@ -143,6 +145,7 @@ for (int flame =0; flame < 1000000; flame++)
 		#ifdef PRINT
 			#ifdef RUNTIME_QRSDET
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);
+			printf("QRSfilt runtime:   %lli\n", end_QRSFilt);
 			#endif
 			#ifdef RUNTIME_CLASSIFY
 			printf("Classify runtime: %lli\n", end_Classify);

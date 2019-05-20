@@ -155,9 +155,14 @@ int BeatDetectAndClassify(float ecgSample, int *beatType, int *beatMatch)
 		++BeatQue[i] ;
 
 	// Run the sample through the QRS detector.
-
+	#ifdef RUNTIME_QRSDET
+		start_QRSDet = start_tsc();
+	#endif
 	detectDelay = QRSDet(ecgSample,0) ;
 
+	#ifdef RUNTIME_QRSDET
+		end_QRSDet += stop_tsc(start_QRSDet);
+	#endif
 		
 	if(detectDelay != 0)
 		{
