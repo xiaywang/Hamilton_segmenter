@@ -1,5 +1,5 @@
-#define SAVEFILE 0
-#define PRINT 0
+// #define SAVEFILE 0
+// #define PRINT 0
 
 #include "stdio.h"
 #include "qrsdet.h"		// For sample rate.
@@ -98,7 +98,7 @@ for (int flame =0; flame < 1000000; flame++)
 				end_time += stop_tsc(start_time);
 			#endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 			fp = fopen("./to_plot/100.csv", "a+");
 			fprintf(fp, "%f\n", ecgFilt);
 			fclose(fp);
@@ -114,7 +114,7 @@ for (int flame =0; flame < 1000000; flame++)
 // 				printf("DetectionTime %li\n", DetectionTime);
 // #endif
 
-#if SAVEFILE
+#ifdef SAVEFILE
 				fp = fopen("./to_plot/DetectionTime100.csv", "a+");
 				fprintf(fp, "%ld\n", DetectionTime);
 				fclose(fp);
@@ -127,7 +127,7 @@ for (int flame =0; flame < 1000000; flame++)
 }
 #endif
 	#ifdef OPERATION_COUNTER
-		#if PRINT
+		#ifdef PRINT
 			printf("float adds:		%li\n", float_add_counter);
 			printf("float mult:		%li\n", float_mul_counter);
 			printf("float div:		%li\n", float_div_counter);
@@ -140,7 +140,7 @@ for (int flame =0; flame < 1000000; flame++)
 
 		// TODO if we have finial measurements for one version hadcode the flop values and turn off operation counting to get accurate perormance measurments
 	#ifdef RUNTIME_MEASURE
-		#if PRINT
+		#ifdef PRINT
 			#ifdef RUNTIME_QRSDET
 			printf("QRSdet runtime:   %lli\n", end_QRSDet);
 			#endif
