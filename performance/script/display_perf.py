@@ -22,17 +22,21 @@ if sys.argv[1] == "-p":
 					result[name]=[float(count)]
 			# else:
 			# 	print("exception: %s" %line)
+	with open(sys.argv[2], "a") as file:
+		print(colors.title("Comparing to floating point baseline:"))
+		file.write("Comparing to floating point baseline: \n")
+		print(colors.title("For detailed report, please refer to %s"%(sys.argv[2])))
+		file.write("For detailed report, please refer to %s \n"%(sys.argv[2]))
 
-	print(colors.title("Comparing to floating point baseline:"))
-	print(colors.title("For detailed report, please refer to %s"%(sys.argv[1])))
-	for key, value in result.items():
-		if len(value) == 3:
-			if value[2][0] == "-":
-				print("%s: %s" %(colors.yellow(key), colors.green(value[2])))
+		for key, value in result.items():
+			if len(value) == 3:
+				if value[2][0] == "-":
+					print("%s: %s" %(colors.yellow(key), colors.green(value[2])))
+				else:
+					print("%s: %s " %(colors.yellow(key), colors.red(value[2])))
+				file.write("%s: %s\n" %(key,value[2]))
 			else:
-				print("%s: %s " %(colors.yellow(key), colors.red(value[2])))
-		else:
-			print(colors.red("%s misses data, please refer to report for detail"%(key)))
+				print(colors.red("%s misses data, please refer to report for detail"%(key)))
 
 if sys.argv[1] == "-i":
 	block_size=[]
