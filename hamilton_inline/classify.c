@@ -205,7 +205,7 @@ int Classify(float *newBeat,int rr, int noiseLevel, int *beatMatch, int *fidAdj,
 	static int lastIsoLevel=0, lastRhythmClass = UNKNOWN, lastBeatWasNew = 0 ;
 
 	// If initializing...
-	#if INIT_INLINE == 1
+	#if INIT_INLINE == 0
 		if(init)
 		{
 			ResetRhythmChk() ;

@@ -137,11 +137,12 @@ void slowperformance2(float* input, float* output, int samples_to_process)
     __m128i maxMask = _mm_set_epi32(WINDOW_WIDTH, DERIV_LENGTH, HPBUFFER_LGTH, LPBUFFER_LGTH);
     __m128i oneVec = _mm_set_epi32(1, 1, 1, 1);
 
-    for(int i=0; i < samples_to_process/BLOCKING_SIZE; i++)
+    int i;
+    for(i=0; i < samples_to_process - BLOCKING_SIZE+1; i+= BLOCKING_SIZE)
     {
         for(int j=0; j < BLOCKING_SIZE; j++)
         {
-            index = i * BLOCKING_SIZE + j;
+            index = i + j;
             halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
             if(halfPtr < 0)                         // to x[n-6].
                 halfPtr += LPBUFFER_LGTH ;
@@ -165,9 +166,10 @@ void slowperformance2(float* input, float* output, int samples_to_process)
             sum += fdatum - data[ptr_array[3]] ;
             data[ptr_array[3]] = fdatum ;
 
-            // #ifdef OPERATION_COUNTER
-            // float_comp_counter++;
-            // #endif
+            #ifdef OPERATION_COUNTER
+            float_comp_counter++;
+            float_mul_counter++;
+            #endif
             if((sum * window_width_inv) > 32000.f)
             {
                 output_temp = 32000.f ;
@@ -175,9 +177,9 @@ void slowperformance2(float* input, float* output, int samples_to_process)
             else 
             {
                 output_temp = sum * window_width_inv ;
-                // #ifdef OPERATION_COUNTER
-                // float_div_counter += 1;
-                // #endif
+                #ifdef OPERATION_COUNTER
+                float_mul_counter += 1;
+                #endif
             }
 
             __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);
@@ -188,13 +190,68 @@ void slowperformance2(float* input, float* output, int samples_to_process)
             __m128 resultf = _mm_castsi128_ps(result);
             _mm_store_ps((float*)ptr_array, resultf);
             
-            // #ifdef OPERATION_COUNTER
-            //     float_add_counter += 10;
-            //     float_mul_counter++;
-            //     float_div_counter += 4;
-            // #endif
+            #ifdef OPERATION_COUNTER
+                float_add_counter += 10;
+                float_mul_counter+=4;
+            #endif
             output[index] = output_temp;
         }
+    }
+
+    for(i; i<BLOCKING_SIZE; i++)
+    {
+        halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
+
+        y0 = (y1*2.0f) - y2 + input[i] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 * lpbuffer_sqr_div_4;
+        lp_data[ptr_array[0]] = input[i] ;            // Stick most recent sample into
+        
+        hp_y += fdatum - hp_data[ptr_array[1]];
+        halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[ptr_array[1]] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+        y = fdatum - derBuff[ptr_array[2]] ;
+        derBuff[ptr_array[2]] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum - data[ptr_array[3]] ;
+        data[ptr_array[3]] = fdatum ;
+
+        #ifdef OPERATION_COUNTER
+        float_comp_counter++;
+        float_mul_counter++;
+        #endif
+        if((sum * window_width_inv) > 32000.f)
+        {
+            output_temp = 32000.f ;
+        } 
+        else 
+        {
+            output_temp = sum * window_width_inv ;
+            #ifdef OPERATION_COUNTER
+            float_mul_counter += 1;
+            #endif
+        }
+
+        __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);
+        __m128i ptr_vec = _mm_castps_si128(ptr_vecf);
+        __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);
+        __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);
+        __m128i result =  _mm_and_si128(onePlus, ltmask);
+        __m128 resultf = _mm_castsi128_ps(result);
+        _mm_store_ps((float*)ptr_array, resultf);
+        
+        #ifdef OPERATION_COUNTER
+            float_add_counter += 10;
+            float_mul_counter+=4;
+        #endif
+        output[i] = output_temp;
     }
 }
 
