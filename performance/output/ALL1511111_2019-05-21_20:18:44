@@ -1,0 +1,40 @@
+float adds:		337540
+float mult:		180870
+float div:		10449
+float comp:		80938
+float total only math:	528859
+float total with comp:	609797
+QRSdet runtime:   458636
+QRSfilt runtime:   168836
+Classify runtime: 429624
+total runtime:    1355772
+performance:      0.390080
+performance (w/ comp):      0.449778
+Start running baseline 
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   5220033
+QRSfilt runtime:   868712
+Classify runtime: 851421
+total runtime:    10535882
+performance:      0.052738
+performance (w/ comp):      0.059916
+Comparing to floating point baseline: 
+For detailed report, please refer to ../performance/output/ALL1511111_2019-05-21_20:18:44 
+float adds: 10%
+float mult: -16%
+float div: -293%
+float comp: 7%
+float total only math: -5%
+float total with comp: -4%
+QRSdet runtime: -1038%
+QRSfilt runtime: -415%
+Classify runtime: -98%
+total runtime: -677%
+performance: 86%
+performance (w/ comp): 87%

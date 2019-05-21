@@ -50,12 +50,12 @@ MAINTYPE main()
 		#ifdef RUNTIME_QRSDET
 		start_QRSDet = 0;
 		end_QRSDet = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
 		end_Classify = 0;
-		start_QRSFilt = 0;
-		end_QRSFilt = 0;
 		#endif
 	#endif
 

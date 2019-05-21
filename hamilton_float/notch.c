@@ -1,6 +1,6 @@
 #include <math.h>
 #include "notch.h"
-
+#include "tsc_x86.h"
 // #define NUM_COEFFS 96
 // #define NUM_STAGES 16
 // const float filter_coefficients[NUM_COEFFS] = {
@@ -64,5 +64,9 @@ void slowperformance(float* input, float* output, int number_of_samples) {
         }
         output[i] = z;
     }
+    #ifdef OPERATION_COUNTER
+    float_add_counter += 4*number_of_samples*NUM_STAGES;
+    float_mul_counter += 6*number_of_samples*NUM_STAGES;
+    #endif
 
 }

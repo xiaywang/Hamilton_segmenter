@@ -1,0 +1,10 @@
+The measurements are encoded with the flags set in the following order:
+QRSFILT_OPT
+BLOCKING_SIZE_QRSFILT
+FASTNOTCH
+INIT_INLINE
+BDAC_OPT
+AVX_OPT
+NOISECHECK_OPT
+
+meaning the ALL_0501000 would correspond to the file generated with the pefromance script using the all mode and only the INIT_INLINE flag set.
