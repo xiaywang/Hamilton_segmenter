@@ -547,6 +547,7 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 {
 	for(int index = 0; index < sampleLength; index++)
 	{
+	  float fdatum ;
 		// data buffer for lpfilt
 		static float lp_data[LPBUFFER_LGTH];
 
@@ -562,7 +563,7 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		#if INIT_INLINE == 0
 		if(init)
 		{
-			#ifndef QRSFILT_LOOP_UNROLL			
+		  // #ifndef QRSFILT_LOOP_UNROLL		    Xia: 	Where does this #ifndef end?
 			// ------- initialize filters ------- //
 
 			//lpfilt
@@ -976,19 +977,19 @@ void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init)
     // data buffer for moving window average
     static float data[WINDOW_WIDTH];
         
-	#if INIT_INLINE == 0
+#if INIT_INLINE == 0 // INIT_INLINE
 	if(init)
 	{
-		#ifndef QRSFILT_LOOP_UNROLL			
+	  //		#ifndef QRSFILT_LOOP_UNROLL		Xia: where does this #ifndef end?	
 		// ------- initialize filters ------- //
 
 		//lpfilt
-		#ifndef QRSFILT_LOOP_UNROLL
+#ifndef QRSFILT_LOOP_UNROLL //lpfilt
 		for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
 			lp_data[i_init] = 0.f;
-		#endif
+#endif //QRSFILT_LOOP_UNROLL lpfilt
 
-		#ifdef QRSFILT_LOOP_UNROLL
+#ifdef QRSFILT_LOOP_UNROLL //LPBUFFER_LGTH = 10
 		//LOOP_UNROLL replacement with LPBUFFER_LGTH = 10
 		lp_data[0] = 0.f;
 		lp_data[1] = 0.f;
@@ -1000,14 +1001,15 @@ void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init)
 		lp_data[7] = 0.f;
 		lp_data[8] = 0.f;
 		lp_data[9] = 0.f;
-		#endif
+#endif //QRSFILT_LOOP_UNROLL //LPBUFFER_LGTH = 10
 		//hpfilt
-		#ifndef QRSFILT_LOOP_UNROLL
+#ifndef QRSFILT_LOOP_UNROLL //hpfilt
 		for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
 			hp_data[i_init] = 0.f;
-		#endif
+#endif // QRSFILT_LOOP_UNROLL //hpfilt
+		
 		//LOOP_UNROLL  with HPBUFFER_LGTH = 25
-		#ifdef QRSFILT_LOOP_UNROLL
+#ifdef QRSFILT_LOOP_UNROLL //HPBUFFER_LGTH = 25
 		hp_data[0] = 0.f;
 		hp_data[1] = 0.f;
 		hp_data[2] = 0.f;
@@ -1033,26 +1035,28 @@ void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init)
 		hp_data[22] = 0.f;
 		hp_data[23] = 0.f;
 		hp_data[24] = 0.f;
-		#endif
+#endif // QRSFILT_LOOP_UNROLL //HPBUFFER_LGTH = 25
 		//derivative
-		#ifndef QRSFILT_LOOP_UNROLL
+#ifndef QRSFILT_LOOP_UNROLL //derivative
 		for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
 			derBuff[i_init] = 0 ;
-		#endif
+#endif // QRSFILT_LOOP_UNROLL //derivative
 		// LOOP unroll with DERIV_LENGTH	2
-		#ifdef QRSFILT_LOOP_UNROLL
+#ifdef QRSFILT_LOOP_UNROLL // DERIV_LENGTH
 		derBuff[0] = 0 ;
 		derBuff[1] = 0 ;
-		#endif
+#endif // QRSFILT_LOOP_UNROLL // DERIV_LENGTH
+		
 		//movint window integration
 		// LOOP_UNROLL replacement WINDOW_WIDTH	16
-		#ifndef QRSFILT_LOOP_UNROLL
+#ifndef QRSFILT_LOOP_UNROLL // WINDOW_WIDTH
 		
 		for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
 			data[i_init] = 0 ;
 
-		#endif
-		#ifdef QRSFILT_LOOP_UNROLL
+#endif // QRSFILT_LOOP_UNROLL // DERIV_LENGTH
+		
+#ifdef QRSFILT_LOOP_UNROLL // data
 		data[0] = 0 ;
 		data[1] = 0 ;
 		data[2] = 0 ;
@@ -1069,15 +1073,16 @@ void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init)
 		data[13] = 0 ;
 		data[14] = 0 ;
 		data[15] = 0 ;
-		#endif
-		#ifndef QRSFILT_LOOP_UNROLL
+#endif // QRSFILT_LOOP_UNROLL // data
+		
+#ifndef QRSFILT_LOOP_UNROLL //filtOutput
 			for(int i = 0; i < sampleLength; i++){
 				filtOutput[i] = 0;
 			}
-		#endif
+#endif // QRSFILT_LOOP_UNROLL //filtOutput
 		return;
 	}
-	#endif
+#endif // INIT_INLINE
 
     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0, sum_window = 0.0;
     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;

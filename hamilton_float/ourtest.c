@@ -1,4 +1,4 @@
-// #define SAVEFILE 0
+//#define SAVEFILE 0
 // #define PRINT 0
 
 #include "stdio.h"
@@ -62,7 +62,7 @@ MAINTYPE main()
 
 		ResetBDAC() ;
 		SampleCount = 0 ;
-#if SAVEFILE
+#ifdef SAVEFILE
 		FILE *fp;
 		fp = fopen("./to_plot/100.csv", "w");
 		fprintf(fp, "ecg_data\n");
