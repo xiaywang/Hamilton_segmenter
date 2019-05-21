@@ -654,12 +654,12 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 			data[14] = 0 ;
 			data[15] = 0 ;
 			#endif
-			#ifndef QRSFILT_LOOP_UNROLL
-				for(int i = 0; i < sampleLength; i++)
-				{
-					filtOutput[i] = 0;
-				}
-			#endif
+			// #ifndef QRSFILT_LOOP_UNROLL
+			// 	for(int i = 0; i < sampleLength; i++)
+			// 	{
+			// 		filtOutput[i] = 0;
+			// 	}
+			// #endif
 			return;
 		}
 		#endif
@@ -681,7 +681,7 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
 	    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
 	    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-	    int halfPtr, index;
+	    int halfPtr;
 	    float fdatum, y0, z, y, output;
 
 		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
@@ -813,9 +813,9 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 				for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
 					data[i_init] = 0 ;
 				
-				for(int index = 0; index < sampleLength; index++){
-					filtOutput[index] = 0;
-				}
+				// for(int index = 0; index < sampleLength; index++){
+				// 	filtOutput[index] = 0;
+				// }
 
 				return;
 			}
@@ -836,7 +836,7 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
 	    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
 	    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-	    int halfPtr, index;
+	    int halfPtr;
 	    float fdatum, y0, z, y;
 
 		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
