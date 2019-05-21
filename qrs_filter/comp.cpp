@@ -99,7 +99,7 @@ void slowperformance(float* input, float* output, int samples_to_process)
     }
 }
 
-void slowperformance2(float* input, float* output, int samples_to_process) 
+void slowperformance2(float* datum, float* filtOutput, int sampleLength) 
 {
     // data buffer for lpfilt
     static float lp_data[LPBUFFER_LGTH];
@@ -128,17 +128,22 @@ void slowperformance2(float* input, float* output, int samples_to_process)
     static int ptr_array[4] = {0}; // lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
     int halfPtr, index;
     float fdatum, y0, z, y, output_temp;
-    float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
-    float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
-    float window_width_inv = 1/ (float)WINDOW_WIDTH;
-    int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
-    int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
+    static float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
+    static float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
+    static float window_width_inv = 1/ (float)WINDOW_WIDTH;
+    static int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
+    static int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
+
+    #ifdef OPERATION_COUNTER
+    float_div_counter+=3;
+    float_mul_counter+=2;
+    #endif
 
     __m128i maxMask = _mm_set_epi32(WINDOW_WIDTH, DERIV_LENGTH, HPBUFFER_LGTH, LPBUFFER_LGTH);
     __m128i oneVec = _mm_set_epi32(1, 1, 1, 1);
 
     int i;
-    for(i=0; i < samples_to_process - BLOCKING_SIZE+1; i+= BLOCKING_SIZE)
+    for(i=0; i < sampleLength - BLOCKING_SIZE+1; i+= BLOCKING_SIZE)
     {
         for(int j=0; j < BLOCKING_SIZE; j++)
         {
@@ -147,11 +152,11 @@ void slowperformance2(float* input, float* output, int samples_to_process)
             if(halfPtr < 0)                         // to x[n-6].
                 halfPtr += LPBUFFER_LGTH ;
 
-            y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+            y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
             y2 = y1;
             y1 = y0;
             fdatum = y0 * lpbuffer_sqr_div_4;
-            lp_data[ptr_array[0]] = input[index] ;            // Stick most recent sample into
+            lp_data[ptr_array[0]] = datum[index] ;            // Stick most recent sample into
             
             hp_y += fdatum - hp_data[ptr_array[1]];
             halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
@@ -194,21 +199,21 @@ void slowperformance2(float* input, float* output, int samples_to_process)
                 float_add_counter += 10;
                 float_mul_counter+=4;
             #endif
-            output[index] = output_temp;
+            filtOutput[index] = output_temp;
         }
     }
 
-    for(i; i<BLOCKING_SIZE; i++)
+    for(i; i<sampleLength; i++)
     {
         halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
         if(halfPtr < 0)                         // to x[n-6].
             halfPtr += LPBUFFER_LGTH ;
 
-        y0 = (y1*2.0f) - y2 + input[i] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+        y0 = (y1*2.0f) - y2 + datum[i] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
         y2 = y1;
         y1 = y0;
         fdatum = y0 * lpbuffer_sqr_div_4;
-        lp_data[ptr_array[0]] = input[i] ;            // Stick most recent sample into
+        lp_data[ptr_array[0]] = datum[i] ;            // Stick most recent sample into
         
         hp_y += fdatum - hp_data[ptr_array[1]];
         halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
@@ -251,7 +256,7 @@ void slowperformance2(float* input, float* output, int samples_to_process)
             float_add_counter += 10;
             float_mul_counter+=4;
         #endif
-        output[i] = output_temp;
+        filtOutput[i] = output_temp;
     }
 }
 

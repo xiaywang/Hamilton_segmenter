@@ -65,7 +65,7 @@ double perf_test(comp_func f, string desc, int flops);
 
 
 void slowperformance(float* input, float* output, int samples_to_process);
-void slowperformance2(float* input, float* output, int samples_to_process);
+void slowperformance2(float* datum, float* filtOutput, int sampleLength);
 void blocking(float* input, float* output, int samples_to_process);
 void blocking_no_divisions1(float* input, float* output, int samples_to_process);
 void blocking_no_divisions2(float* input, float* output, int samples_to_process);

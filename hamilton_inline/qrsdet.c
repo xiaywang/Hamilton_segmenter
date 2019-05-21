@@ -734,7 +734,7 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		
 		#ifdef OPERATION_COUNTER
 			float_add_counter += 10;
-			float_mul_counter++;
+			float_mul_counter+=3;
 			float_div_counter += 4;
 		#endif
 		filtOutput[index] = output;
@@ -870,9 +870,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 ******************************************************************************/
 
 
-		static float hp_y = 0;
-	        static int hp_ptr = 0;
-		float z ;
 		//int halfPtr ;
 		
 		hp_y += fdatum - hp_data[hp_ptr];
@@ -905,8 +902,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 	// it's called only once in qrsdet to assign value to a variable which then is
 	// not used at all.
 
-		static int derI = 0;
-		float y ;
 
 		y = fdatum - derBuff[derI] ;
 		derBuff[derI] = fdatum;
@@ -931,8 +926,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 * the signal values over the last WINDOW_WIDTH samples.
 *****************************************************************************/
 
-		static float sum = 0 ;
-	        static int ptr = 0 ;
 		float output;
 
 		sum += fdatum ;
