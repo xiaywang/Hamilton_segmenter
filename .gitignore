@@ -5,7 +5,7 @@
 ###Notch filter###
 *.o
 *.s
-*perftest
+*/perftest
 
 ###exexutables###
 hamilton_inline/ourtest
