@@ -1,0 +1,37 @@
+float adds:		294340
+float mult:		209662
+float div:		32037
+float comp:		80938
+float total only math:	536039
+float total with comp:	616977
+QRSdet runtime:   644674
+QRSfilt runtime:   306082
+total runtime:    1777249
+performance:      0.301612
+performance (w/ comp):      0.347153
+Start running baseline 
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   4757010
+QRSfilt runtime:   800313
+total runtime:    9555474
+performance:      0.058149
+performance (w/ comp):      0.066063
+Comparing to floating point baseline: 
+For detailed report, please refer to ../performance/output/QRSDET0501111_2019-05-21_20:25:21 
+float adds: -4%
+float mult: -0%
+float div: -28%
+float comp: 7%
+float total only math: -4%
+float total with comp: -2%
+QRSdet runtime: -638%
+QRSfilt runtime: -161%
+total runtime: -438%
+performance: 81%
+performance (w/ comp): 81%

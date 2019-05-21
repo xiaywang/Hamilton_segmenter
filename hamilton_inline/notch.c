@@ -52,20 +52,20 @@ const float filter_coefficients[NUM_COEFFS] = {
 #if FASTNOTCH == 1
 
 const double new_order1[16] = {
-    filter_coefficients[4], filter_coefficients[5], filter_coefficients[1], filter_coefficients[2],
-    filter_coefficients[10], filter_coefficients[11], filter_coefficients[7], filter_coefficients[8],
-    filter_coefficients[16], filter_coefficients[17], filter_coefficients[13], filter_coefficients[14],
-    filter_coefficients[22], filter_coefficients[23], filter_coefficients[19], filter_coefficients[20]
+    0.0309895216876636, 0.990608187607165, 0.000105999737667783, 0.999956093608071,
+    -0.0309895216876636, 0.990608187607168, -0.000105999737667672, 0.999956093608070,
+    0.0195762207185172, 0.965423306433757, 4.39053630995161e-05, 0.999894003419193,
+    -0.0195762207185178, 0.965423306433758, -4.39053631002551e-05, 0.999894003419208
 };
 
 const double new_order2[16] = {
-    new_order1[2]-new_order1[0], new_order1[6]-new_order1[4], new_order1[10]-new_order1[8], new_order1[14]-new_order1[12],
-    new_order1[3]-new_order1[1], new_order1[7]-new_order1[5], new_order1[11]-new_order1[9], new_order1[15]-new_order1[13],
-    filter_coefficients[4], filter_coefficients[10], filter_coefficients[16], filter_coefficients[22],
-    filter_coefficients[5], filter_coefficients[11], filter_coefficients[17], filter_coefficients[23],
+    0.000105999737667783-0.0309895216876636, -0.000105999737667672+0.0309895216876636, 4.39053630995161e-05-0.0195762207185172, -4.39053631002551e-05+0.0195762207185178,
+    0.999956093608071-0.990608187607165, 0.999956093608070-0.990608187607168, 0.999894003419193-0.965423306433757, 0.999894003419208-0.965423306433758,
+    0.0195762207185172, 0.965423306433757, 4.39053630995161e-05, 0.999894003419193,
+    -0.0195762207185178, 0.965423306433758, -4.39053631002551e-05, 0.999894003419208
 };
 
-void slowperformance(double* input, double* output, int number_of_samples) {
+void slowperformance(float* input, float* output, int number_of_samples) {
     static double x[NUM_STAGES] = {0}; //z-1 buffers
     static double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};

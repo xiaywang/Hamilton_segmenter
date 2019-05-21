@@ -7,9 +7,10 @@
 
 // define all version numbers
 #define QRSFILT_OPT 1
+#define BLOCKING_SIZE_QRSFILT 5
+#define FASTNOTCH 	1
 
 #define INIT_INLINE 1
-#define BLOCKING_SIZE_QRSFILT 5
 
 
 #define BDAC_OPT 1
