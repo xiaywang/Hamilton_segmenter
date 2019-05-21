@@ -87,6 +87,7 @@ Returns:
 // Local Prototypes.
 
 void QRSFilter(float* datum, float* output, int sampleLength, int init) ;
+void qrsfilt_opt1(float* input, float* output, int samples_to_process, int init) ;
 
 float Peak( float datum, int init ) ;
 float median(float *array) ; // Xia: called many times
@@ -547,7 +548,6 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 {
 	for(int index = 0; index < sampleLength; index++)
 	{
-	  float fdatum ;
 		// data buffer for lpfilt
 		static float lp_data[LPBUFFER_LGTH];
 
@@ -679,10 +679,10 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 		// the signal values over the last WINDOW_WIDTH samples.
 
 		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
-		static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
-		static int lp_ptr = 0;
-		int halfPtr;
-		float y0;
+	    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+	    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+	    int halfPtr, index;
+	    float fdatum, y0, z, y, output;
 
 		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
 		if(halfPtr < 0)							// to x[n-6].
@@ -778,7 +778,6 @@ REVISED:	5/13/2002
 void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 	{
 	for(int index = 0; index < sampleLength; index++){
-		float fdatum ;
 
 		// data buffer for lpfilt
 		static float lp_data[LPBUFFER_LGTH];
@@ -835,10 +834,10 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 **************************************************************************/
 	
 		// Xia: I don't replace here y1 and y2 with lp_y1 and lp_y2 because y1 and y2 are used only in lpfilt and nowhere else in this .c file. The same for y0.
-		static float y1 = 0.f, y2 = 0.f ; // this was long, might need to make it double if precision is off
-		static int lp_ptr = 0;
-		int halfPtr;
-		float y0;
+	    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+	    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+	    int halfPtr, index;
+	    float fdatum, y0, z, y;
 
 		halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;	// Use halfPtr to index
 		if(halfPtr < 0)							// to x[n-6].
