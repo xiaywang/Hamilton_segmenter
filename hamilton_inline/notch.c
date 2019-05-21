@@ -1,5 +1,6 @@
 #include <math.h>
 #include "notch.h"
+#include "config.h"
 
 // #define NUM_COEFFS 96
 // #define NUM_STAGES 16
@@ -47,7 +48,62 @@ const float filter_coefficients[NUM_COEFFS] = {
 // #define NUM_COEFFS 12
 // #define NUM_STAGES NUM_COEFFS/6
 // const float filter_coefficients[NUM_COEFFS] = {1.0, 0.000000228016561187872, 0.999999772567283, 1.0, 0.0230135827512062,0.978067688426724, 1.0, -0.000000228016561854005, 0.999999772566322, 1.0, -0.0230135827512065, 0.978067688426719};
+#if fastNotch == 1
 
+const double new_order1[16] = {
+    filter_coefficients[4], filter_coefficients[5], filter_coefficients[1], filter_coefficients[2],
+    filter_coefficients[10], filter_coefficients[11], filter_coefficients[7], filter_coefficients[8],
+    filter_coefficients[16], filter_coefficients[17], filter_coefficients[13], filter_coefficients[14],
+    filter_coefficients[22], filter_coefficients[23], filter_coefficients[19], filter_coefficients[20]
+};
+
+const double new_order2[16] = {
+    new_order1[2]-new_order1[0], new_order1[6]-new_order1[4], new_order1[10]-new_order1[8], new_order1[14]-new_order1[12],
+    new_order1[3]-new_order1[1], new_order1[7]-new_order1[5], new_order1[11]-new_order1[9], new_order1[15]-new_order1[13],
+    filter_coefficients[4], filter_coefficients[10], filter_coefficients[16], filter_coefficients[22],
+    filter_coefficients[5], filter_coefficients[11], filter_coefficients[17], filter_coefficients[23],
+};
+
+void slowperformance(double* input, double* output, int number_of_samples) {
+    double x[NUM_STAGES] = {0}; //z-1 buffers
+    double y[NUM_STAGES] = {0}; //z-2 buffers
+    double temp[2*NUM_STAGES] = {0};
+    double z[2*NUM_STAGES+1];
+    double inp_1, outp_1, inp_2, outp_2;
+
+    int i;
+
+    for(i = 0; i < number_of_samples; i++)
+    {
+        inp_1 = input[i];
+        inp_2 = input[i+1];
+
+        double intermed_0 = x[0]*new_order2[0] + y[0]*new_order2[4];
+        double intermed_1 = x[1]*new_order2[1] + y[1]*new_order2[5];
+        double intermed_2 = x[2]*new_order2[2] + y[2]*new_order2[6];
+        double intermed_3 = x[3]*new_order2[3] + y[3]*new_order2[7];
+
+        temp[0] = inp_1 - x[0]*new_order1[0] - y[0]*new_order1[1];
+        temp[1] = inp_1 + intermed_0 - x[1]*new_order1[4] - y[1]*new_order1[5];
+        temp[2] = inp_1 + intermed_0 + intermed_1 - x[2]*new_order1[8] - y[2]*new_order1[9];
+        temp[3] = inp_1 + intermed_0 + intermed_1 + intermed_2 - x[3]*new_order1[12] - y[3]*new_order1[13];
+
+        outp_1 = inp_1 + intermed_0 + intermed_1 + intermed_2 + intermed_3;
+
+        output[i] = outp_1;
+
+        y[0] = x[0];
+        y[1] = x[1];
+        y[2] = x[2];
+        y[3] = x[3];
+        x[0] = temp[0];
+        x[1] = temp[1];
+        x[2] = temp[2];
+        x[3] = temp[3];
+    }
+
+}
+#else
 void slowperformance(float* input, float* output, int number_of_samples) {
     static double x[NUM_STAGES] = {0}; //z-1 buffers
     static double y[NUM_STAGES] = {0}; //z-2 buffers
@@ -66,3 +122,4 @@ void slowperformance(float* input, float* output, int number_of_samples) {
     }
 
 }
+#endif
