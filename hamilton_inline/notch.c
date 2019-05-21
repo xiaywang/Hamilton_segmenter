@@ -1,6 +1,7 @@
 #include <math.h>
 #include "notch.h"
 #include "config.h"
+#include "tsc_x86.h"
 
 // #define NUM_COEFFS 96
 // #define NUM_STAGES 16
@@ -48,7 +49,7 @@ const float filter_coefficients[NUM_COEFFS] = {
 // #define NUM_COEFFS 12
 // #define NUM_STAGES NUM_COEFFS/6
 // const float filter_coefficients[NUM_COEFFS] = {1.0, 0.000000228016561187872, 0.999999772567283, 1.0, 0.0230135827512062,0.978067688426724, 1.0, -0.000000228016561854005, 0.999999772566322, 1.0, -0.0230135827512065, 0.978067688426719};
-#if fastNotch == 1
+#if FASTNOTCH == 1
 
 const double new_order1[16] = {
     filter_coefficients[4], filter_coefficients[5], filter_coefficients[1], filter_coefficients[2],
@@ -65,8 +66,8 @@ const double new_order2[16] = {
 };
 
 void slowperformance(double* input, double* output, int number_of_samples) {
-    double x[NUM_STAGES] = {0}; //z-1 buffers
-    double y[NUM_STAGES] = {0}; //z-2 buffers
+    static double x[NUM_STAGES] = {0}; //z-1 buffers
+    static double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp[2*NUM_STAGES] = {0};
     double z[2*NUM_STAGES+1];
     double inp_1, outp_1, inp_2, outp_2;
@@ -76,7 +77,6 @@ void slowperformance(double* input, double* output, int number_of_samples) {
     for(i = 0; i < number_of_samples; i++)
     {
         inp_1 = input[i];
-        inp_2 = input[i+1];
 
         double intermed_0 = x[0]*new_order2[0] + y[0]*new_order2[4];
         double intermed_1 = x[1]*new_order2[1] + y[1]*new_order2[5];
@@ -102,6 +102,10 @@ void slowperformance(double* input, double* output, int number_of_samples) {
         x[3] = temp[3];
     }
 
+    #ifdef OPERATION_COUNTER
+    float_add_counter += 22*number_of_samples;
+    float_mul_counter += 16*number_of_samples;
+    #endif
 }
 #else
 void slowperformance(float* input, float* output, int number_of_samples) {
@@ -120,6 +124,10 @@ void slowperformance(float* input, float* output, int number_of_samples) {
         }
         output[i] = z;
     }
+    #ifdef OPERATION_COUNTER
+    float_add_counter += 4*number_of_samples*NUM_STAGES;
+    float_mul_counter += 6*number_of_samples*NUM_STAGES;
+    #endif
 
 }
 #endif

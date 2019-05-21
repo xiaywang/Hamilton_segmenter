@@ -101,7 +101,6 @@ void slowperformance(float* input, float* output, int samples_to_process)
 
 void slowperformance2(float* input, float* output, int samples_to_process) 
 {
-    // std::cout << "loop length "<< samples_to_process<<"\n";
     // data buffer for lpfilt
     static float lp_data[LPBUFFER_LGTH];
     // data buffer for hpfilt
@@ -126,77 +125,76 @@ void slowperformance2(float* input, float* output, int samples_to_process)
         data[i_init] = 0 ;
         
     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-    // static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-    static int ptr[4] = {0}; // static int lp_ptr, hp_ptr, derI , ptr;
+    static int ptr_array[4] = {0}; // lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
     int halfPtr, index;
     float fdatum, y0, z, y, output_temp;
+    float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
+    float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
+    float window_width_inv = 1/ (float)WINDOW_WIDTH;
+    int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
+    int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
 
     __m128i maxMask = _mm_set_epi32(WINDOW_WIDTH, DERIV_LENGTH, HPBUFFER_LGTH, LPBUFFER_LGTH);
     __m128i oneVec = _mm_set_epi32(1, 1, 1, 1);
 
-    for(int index = 0; index < samples_to_process; index++)
+    for(int i=0; i < samples_to_process/BLOCKING_SIZE; i++)
     {
-        halfPtr = ptr[0]-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-        if(halfPtr < 0)                         // to x[n-6].
-            halfPtr += LPBUFFER_LGTH ;
-
-        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr[0]] ;
-        y2 = y1;
-        y1 = y0;
-        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-        lp_data[ptr[0]] = input[index] ;            // Stick most recent sample into
-        
-        hp_y += fdatum - hp_data[ptr[1]];
-        halfPtr = ptr[1]-(HPBUFFER_LGTH/2) ;
-        if(halfPtr < 0)
-            halfPtr += HPBUFFER_LGTH ;
-        hp_data[ptr[1]] = fdatum ;
-        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-        y = fdatum - derBuff[ptr[2]] ;
-        derBuff[ptr[2]] = fdatum;
-        fdatum = y;
-        fdatum = fabs(fdatum) ;             // Take the absolute value.
-        sum += fdatum ;
-        sum -= data[ptr[3]] ;
-        data[ptr[3]] = fdatum ;
-
-        // #ifdef OPERATION_COUNTER
-        // float_comp_counter++;
-        // #endif
-        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        for(int j=0; j < BLOCKING_SIZE; j++)
         {
-            output_temp = 32000.f ;
-        } 
-        else 
-        {
-            output_temp = sum / (float)WINDOW_WIDTH ;
+            index = i * BLOCKING_SIZE + j;
+            halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
+            if(halfPtr < 0)                         // to x[n-6].
+                halfPtr += LPBUFFER_LGTH ;
+
+            y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+            y2 = y1;
+            y1 = y0;
+            fdatum = y0 * lpbuffer_sqr_div_4;
+            lp_data[ptr_array[0]] = input[index] ;            // Stick most recent sample into
+            
+            hp_y += fdatum - hp_data[ptr_array[1]];
+            halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
+            if(halfPtr < 0)
+                halfPtr += HPBUFFER_LGTH ;
+            hp_data[ptr_array[1]] = fdatum ;
+            fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+            y = fdatum - derBuff[ptr_array[2]] ;
+            derBuff[ptr_array[2]] = fdatum;
+            fdatum = y;
+            fdatum = fabs(fdatum) ;             // Take the absolute value.
+            sum += fdatum - data[ptr_array[3]] ;
+            data[ptr_array[3]] = fdatum ;
+
             // #ifdef OPERATION_COUNTER
-            // float_div_counter += 1;
+            // float_comp_counter++;
             // #endif
-        }
+            if((sum * window_width_inv) > 32000.f)
+            {
+                output_temp = 32000.f ;
+            } 
+            else 
+            {
+                output_temp = sum * window_width_inv ;
+                // #ifdef OPERATION_COUNTER
+                // float_div_counter += 1;
+                // #endif
+            }
 
-        // if(++ptr[0] == LPBUFFER_LGTH)   // the circular buffer and update
-        //     ptr[0] = 0 ;                    // the buffer pointer.
-        // if(++ptr[1] == HPBUFFER_LGTH)
-        //     ptr[1] = 0 ;
-        // if(++ptr[2] == DERIV_LENGTH)
-        //     ptr[2] = 0 ;
-        // if(++ptr[3] == WINDOW_WIDTH)
-        //     ptr[3] = 0 ;
-        __m128 ptr_vecf = _mm_load_ps((float*)ptr);
-        __m128i ptr_vec = _mm_castps_si128(ptr_vecf);
-        __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);
-        __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);
-        __m128i result =  _mm_and_si128(onePlus, ltmask);
-        __m128 resultf = _mm_castsi128_ps(result);
-        _mm_store_ps((float*)ptr, resultf);
-        
-        // #ifdef OPERATION_COUNTER
-        //     float_add_counter += 10;
-        //     float_mul_counter++;
-        //     float_div_counter += 4;
-        // #endif
-        output[index] = output_temp;
+            __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);
+            __m128i ptr_vec = _mm_castps_si128(ptr_vecf);
+            __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);
+            __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);
+            __m128i result =  _mm_and_si128(onePlus, ltmask);
+            __m128 resultf = _mm_castsi128_ps(result);
+            _mm_store_ps((float*)ptr_array, resultf);
+            
+            // #ifdef OPERATION_COUNTER
+            //     float_add_counter += 10;
+            //     float_mul_counter++;
+            //     float_div_counter += 4;
+            // #endif
+            output[index] = output_temp;
+        }
     }
 }
 
