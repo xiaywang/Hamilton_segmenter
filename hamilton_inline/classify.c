@@ -700,22 +700,22 @@ static inline int DomMonitor(int morphType, int rhythmClass, int beatWidth, int 
 	// If reset flag is set, reset beat type counts and
 	// beat information buffers.
 
-	// if(reset != 0)
-	// {
-	// 	for(i = 0; i < DM_BUFFER_LENGTH; ++i)
-	// 	{
-	// 		DMBeatTypes[i] = -1 ;
-	// 		DMBeatClasses[i] = 0 ;
-	// 	}
+	if(reset != 0)
+	{
+		for(i = 0; i < DM_BUFFER_LENGTH; ++i)
+		{
+			DMBeatTypes[i] = -1 ;
+			DMBeatClasses[i] = 0 ;
+		}
 
-	// 	for(i = 0; i < 8; ++i)
-	// 	{
-	// 		DMNormCounts[i] = 0 ;
-	// 		DMBeatCounts[i] = 0 ;
-	// 	}
-	// 	DMIrregCount = 0 ;
-	// 	return(0) ;
-	// }
+		for(i = 0; i < 8; ++i)
+		{
+			DMNormCounts[i] = 0 ;
+			DMBeatCounts[i] = 0 ;
+		}
+		DMIrregCount = 0 ;
+		return(0) ;
+	}
 
 	// Once we have wrapped around, subtract old beat types from
 	// the beat counts.
