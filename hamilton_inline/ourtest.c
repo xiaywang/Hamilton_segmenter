@@ -1,4 +1,4 @@
-// #define SAVEFILE 
+#define SAVEFILE 
 // #define PRINT 
 
 #include "stdio.h"
