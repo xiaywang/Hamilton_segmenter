@@ -65,6 +65,7 @@ double perf_test(comp_func f, string desc, int flops);
 
 
 void slowperformance(float* input, float* output, int samples_to_process);
+void slowperformance2(float* datum, float* filtOutput, int sampleLength);
 void blocking(float* input, float* output, int samples_to_process);
 void blocking_no_divisions1(float* input, float* output, int samples_to_process);
 void blocking_no_divisions2(float* input, float* output, int samples_to_process);
@@ -72,8 +73,8 @@ void blocking_no_divisions2_derI(float* input, float* output, int samples_to_pro
 void blocking_no_divisions2_derI_precomp_sum(float* input, float* output, int samples_to_process);
 void no_divisions2_derI_precomp_sum(float* input, float* output, int samples_to_process);
 void no_division(float* input, float* output, int samples_to_process);
+void blocking_no_divisions_factorized(float* input, float* output, int samples_to_process); 
 void blocking_no_divisions_unrolled(float* input, float* output, int samples_to_process); 
-
 
 
 void add_function(comp_func f, string name, int flop);
@@ -91,20 +92,21 @@ int numFuncs = 0;
 */
 void register_functions()
 {
-	// add_function(&slowperformance, "Slow Performance", cost_analysis);
+	add_function(&slowperformance, "Slow Performance", cost_analysis);
+	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
 	
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 
-	// add_function(&blocking, "Blocking", cost_analysis);
-	// add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
-	// add_function(&blocking_no_divisions2, "Blocking precomp div and constant", cost_analysis_blocking_no_division);
-	// add_function(&blocking_no_divisions2_derI, "Blocking precomp div and constant, derI short", cost_analysis_blocking_no_division);
+	add_function(&blocking, "Blocking", cost_analysis);
+	add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
+	add_function(&blocking_no_divisions2, "Blocking precomp div and constant", cost_analysis_blocking_no_division);
+	add_function(&blocking_no_divisions2_derI, "Blocking precomp div and constant, derI short", cost_analysis_blocking_no_division);
 	add_function(&blocking_no_divisions2_derI_precomp_sum, "Blocking precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
 	add_function(&no_divisions2_derI_precomp_sum, "Precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
-	// add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
-	// add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
-	// add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
+	add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
+	add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
+	add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
 }
 
 double nrm_sqr_diff(float *x, float *y, int n) {

@@ -87,16 +87,16 @@ int numFuncs = 0;
 void register_functions()
 {
 	add_function(&slowperformance, "Slow Performance", 40);
-	// add_function(&slowperformance2, "Slow Performance2", 32);
-	// add_function(&slowperformance3, "Slow Performance3", 32);
-	// add_function(&reversed, "reversed", 32);
+	add_function(&slowperformance2, "Slow Performance2", 32);
+	add_function(&slowperformance3, "Slow Performance3", 32);
+	add_function(&reversed, "reversed", 32);
 	add_function(&reversed2, "reversed2", 32);
 	add_function(&reversed3, "reversed3", 32);
-	// add_function(&pipelined0, "pipelined0", 38);
-	// add_function(&pipelined1, "pipelined1", 38);
-	// add_function(&pipelined2, "pipelined2", 38);
-	// add_function(&matrixStyle, "matrixStyle", 40);
-	// add_function(&matrixStyle2, "matrixStyle2", 40);
+	add_function(&pipelined0, "pipelined0", 38);
+	add_function(&pipelined1, "pipelined1", 38);
+	add_function(&pipelined2, "pipelined2", 38);
+	add_function(&matrixStyle, "matrixStyle", 40);
+	add_function(&matrixStyle2, "matrixStyle2", 40);
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
@@ -254,7 +254,7 @@ double perf_test(comp_func f, string desc, int flops)
 		}
 		cyclesList.sort();
 		cycles = cyclesList.front();
-		printf("N: %i, perf: %f\n", n, (cost_analysis * (n)) / cycles);
+		printf("N: %i, perf: %f\n", n, (flops * (n)) / cycles);
 	}
 	
 	return  (flops * (n)) / cycles;

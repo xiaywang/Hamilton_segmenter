@@ -1,0 +1,34 @@
+float adds:		340930
+float mult:		180878
+float div:		13827
+float comp:		80794
+float total only math:	535635
+float total with comp:	616429
+Classify runtime: 735927
+total runtime:    2083434
+performance:      0.257092
+performance (w/ comp):      0.295872
+Start running baseline 
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 841993
+total runtime:    4457442
+performance:      0.124655
+performance (w/ comp):      0.141621
+Comparing to floating point baseline: 
+For detailed report, please refer to ../performance/output/CLASSIFY1511000_2019-05-21_20:26:52 
+float adds: 11%
+float mult: -16%
+float div: -197%
+float comp: 6%
+float total only math: -4%
+float total with comp: -2%
+Classify runtime: -14%
+total runtime: -114%
+performance: 52%
+performance (w/ comp): 52%

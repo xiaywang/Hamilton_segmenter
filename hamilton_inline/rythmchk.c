@@ -86,13 +86,13 @@ int BigeminyFlag ;
 /***************************************************************************
 	ResetRhythmChk() resets static variables used for rhythm classification.
 ****************************************************************************/
-/*
+
 void ResetRhythmChk(void)
 {
 	BeatCount = 0 ;
 	ClassifyState = LEARNING ;
 }
-*/
+
 
 /*****************************************************************************
 	RhythmChk() takes an R-to-R interval as input and, based on previous R-to-R
