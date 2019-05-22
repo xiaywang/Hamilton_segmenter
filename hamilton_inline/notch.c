@@ -64,5 +64,4 @@ void slowperformance(float* input, float* output, int number_of_samples) {
         }
         output[i] = z;
     }
-
 }
