@@ -100,6 +100,64 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
+void newHope0(double* input, double* output, int number_of_samples){
+    static double a0 = 0, a1 = 0, a2 = 0, a3 = 0;
+    static double b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+    static double c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+    static double d0 = 0, d1 = 0, d2 = 0, d3 = 0;
+    static double ab0 = 0, ab1 = 0, ab2 = 0, ab3 = 0;
+    static double cd0 = 0, cd1 = 0, cd2 = 0, cd3 = 0;
+    static double m0 = 0, m1 = 0, m2 = 0, m3 = 0;
+    static double n0 = 0, n1 = 0, n2 = 0, n3 = 0;
+    static double o0 = 0, o1 = 0, o2 = 0, o3 = 0;
+
+    for(int i = 0; i < number_of_samples; i++){
+
+        double inp = input[i];
+        n0 = m0;
+        ab0 = a0 + b0;
+        cd0 = c0 + d0;
+        m0 = inp - ab0;
+        o0 = m0 + cd0;
+        b0 = n0*filter_coefficients[5];
+        d0 = n0*filter_coefficients[2];
+        a0 = m0*filter_coefficients[4];
+        c0 = m0*filter_coefficients[1];
+
+        n1 = m1;
+        ab1 = a1 + b1;
+        cd1 = c1 + d1;
+        m1 = o0 - ab1;
+        o1 = m1 + cd1;
+        b1 = n1*filter_coefficients[11];
+        d1 = n1*filter_coefficients[8];
+        a1 = m1*filter_coefficients[10];
+        c1 = m1*filter_coefficients[7];
+
+        n2 = m2;
+        ab2 = a2 + b2;
+        cd2 = c2 + d2;
+        m2 = o1 - ab2;
+        o2 = m2 + cd2;
+        b2 = n2*filter_coefficients[17];
+        d2 = n2*filter_coefficients[14];
+        a2 = m2*filter_coefficients[16];
+        c2 = m2*filter_coefficients[13];
+
+        n3 = m3;
+        ab3 = a3 + b3;
+        cd3 = c3 + d3;
+        m3 = o2 - ab3;
+        o3 = m3 + cd3;
+        b3 = n3*filter_coefficients[23];
+        d3 = n3*filter_coefficients[20];
+        a3 = m3*filter_coefficients[22];
+        c3 = m3*filter_coefficients[19];
+
+        output[i] = o3;      
+    }
+}
+
 void matrixStyle2(double* input, double* output, int number_of_samples) {
 
     double x[NUM_STAGES] = {0}; //z-1 buffers

@@ -70,6 +70,7 @@ void pipelined1(double* input, double* output, int number_of_samples);
 void pipelined2(double* input, double* output, int number_of_samples);
 void matrixStyle(double* input, double* output, int number_of_samples);
 void matrixStyle2(double* input, double* output, int number_of_samples);
+void newHope0(double* input, double* output, int number_of_samples);
 
 void add_function(comp_func f, string name, int flop);
 
@@ -86,17 +87,18 @@ int numFuncs = 0;
 */
 void register_functions()
 {
-	add_function(&slowperformance, "Slow Performance", 40);
+	add_function(&slowperformance, "Slow Performance", 32);
 	// add_function(&slowperformance2, "Slow Performance2", 32);
 	// add_function(&slowperformance3, "Slow Performance3", 32);
 	// add_function(&reversed, "reversed", 32);
-	add_function(&reversed2, "reversed2", 32);
-	add_function(&reversed3, "reversed3", 32);
+	// add_function(&reversed2, "reversed2", 32);
+	// add_function(&reversed3, "reversed3", 32);
 	// add_function(&pipelined0, "pipelined0", 38);
 	// add_function(&pipelined1, "pipelined1", 38);
 	// add_function(&pipelined2, "pipelined2", 38);
 	// add_function(&matrixStyle, "matrixStyle", 40);
 	// add_function(&matrixStyle2, "matrixStyle2", 40);
+	add_function(&newHope0, "newHope0", 32);
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
