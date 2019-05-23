@@ -5,7 +5,7 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 
-NUM_RUN=2
+NUM_RUN=2000
 
 optimizatino_flag=[" ",
 					"#define MAIN_BLOCK_SIZE 1000",
