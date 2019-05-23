@@ -1,4 +1,4 @@
-#define SAVEFILE 
+//#define SAVEFILE 
 // #define PRINT 
 
 #include "stdio.h"
@@ -50,12 +50,12 @@ MAINTYPE main()
 		#ifdef RUNTIME_QRSDET
 		start_QRSDet = 0;
 		end_QRSDet = 0;
+		start_QRSFilt = 0;
+		end_QRSFilt = 0;
 		#endif
 		#ifdef RUNTIME_CLASSIFY
 		start_Classify = 0;
 		end_Classify = 0;
-		start_QRSFilt = 0;
-		end_QRSFilt = 0;
 		#endif
 	#endif
 
@@ -291,7 +291,6 @@ MAINTYPE main()
 		#endif
 	#endif
 		while(SampleCount <= N_DATA- MAIN_BLOCK_SIZE)
-
 			{
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 

@@ -99,6 +99,7 @@ void register_functions()
 	// add_function(&matrixStyle, "matrixStyle", 40);
 	// add_function(&matrixStyle2, "matrixStyle2", 40);
 	add_function(&newHope0, "newHope0", 32);
+
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
@@ -256,7 +257,7 @@ double perf_test(comp_func f, string desc, int flops)
 		}
 		cyclesList.sort();
 		cycles = cyclesList.front();
-		printf("N: %i, perf: %f\n", n, (cost_analysis * (n)) / cycles);
+		printf("N: %i, perf: %f\n", n, (flops * (n)) / cycles);
 	}
 	
 	return  (flops * (n)) / cycles;

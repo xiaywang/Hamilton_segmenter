@@ -14,7 +14,7 @@ if sys.argv[1] == "-p":
 					baseline=result[name][1]
 					test=result[name][0]
 					if test != 0:
-						delta = "{0:.0%}".format((test-baseline)/test)
+						delta = "{0:.0%}".format((test-baseline)/baseline)
 					else:
 						delta = "infinity"
 					result[name].append(delta)

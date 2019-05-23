@@ -1,5 +1,12 @@
 #define OPERATION_COUNTER 
-#define RUNTIME_MEASURE 
-#define RUNTIME_QRSDET 
-#define RUNTIME_CLASSIFY 
+#define RUNTIME_MEASURE
+#define PRINT 
  
+#define MAIN_BLOCK_SIZE 1000
+#define INIT_INLINE 1
+#define FASTNOTCH 	1
+#define QRSFILT_OPT 1 
+#define BLOCKING_SIZE_QRSFILT 5
+#define BDAC_OPT 1
+#define AVX_OPT 1
+#define NOISECHK_OPT 1

@@ -1,0 +1,20 @@
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 455043
+total runtime:    2637551
+performance:      0.210666
+performance (w/ comp):      0.239338
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 449102
+total runtime:    2803013
+performance:      0.198231
+performance (w/ comp):      0.225210
