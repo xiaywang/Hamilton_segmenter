@@ -1,0 +1,24 @@
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   27928331
+QRSfilt runtime:   691039
+Classify runtime: 449395
+total runtime:    55646042
+performance:      0.009985
+performance (w/ comp):      0.011344
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   28140627
+QRSfilt runtime:   700265
+Classify runtime: 567216
+total runtime:    56664603
+performance:      0.009806
+performance (w/ comp):      0.011140

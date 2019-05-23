@@ -1,4 +1,4 @@
-#define SAVEFILE 
+//#define SAVEFILE 
 // #define PRINT 
 
 #include "stdio.h"
@@ -291,7 +291,6 @@ MAINTYPE main()
 		#endif
 	#endif
 		while(SampleCount <= N_DATA- MAIN_BLOCK_SIZE)
-
 			{
 
 			// measure only BeatDetectAndClassify and rest not to avoid file opening and closing overhead in performance 
