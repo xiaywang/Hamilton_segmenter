@@ -100,6 +100,89 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
+void newHope0(double* input, double* output, int number_of_samples){
+    static double a0 = 0, a1 = 0, a2 = 0, a3 = 0;
+    static double b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+    static double c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+    static double d0 = 0, d1 = 0, d2 = 0, d3 = 0;
+    static double ab0 = 0, ab1 = 0, ab2 = 0, ab3 = 0;
+    static double cd0 = 0, cd1 = 0, cd2 = 0, cd3 = 0;
+    static double p0 = 0, p1 = 0, p2 = 0, p3 = 0;
+    static double q0 = 0, q1 = 0, q2 = 0, q3 = 0;
+    static double m0 = 0, m1 = 0, m2 = 0, m3 = 0;
+    static double n0 = 0, n1 = 0, n2 = 0, n3 = 0;
+    static double o0 = 0, o1 = 0, o2 = 0, o3 = 0;
+
+    for(int i = 0; i < number_of_samples; i++){
+
+        double inp = input[i];
+        n0 = m0;
+        n1 = m1;
+        n2 = m2;
+        n3 = m3;
+
+        ab0 = a0 + b0;
+        ab1 = a1 + b1;
+        ab2 = a2 + b2;
+        ab3 = a3 + b3;
+
+        cd0 = c0 + d0;
+        cd1 = c1 + d1;
+        cd2 = c2 + d2;
+        cd3 = c3 + d3;
+
+        p0 = inp - ab0;
+        p1 = cd0 - ab1;
+        p2 = cd1 - ab2;
+        p3 = cd2 - ab3;
+
+        //q1 = p1 + p2;
+        //q2 = p3 + p0;
+        //q3 = p0 + cd3;
+
+        m0 = p0 ;
+        m1 = p0 + p1;
+        q3 = p2 + p3;
+        m2 = m1 + p2;
+        m3 = m1 + q3;
+
+        o3 = m3 + cd3;
+        //m0 = p0;
+        //m1 = p0 + p1;
+        //m1 = p1 + m0;
+        //m2 = p0 + q1;
+        //m3 = q1 + q2;
+
+        // o0 = m0 + cd0;
+        // o1 = m1 + cd1;
+        // o2 = m2 + cd2;
+        //o3 = q1 + q2 + cd3;
+
+        // here to buffer so results of ms can get ready
+        b0 = n0*filter_coefficients[5];
+        b1 = n1*filter_coefficients[11];
+        b2 = n2*filter_coefficients[17];
+        b3 = n3*filter_coefficients[23];
+
+        d0 = n0*filter_coefficients[2];
+        d1 = n1*filter_coefficients[8];
+        d2 = n2*filter_coefficients[14];
+        d3 = n3*filter_coefficients[20];
+
+        a0 = m0*filter_coefficients[4];
+        a1 = m1*filter_coefficients[10];
+        a2 = m2*filter_coefficients[16];
+        a3 = m3*filter_coefficients[22];
+
+        c0 = m0*filter_coefficients[1];
+        c1 = m1*filter_coefficients[7];
+        c2 = m2*filter_coefficients[13];
+        c3 = m3*filter_coefficients[19];
+
+        output[i] = o3;      
+    }
+}
+
 void matrixStyle2(double* input, double* output, int number_of_samples) {
 
     double x[NUM_STAGES] = {0}; //z-1 buffers

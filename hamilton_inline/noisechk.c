@@ -82,7 +82,7 @@ int GetNoiseEstimate()
 
 ***********************************************************************/
 
-#if(NOISECHK==1)
+#if(NOISECHK_OPT==1)
 
 int NoiseCheck(float datum, int delay, int RR, int beatBegin, int beatEnd)
 {
