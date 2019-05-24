@@ -133,7 +133,8 @@ void register_functions()
 	// add_function(&slowperformance_macro_lp_deri_hp_ptr_half, "Slow Performance with macro lp derI hp ptr half", cost_analysis);
 	// add_function(&slowperformance_macro_lp_deri_hp_ptr_half_div, "Slow Performance with macro lp derI hp ptr half div", cost_analysis);
 
-	// add_function(&slowperformance2, "Slow Performance2", cost_analysis);
+
+	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
 	
 
 	// add_function(&blocking, "Blocking", cost_analysis);

@@ -1,0 +1,67 @@
+Starting program. 13 functions registered.
+testing functions for correctness
+CORRECT! Slow Performance function is CORRECT! 0
+CORRECT! RENAME function is CORRECT! 9.22515e-06
+CORRECT! Slow Performance with macro lp derI function is CORRECT! 0
+CORRECT! Slow Performance with macro lp derI hp function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half dependencies function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half dependencies no div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance with macro lp derI hp half no div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance with macro lp derI hp half no div and const replaced function is CORRECT! 9.22515e-06
+CORRECT! Slow Performance with macro lp derI hp ptr function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp ptr half function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp ptr half div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance2 function is CORRECT! 4.34735e-06
+
+Running: Slow Performance
+average 0.476194 flops/cycle
+total of 2312972.837715 cycles
+
+Running: RENAME
+average 0.617890 flops/cycle
+total of 1784524.663843 cycles
+
+Running: Slow Performance with macro lp derI
+average 0.585909 flops/cycle
+total of 1881785.644447 cycles
+
+Running: Slow Performance with macro lp derI hp
+average 0.629153 flops/cycle
+total of 1752194.947787 cycles
+
+Running: Slow Performance with macro lp derI hp half
+average 0.630881 flops/cycle
+total of 1744790.682477 cycles
+
+Running: Slow Performance with macro lp derI hp half dependencies
+average 0.629050 flops/cycle
+total of 1752354.279328 cycles
+
+Running: Slow Performance with macro lp derI hp half dependencies no div
+average 0.874356 flops/cycle
+total of 1256951.444181 cycles
+
+Running: Slow Performance with macro lp derI hp half no div
+average 0.854012 flops/cycle
+total of 1287299.520804 cycles
+
+Running: Slow Performance with macro lp derI hp half no div and const replaced
+average 0.777950 flops/cycle
+total of 1259214.497366 cycles
+
+Running: Slow Performance with macro lp derI hp ptr
+average 0.594591 flops/cycle
+total of 1856010.154112 cycles
+
+Running: Slow Performance with macro lp derI hp ptr half
+average 0.590021 flops/cycle
+total of 1876381.326791 cycles
+
+Running: Slow Performance with macro lp derI hp ptr half div
+average 0.546352 flops/cycle
+total of 2057619.757015 cycles
+
+Running: Slow Performance2
+average 0.604560 flops/cycle
+total of 1820664.651301 cycles
