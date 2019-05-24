@@ -120,20 +120,20 @@ void register_functions()
 
 	// add_function(&slowperformance_macro_test, "Slow Performance with macro", cost_analysis);
 	// add_function(&slowperformance_macro_lp, "Slow Performance with macro lp", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri, "Slow Performance with macro lp derI", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri_hp, "Slow Performance with macro lp derI hp", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri, "Slow Performance with macro lp derI", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp, "Slow Performance with macro lp derI hp", cost_analysis);
 
-	// add_function(&slowperformance_macro_lp_deri_hp_half, "Slow Performance with macro lp derI hp half", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri_hp_half_dependencies, "Slow Performance with macro lp derI hp half dependencies", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri_hp_half_dependencies_div, "Slow Performance with macro lp derI hp half dependencies no div", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri_hp_half_div, "Slow Performance with macro lp derI hp half no div", cost_analysis);
-	// add_function(&slowperformance_macro_lp_deri_hp_half_div_const_replace, "Slow Performance with macro lp derI hp half no div and const replaced", cost_analysis_blocking_no_division);
+	add_function(&slowperformance_macro_lp_deri_hp_half, "Slow Performance with macro lp derI hp half", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies, "Slow Performance with macro lp derI hp half dependencies", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies_div, "Slow Performance with macro lp derI hp half dependencies no div", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_div, "Slow Performance with macro lp derI hp half no div", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_div_const_replace, "Slow Performance with macro lp derI hp half no div and const replaced", cost_analysis_blocking_no_division);
 	
-	// add_function(&slowperformance_macro_lp_deri_hp_ptr, "Slow Performance with macro lp derI hp ptr", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_ptr, "Slow Performance with macro lp derI hp ptr", cost_analysis);
 	add_function(&slowperformance_macro_lp_deri_hp_ptr_half, "Slow Performance with macro lp derI hp ptr half", cost_analysis);
 	add_function(&slowperformance_macro_lp_deri_hp_ptr_half_div, "Slow Performance with macro lp derI hp ptr half div", cost_analysis);
 
-	// add_function(&slowperformance2, "Slow Performance2", cost_analysis);
+	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
 	
 
 	// add_function(&blocking, "Blocking", cost_analysis);

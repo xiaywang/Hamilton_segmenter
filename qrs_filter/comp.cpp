@@ -6,131 +6,131 @@
 #include "../hamilton_inline/qrsdet.h"
 #include <emmintrin.h>
 
-// #define UNROLL_MACRO_TEST(index) {\
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)                       \
-//             halfPtr += LPBUFFER_LGTH ;\
-//         \
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
-//         y2 = y1;\
-//         y1 = y0;\
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
-//         lp_data[lp_ptr] = input[index] ;           \
-//         \
-//         hp_y += fdatum - hp_data[hp_ptr];\
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)\
-//             halfPtr += HPBUFFER_LGTH ;\
-//         hp_data[hp_ptr] = fdatum ;\
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
-//         y = fdatum - derBuff[derI] ;\
-//         derBuff[derI] = fdatum;\
-//         fdatum = y;\
-//         fdatum = fabs(fdatum) ;            \
-//         sum += fdatum ;\
-//         sum -= data[ptr] ;\
-//         data[ptr] = fdatum ;\
-//         \
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)\
-//         {\
-//             output[index] = 32000.f ;\
-//         } \
-//         else \
-//         {\
-//             output[index] = sum / (float)WINDOW_WIDTH ;\
-//         }\
-//         \
-//         if(++lp_ptr == LPBUFFER_LGTH)  \
-//             lp_ptr = 0 ;    \
-//         if(++derI == DERIV_LENGTH)\
-//             derI = 0 ;\
-//         if(++hp_ptr == HPBUFFER_LGTH)\
-//             hp_ptr = 0 ;\
-//         if(++ptr == WINDOW_WIDTH)\
-//             ptr = 0 ;\
-//         }
+#define UNROLL_MACRO_TEST(index) {\
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)                       \
+            halfPtr += LPBUFFER_LGTH ;\
+        \
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
+        y2 = y1;\
+        y1 = y0;\
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
+        lp_data[lp_ptr] = input[index] ;           \
+        \
+        hp_y += fdatum - hp_data[hp_ptr];\
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)\
+            halfPtr += HPBUFFER_LGTH ;\
+        hp_data[hp_ptr] = fdatum ;\
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
+        y = fdatum - derBuff[derI] ;\
+        derBuff[derI] = fdatum;\
+        fdatum = y;\
+        fdatum = fabs(fdatum) ;            \
+        sum += fdatum ;\
+        sum -= data[ptr] ;\
+        data[ptr] = fdatum ;\
+        \
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)\
+        {\
+            output[index] = 32000.f ;\
+        } \
+        else \
+        {\
+            output[index] = sum / (float)WINDOW_WIDTH ;\
+        }\
+        \
+        if(++lp_ptr == LPBUFFER_LGTH)  \
+            lp_ptr = 0 ;    \
+        if(++derI == DERIV_LENGTH)\
+            derI = 0 ;\
+        if(++hp_ptr == HPBUFFER_LGTH)\
+            hp_ptr = 0 ;\
+        if(++ptr == WINDOW_WIDTH)\
+            ptr = 0 ;\
+        }
 
-// #define UNROLL_MACRO_LP_PTR(index,lp_ptr) {\
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)                       \
-//             halfPtr += LPBUFFER_LGTH ;\
-//         \
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
-//         y2 = y1;\
-//         y1 = y0;\
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
-//         lp_data[lp_ptr] = input[index] ;           \
-//         \
-//         hp_y += fdatum - hp_data[hp_ptr];\
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)\
-//             halfPtr += HPBUFFER_LGTH ;\
-//         hp_data[hp_ptr] = fdatum ;\
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
-//         y = fdatum - derBuff[derI] ;\
-//         derBuff[derI] = fdatum;\
-//         fdatum = y;\
-//         fdatum = fabs(fdatum) ;            \
-//         sum += fdatum ;\
-//         sum -= data[ptr] ;\
-//         data[ptr] = fdatum ;\
-//         \
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)\
-//         {\
-//             output[index] = 32000.f ;\
-//         } \
-//         else \
-//         {\
-//             output[index] = sum / (float)WINDOW_WIDTH ;\
-//         }\
-//         \
-//         if(++derI == DERIV_LENGTH)\
-//             derI = 0 ;\
-//         if(++hp_ptr == HPBUFFER_LGTH)\
-//             hp_ptr = 0 ;\
-//         if(++ptr == WINDOW_WIDTH)\
-//             ptr = 0 ;\
-//         }
+#define UNROLL_MACRO_LP_PTR(index,lp_ptr) {\
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)                       \
+            halfPtr += LPBUFFER_LGTH ;\
+        \
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
+        y2 = y1;\
+        y1 = y0;\
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
+        lp_data[lp_ptr] = input[index] ;           \
+        \
+        hp_y += fdatum - hp_data[hp_ptr];\
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)\
+            halfPtr += HPBUFFER_LGTH ;\
+        hp_data[hp_ptr] = fdatum ;\
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
+        y = fdatum - derBuff[derI] ;\
+        derBuff[derI] = fdatum;\
+        fdatum = y;\
+        fdatum = fabs(fdatum) ;            \
+        sum += fdatum ;\
+        sum -= data[ptr] ;\
+        data[ptr] = fdatum ;\
+        \
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)\
+        {\
+            output[index] = 32000.f ;\
+        } \
+        else \
+        {\
+            output[index] = sum / (float)WINDOW_WIDTH ;\
+        }\
+        \
+        if(++derI == DERIV_LENGTH)\
+            derI = 0 ;\
+        if(++hp_ptr == HPBUFFER_LGTH)\
+            hp_ptr = 0 ;\
+        if(++ptr == WINDOW_WIDTH)\
+            ptr = 0 ;\
+        }
 
-// #define UNROLL_MACRO_LP_DERI(index,lp_ptr,derI) {\
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)                       \
-//             halfPtr += LPBUFFER_LGTH ;\
-//         \
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
-//         y2 = y1;\
-//         y1 = y0;\
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
-//         lp_data[lp_ptr] = input[index] ;           \
-//         \
-//         hp_y += fdatum - hp_data[hp_ptr];\
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
-//         if(halfPtr < 0)\
-//             halfPtr += HPBUFFER_LGTH ;\
-//         hp_data[hp_ptr] = fdatum ;\
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
-//         y = fdatum - derBuff[derI] ;\
-//         derBuff[derI] = fdatum;\
-//         fdatum = y;\
-//         fdatum = fabs(fdatum) ;            \
-//         sum += fdatum ;\
-//         sum -= data[ptr] ;\
-//         data[ptr] = fdatum ;\
-//         \
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)\
-//         {\
-//             output[index] = 32000.f ;\
-//         } \
-//         else \
-//         {\
-//             output[index] = sum / (float)WINDOW_WIDTH ;\
-//         }\
-//         \
-//         if(++hp_ptr == HPBUFFER_LGTH)\
-//             hp_ptr = 0 ;\
-//         if(++ptr == WINDOW_WIDTH)\
-//             ptr = 0 ;\
-//         }
+#define UNROLL_MACRO_LP_DERI(index,lp_ptr,derI) {\
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)                       \
+            halfPtr += LPBUFFER_LGTH ;\
+        \
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;\
+        y2 = y1;\
+        y1 = y0;\
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);\
+        lp_data[lp_ptr] = input[index] ;           \
+        \
+        hp_y += fdatum - hp_data[hp_ptr];\
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;\
+        if(halfPtr < 0)\
+            halfPtr += HPBUFFER_LGTH ;\
+        hp_data[hp_ptr] = fdatum ;\
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);\
+        y = fdatum - derBuff[derI] ;\
+        derBuff[derI] = fdatum;\
+        fdatum = y;\
+        fdatum = fabs(fdatum) ;            \
+        sum += fdatum ;\
+        sum -= data[ptr] ;\
+        data[ptr] = fdatum ;\
+        \
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)\
+        {\
+            output[index] = 32000.f ;\
+        } \
+        else \
+        {\
+            output[index] = sum / (float)WINDOW_WIDTH ;\
+        }\
+        \
+        if(++hp_ptr == HPBUFFER_LGTH)\
+            hp_ptr = 0 ;\
+        if(++ptr == WINDOW_WIDTH)\
+            ptr = 0 ;\
+        }
 
 #define UNROLL_MACRO_LP_DERI_HP(index,lp_ptr,derI,hp_ptr) {\
         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
@@ -570,614 +570,614 @@ void slowperformance(float* input, float* output, int samples_to_process)
     }
 }
 
-// void slowperformance_macro_test(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_test(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, index;
-//     float fdatum, y0, z, y, output_temp;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y, output_temp;
 
-//     for(int index = 0; index < samples_to_process; index++)
-//     {
-//         UNROLL_MACRO_TEST(index)
-//     }
-// }
+    for(int index = 0; index < samples_to_process; index++)
+    {
+        UNROLL_MACRO_TEST(index)
+    }
+}
 
-// void slowperformance_macro_lp(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, index;
-//     float fdatum, y0, z, y, output_temp;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y, output_temp;
 
-//     for(index = 0; index <= samples_to_process- 10 ; index+=10)
-//     {
-//         UNROLL_MACRO_LP_PTR(index   ,0  )
-//         UNROLL_MACRO_LP_PTR(index+1 ,1  )
-//         UNROLL_MACRO_LP_PTR(index+2 ,2  )
-//         UNROLL_MACRO_LP_PTR(index+3 ,3  )
-//         UNROLL_MACRO_LP_PTR(index+4 ,4  )
-//         UNROLL_MACRO_LP_PTR(index+5 ,5  )
-//         UNROLL_MACRO_LP_PTR(index+6 ,6  )
-//         UNROLL_MACRO_LP_PTR(index+7 ,7  )
-//         UNROLL_MACRO_LP_PTR(index+8 ,8  )
-//         UNROLL_MACRO_LP_PTR(index+9 ,9  )
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process- 10 ; index+=10)
+    {
+        UNROLL_MACRO_LP_PTR(index   ,0  )
+        UNROLL_MACRO_LP_PTR(index+1 ,1  )
+        UNROLL_MACRO_LP_PTR(index+2 ,2  )
+        UNROLL_MACRO_LP_PTR(index+3 ,3  )
+        UNROLL_MACRO_LP_PTR(index+4 ,4  )
+        UNROLL_MACRO_LP_PTR(index+5 ,5  )
+        UNROLL_MACRO_LP_PTR(index+6 ,6  )
+        UNROLL_MACRO_LP_PTR(index+7 ,7  )
+        UNROLL_MACRO_LP_PTR(index+8 ,8  )
+        UNROLL_MACRO_LP_PTR(index+9 ,9  )
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output_temp = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output_temp = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output_temp = 32000.f ;
+        } 
+        else 
+        {
+            output_temp = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//         output[index] = output_temp;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+        output[index] = output_temp;
+    }
+}
 
-// void slowperformance_macro_lp_deri(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, index;
-//     float fdatum, y0, z, y, output_temp;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y, output_temp;
 
-//     for(index = 0; index <= samples_to_process- 10 ; index+=10)
-//     {
-//         UNROLL_MACRO_LP_DERI(index   ,0  ,0)
-//         UNROLL_MACRO_LP_DERI(index+1 ,1  ,1)
-//         UNROLL_MACRO_LP_DERI(index+2 ,2  ,0)
-//         UNROLL_MACRO_LP_DERI(index+3 ,3  ,1)
-//         UNROLL_MACRO_LP_DERI(index+4 ,4  ,0)
-//         UNROLL_MACRO_LP_DERI(index+5 ,5  ,1)
-//         UNROLL_MACRO_LP_DERI(index+6 ,6  ,0)
-//         UNROLL_MACRO_LP_DERI(index+7 ,7  ,1)
-//         UNROLL_MACRO_LP_DERI(index+8 ,8  ,0)
-//         UNROLL_MACRO_LP_DERI(index+9 ,9  ,1)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process- 10 ; index+=10)
+    {
+        UNROLL_MACRO_LP_DERI(index   ,0  ,0)
+        UNROLL_MACRO_LP_DERI(index+1 ,1  ,1)
+        UNROLL_MACRO_LP_DERI(index+2 ,2  ,0)
+        UNROLL_MACRO_LP_DERI(index+3 ,3  ,1)
+        UNROLL_MACRO_LP_DERI(index+4 ,4  ,0)
+        UNROLL_MACRO_LP_DERI(index+5 ,5  ,1)
+        UNROLL_MACRO_LP_DERI(index+6 ,6  ,0)
+        UNROLL_MACRO_LP_DERI(index+7 ,7  ,1)
+        UNROLL_MACRO_LP_DERI(index+8 ,8  ,0)
+        UNROLL_MACRO_LP_DERI(index+9 ,9  ,1)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output_temp = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output_temp = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output_temp = 32000.f ;
+        } 
+        else 
+        {
+            output_temp = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//         output[index] = output_temp;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+        output[index] = output_temp;
+    }
+}
 
-// void slowperformance_macro_lp_deri_hp(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, index;
-//     float fdatum, y0, z, y;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y;
 
-//     for(index = 0; index <= samples_to_process - 50 ; index+=50)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP(index       ,0  ,0  ,0)
-//         UNROLL_MACRO_LP_DERI_HP(index+1     ,1  ,1  ,1)
-//         UNROLL_MACRO_LP_DERI_HP(index+2     ,2  ,0  ,2)
-//         UNROLL_MACRO_LP_DERI_HP(index+3     ,3  ,1  ,3)
-//         UNROLL_MACRO_LP_DERI_HP(index+4     ,4  ,0  ,4)
-//         UNROLL_MACRO_LP_DERI_HP(index+5     ,5  ,1  ,5)
-//         UNROLL_MACRO_LP_DERI_HP(index+6     ,6  ,0  ,6)
-//         UNROLL_MACRO_LP_DERI_HP(index+7     ,7  ,1  ,7)
-//         UNROLL_MACRO_LP_DERI_HP(index+8     ,8  ,0  ,8)
-//         UNROLL_MACRO_LP_DERI_HP(index+9     ,9  ,1  ,9)
-//         UNROLL_MACRO_LP_DERI_HP(index+10    ,0  ,0  ,10)
-//         UNROLL_MACRO_LP_DERI_HP(index+11    ,1  ,1  ,11)
-//         UNROLL_MACRO_LP_DERI_HP(index+12    ,2  ,0  ,12)
-//         UNROLL_MACRO_LP_DERI_HP(index+13    ,3  ,1  ,13)
-//         UNROLL_MACRO_LP_DERI_HP(index+14    ,4  ,0  ,14)
-//         UNROLL_MACRO_LP_DERI_HP(index+15    ,5  ,1  ,15)
-//         UNROLL_MACRO_LP_DERI_HP(index+16    ,6  ,0  ,16)
-//         UNROLL_MACRO_LP_DERI_HP(index+17    ,7  ,1  ,17)
-//         UNROLL_MACRO_LP_DERI_HP(index+18    ,8  ,0  ,18)
-//         UNROLL_MACRO_LP_DERI_HP(index+19    ,9  ,1  ,19)
-//         UNROLL_MACRO_LP_DERI_HP(index+20    ,0  ,0  ,20)
-//         UNROLL_MACRO_LP_DERI_HP(index+21    ,1  ,1  ,21)
-//         UNROLL_MACRO_LP_DERI_HP(index+22    ,2  ,0  ,22)
-//         UNROLL_MACRO_LP_DERI_HP(index+23    ,3  ,1  ,23)
-//         UNROLL_MACRO_LP_DERI_HP(index+24    ,4  ,0  ,24)
-//         UNROLL_MACRO_LP_DERI_HP(index+25    ,5  ,1  ,0)
-//         UNROLL_MACRO_LP_DERI_HP(index+26    ,6  ,0  ,1)
-//         UNROLL_MACRO_LP_DERI_HP(index+27    ,7  ,1  ,2)
-//         UNROLL_MACRO_LP_DERI_HP(index+28    ,8  ,0  ,3)
-//         UNROLL_MACRO_LP_DERI_HP(index+29    ,9  ,1  ,4)
-//         UNROLL_MACRO_LP_DERI_HP(index+30    ,0  ,0  ,5)
-//         UNROLL_MACRO_LP_DERI_HP(index+31    ,1  ,1  ,6)
-//         UNROLL_MACRO_LP_DERI_HP(index+32    ,2  ,0  ,7)
-//         UNROLL_MACRO_LP_DERI_HP(index+33    ,3  ,1  ,8)
-//         UNROLL_MACRO_LP_DERI_HP(index+34    ,4  ,0  ,9)
-//         UNROLL_MACRO_LP_DERI_HP(index+35    ,5  ,1  ,10)
-//         UNROLL_MACRO_LP_DERI_HP(index+36    ,6  ,0  ,11)
-//         UNROLL_MACRO_LP_DERI_HP(index+37    ,7  ,1  ,12)
-//         UNROLL_MACRO_LP_DERI_HP(index+38    ,8  ,0  ,13)
-//         UNROLL_MACRO_LP_DERI_HP(index+39    ,9  ,1  ,14)
-//         UNROLL_MACRO_LP_DERI_HP(index+40    ,0  ,0  ,15)
-//         UNROLL_MACRO_LP_DERI_HP(index+41    ,1  ,1  ,16)
-//         UNROLL_MACRO_LP_DERI_HP(index+42    ,2  ,0  ,17)
-//         UNROLL_MACRO_LP_DERI_HP(index+43    ,3  ,1  ,18)
-//         UNROLL_MACRO_LP_DERI_HP(index+44    ,4  ,0  ,19)
-//         UNROLL_MACRO_LP_DERI_HP(index+45    ,5  ,1  ,20)
-//         UNROLL_MACRO_LP_DERI_HP(index+46    ,6  ,0  ,21)
-//         UNROLL_MACRO_LP_DERI_HP(index+47    ,7  ,1  ,22)
-//         UNROLL_MACRO_LP_DERI_HP(index+48    ,8  ,0  ,23)
-//         UNROLL_MACRO_LP_DERI_HP(index+49    ,9  ,1  ,24)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 50 ; index+=50)
+    {
+        UNROLL_MACRO_LP_DERI_HP(index       ,0  ,0  ,0)
+        UNROLL_MACRO_LP_DERI_HP(index+1     ,1  ,1  ,1)
+        UNROLL_MACRO_LP_DERI_HP(index+2     ,2  ,0  ,2)
+        UNROLL_MACRO_LP_DERI_HP(index+3     ,3  ,1  ,3)
+        UNROLL_MACRO_LP_DERI_HP(index+4     ,4  ,0  ,4)
+        UNROLL_MACRO_LP_DERI_HP(index+5     ,5  ,1  ,5)
+        UNROLL_MACRO_LP_DERI_HP(index+6     ,6  ,0  ,6)
+        UNROLL_MACRO_LP_DERI_HP(index+7     ,7  ,1  ,7)
+        UNROLL_MACRO_LP_DERI_HP(index+8     ,8  ,0  ,8)
+        UNROLL_MACRO_LP_DERI_HP(index+9     ,9  ,1  ,9)
+        UNROLL_MACRO_LP_DERI_HP(index+10    ,0  ,0  ,10)
+        UNROLL_MACRO_LP_DERI_HP(index+11    ,1  ,1  ,11)
+        UNROLL_MACRO_LP_DERI_HP(index+12    ,2  ,0  ,12)
+        UNROLL_MACRO_LP_DERI_HP(index+13    ,3  ,1  ,13)
+        UNROLL_MACRO_LP_DERI_HP(index+14    ,4  ,0  ,14)
+        UNROLL_MACRO_LP_DERI_HP(index+15    ,5  ,1  ,15)
+        UNROLL_MACRO_LP_DERI_HP(index+16    ,6  ,0  ,16)
+        UNROLL_MACRO_LP_DERI_HP(index+17    ,7  ,1  ,17)
+        UNROLL_MACRO_LP_DERI_HP(index+18    ,8  ,0  ,18)
+        UNROLL_MACRO_LP_DERI_HP(index+19    ,9  ,1  ,19)
+        UNROLL_MACRO_LP_DERI_HP(index+20    ,0  ,0  ,20)
+        UNROLL_MACRO_LP_DERI_HP(index+21    ,1  ,1  ,21)
+        UNROLL_MACRO_LP_DERI_HP(index+22    ,2  ,0  ,22)
+        UNROLL_MACRO_LP_DERI_HP(index+23    ,3  ,1  ,23)
+        UNROLL_MACRO_LP_DERI_HP(index+24    ,4  ,0  ,24)
+        UNROLL_MACRO_LP_DERI_HP(index+25    ,5  ,1  ,0)
+        UNROLL_MACRO_LP_DERI_HP(index+26    ,6  ,0  ,1)
+        UNROLL_MACRO_LP_DERI_HP(index+27    ,7  ,1  ,2)
+        UNROLL_MACRO_LP_DERI_HP(index+28    ,8  ,0  ,3)
+        UNROLL_MACRO_LP_DERI_HP(index+29    ,9  ,1  ,4)
+        UNROLL_MACRO_LP_DERI_HP(index+30    ,0  ,0  ,5)
+        UNROLL_MACRO_LP_DERI_HP(index+31    ,1  ,1  ,6)
+        UNROLL_MACRO_LP_DERI_HP(index+32    ,2  ,0  ,7)
+        UNROLL_MACRO_LP_DERI_HP(index+33    ,3  ,1  ,8)
+        UNROLL_MACRO_LP_DERI_HP(index+34    ,4  ,0  ,9)
+        UNROLL_MACRO_LP_DERI_HP(index+35    ,5  ,1  ,10)
+        UNROLL_MACRO_LP_DERI_HP(index+36    ,6  ,0  ,11)
+        UNROLL_MACRO_LP_DERI_HP(index+37    ,7  ,1  ,12)
+        UNROLL_MACRO_LP_DERI_HP(index+38    ,8  ,0  ,13)
+        UNROLL_MACRO_LP_DERI_HP(index+39    ,9  ,1  ,14)
+        UNROLL_MACRO_LP_DERI_HP(index+40    ,0  ,0  ,15)
+        UNROLL_MACRO_LP_DERI_HP(index+41    ,1  ,1  ,16)
+        UNROLL_MACRO_LP_DERI_HP(index+42    ,2  ,0  ,17)
+        UNROLL_MACRO_LP_DERI_HP(index+43    ,3  ,1  ,18)
+        UNROLL_MACRO_LP_DERI_HP(index+44    ,4  ,0  ,19)
+        UNROLL_MACRO_LP_DERI_HP(index+45    ,5  ,1  ,20)
+        UNROLL_MACRO_LP_DERI_HP(index+46    ,6  ,0  ,21)
+        UNROLL_MACRO_LP_DERI_HP(index+47    ,7  ,1  ,22)
+        UNROLL_MACRO_LP_DERI_HP(index+48    ,8  ,0  ,23)
+        UNROLL_MACRO_LP_DERI_HP(index+49    ,9  ,1  ,24)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
-// void slowperformance_macro_lp_deri_hp_half(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp_half(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, halfPtr1, halfPtr2, index;
-//     float fdatum, y0, z, y;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, halfPtr1, halfPtr2, index;
+    float fdatum, y0, z, y;
 
-//     for(index = 0; index <= samples_to_process - 50 ; index+=50)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index       ,0  ,0  ,0  ,5  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+1     ,1  ,1  ,1  ,6  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+2     ,2  ,0  ,2  ,7  ,15)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+3     ,3  ,1  ,3  ,8  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+4     ,4  ,0  ,4  ,9  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+5     ,5  ,1  ,5  ,0  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+6     ,6  ,0  ,6  ,1  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+7     ,7  ,1  ,7  ,2  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+8     ,8  ,0  ,8  ,3  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+9     ,9  ,1  ,9  ,4  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+10    ,0  ,0  ,10 ,5  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+11    ,1  ,1  ,11 ,6  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+12    ,2  ,0  ,12 ,7  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+13    ,3  ,1  ,13 ,8  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+14    ,4  ,0  ,14 ,9  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+15    ,5  ,1  ,15 ,0  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+16    ,6  ,0  ,16 ,1  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+17    ,7  ,1  ,17 ,2  ,5) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+18    ,8  ,0  ,18 ,3  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+19    ,9  ,1  ,19 ,4  ,7)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+20    ,0  ,0  ,20 ,5  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+21    ,1  ,1  ,21 ,6  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+22    ,2  ,0  ,22 ,7  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+23    ,3  ,1  ,23 ,8  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+24    ,4  ,0  ,24 ,9  ,12)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+25    ,5  ,1  ,0  ,0  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+26    ,6  ,0  ,1  ,1  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+27    ,7  ,1  ,2  ,2  ,15) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+28    ,8  ,0  ,3  ,3  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+29    ,9  ,1  ,4  ,4  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+30    ,0  ,0  ,5  ,5  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+31    ,1  ,1  ,6  ,6  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+32    ,2  ,0  ,7  ,7  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+33    ,3  ,1  ,8  ,8  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+34    ,4  ,0  ,9  ,9  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+35    ,5  ,1  ,10 ,0  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+36    ,6  ,0  ,11 ,1  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+37    ,7  ,1  ,12 ,2  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+38    ,8  ,0  ,13 ,3  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+39    ,9  ,1  ,14 ,4  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+40    ,0  ,0  ,15 ,5  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+41    ,1  ,1  ,16 ,6  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+42    ,2  ,0  ,17 ,7  ,5)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+43    ,3  ,1  ,18 ,8  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+44    ,4  ,0  ,19 ,9  ,7) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+45    ,5  ,1  ,20 ,0  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+46    ,6  ,0  ,21 ,1  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+47    ,7  ,1  ,22 ,2  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+48    ,8  ,0  ,23 ,3  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF(index+49    ,9  ,1  ,24 ,4  ,12)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 50 ; index+=50)
+    {
+        UNROLL_MACRO_LP_DERI_HP_HALF(index       ,0  ,0  ,0  ,5  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+1     ,1  ,1  ,1  ,6  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+2     ,2  ,0  ,2  ,7  ,15)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+3     ,3  ,1  ,3  ,8  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+4     ,4  ,0  ,4  ,9  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+5     ,5  ,1  ,5  ,0  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+6     ,6  ,0  ,6  ,1  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+7     ,7  ,1  ,7  ,2  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+8     ,8  ,0  ,8  ,3  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+9     ,9  ,1  ,9  ,4  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+10    ,0  ,0  ,10 ,5  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+11    ,1  ,1  ,11 ,6  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+12    ,2  ,0  ,12 ,7  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+13    ,3  ,1  ,13 ,8  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+14    ,4  ,0  ,14 ,9  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+15    ,5  ,1  ,15 ,0  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+16    ,6  ,0  ,16 ,1  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+17    ,7  ,1  ,17 ,2  ,5) 
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+18    ,8  ,0  ,18 ,3  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+19    ,9  ,1  ,19 ,4  ,7)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+20    ,0  ,0  ,20 ,5  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+21    ,1  ,1  ,21 ,6  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+22    ,2  ,0  ,22 ,7  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+23    ,3  ,1  ,23 ,8  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+24    ,4  ,0  ,24 ,9  ,12)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+25    ,5  ,1  ,0  ,0  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+26    ,6  ,0  ,1  ,1  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+27    ,7  ,1  ,2  ,2  ,15) 
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+28    ,8  ,0  ,3  ,3  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+29    ,9  ,1  ,4  ,4  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+30    ,0  ,0  ,5  ,5  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+31    ,1  ,1  ,6  ,6  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+32    ,2  ,0  ,7  ,7  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+33    ,3  ,1  ,8  ,8  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+34    ,4  ,0  ,9  ,9  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+35    ,5  ,1  ,10 ,0  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+36    ,6  ,0  ,11 ,1  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+37    ,7  ,1  ,12 ,2  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+38    ,8  ,0  ,13 ,3  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+39    ,9  ,1  ,14 ,4  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+40    ,0  ,0  ,15 ,5  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+41    ,1  ,1  ,16 ,6  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+42    ,2  ,0  ,17 ,7  ,5)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+43    ,3  ,1  ,18 ,8  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+44    ,4  ,0  ,19 ,9  ,7) 
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+45    ,5  ,1  ,20 ,0  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+46    ,6  ,0  ,21 ,1  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+47    ,7  ,1  ,22 ,2  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+48    ,8  ,0  ,23 ,3  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF(index+49    ,9  ,1  ,24 ,4  ,12)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
-// void slowperformance_macro_lp_deri_hp_half_dependencies(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp_half_dependencies(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, halfPtr1, halfPtr2, index;
-//     float fdatum, fdatum2, fdatum3, y0, z, y;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, halfPtr1, halfPtr2, index;
+    float fdatum, fdatum2, fdatum3, y0, z, y;
 
-//     for(index = 0; index <= samples_to_process - 50 ; index+=50)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index       ,0  ,0  ,0  ,5  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+1     ,1  ,1  ,1  ,6  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+2     ,2  ,0  ,2  ,7  ,15)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+3     ,3  ,1  ,3  ,8  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+4     ,4  ,0  ,4  ,9  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+5     ,5  ,1  ,5  ,0  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+6     ,6  ,0  ,6  ,1  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+7     ,7  ,1  ,7  ,2  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+8     ,8  ,0  ,8  ,3  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+9     ,9  ,1  ,9  ,4  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+10    ,0  ,0  ,10 ,5  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+11    ,1  ,1  ,11 ,6  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+12    ,2  ,0  ,12 ,7  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+13    ,3  ,1  ,13 ,8  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+14    ,4  ,0  ,14 ,9  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+15    ,5  ,1  ,15 ,0  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+16    ,6  ,0  ,16 ,1  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+17    ,7  ,1  ,17 ,2  ,5) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+18    ,8  ,0  ,18 ,3  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+19    ,9  ,1  ,19 ,4  ,7)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+20    ,0  ,0  ,20 ,5  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+21    ,1  ,1  ,21 ,6  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+22    ,2  ,0  ,22 ,7  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+23    ,3  ,1  ,23 ,8  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+24    ,4  ,0  ,24 ,9  ,12)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+25    ,5  ,1  ,0  ,0  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+26    ,6  ,0  ,1  ,1  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+27    ,7  ,1  ,2  ,2  ,15) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+28    ,8  ,0  ,3  ,3  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+29    ,9  ,1  ,4  ,4  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+30    ,0  ,0  ,5  ,5  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+31    ,1  ,1  ,6  ,6  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+32    ,2  ,0  ,7  ,7  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+33    ,3  ,1  ,8  ,8  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+34    ,4  ,0  ,9  ,9  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+35    ,5  ,1  ,10 ,0  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+36    ,6  ,0  ,11 ,1  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+37    ,7  ,1  ,12 ,2  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+38    ,8  ,0  ,13 ,3  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+39    ,9  ,1  ,14 ,4  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+40    ,0  ,0  ,15 ,5  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+41    ,1  ,1  ,16 ,6  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+42    ,2  ,0  ,17 ,7  ,5)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+43    ,3  ,1  ,18 ,8  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+44    ,4  ,0  ,19 ,9  ,7) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+45    ,5  ,1  ,20 ,0  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+46    ,6  ,0  ,21 ,1  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+47    ,7  ,1  ,22 ,2  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+48    ,8  ,0  ,23 ,3  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+49    ,9  ,1  ,24 ,4  ,12)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 50 ; index+=50)
+    {
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index       ,0  ,0  ,0  ,5  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+1     ,1  ,1  ,1  ,6  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+2     ,2  ,0  ,2  ,7  ,15)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+3     ,3  ,1  ,3  ,8  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+4     ,4  ,0  ,4  ,9  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+5     ,5  ,1  ,5  ,0  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+6     ,6  ,0  ,6  ,1  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+7     ,7  ,1  ,7  ,2  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+8     ,8  ,0  ,8  ,3  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+9     ,9  ,1  ,9  ,4  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+10    ,0  ,0  ,10 ,5  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+11    ,1  ,1  ,11 ,6  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+12    ,2  ,0  ,12 ,7  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+13    ,3  ,1  ,13 ,8  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+14    ,4  ,0  ,14 ,9  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+15    ,5  ,1  ,15 ,0  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+16    ,6  ,0  ,16 ,1  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+17    ,7  ,1  ,17 ,2  ,5) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+18    ,8  ,0  ,18 ,3  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+19    ,9  ,1  ,19 ,4  ,7)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+20    ,0  ,0  ,20 ,5  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+21    ,1  ,1  ,21 ,6  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+22    ,2  ,0  ,22 ,7  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+23    ,3  ,1  ,23 ,8  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+24    ,4  ,0  ,24 ,9  ,12)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+25    ,5  ,1  ,0  ,0  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+26    ,6  ,0  ,1  ,1  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+27    ,7  ,1  ,2  ,2  ,15) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+28    ,8  ,0  ,3  ,3  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+29    ,9  ,1  ,4  ,4  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+30    ,0  ,0  ,5  ,5  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+31    ,1  ,1  ,6  ,6  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+32    ,2  ,0  ,7  ,7  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+33    ,3  ,1  ,8  ,8  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+34    ,4  ,0  ,9  ,9  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+35    ,5  ,1  ,10 ,0  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+36    ,6  ,0  ,11 ,1  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+37    ,7  ,1  ,12 ,2  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+38    ,8  ,0  ,13 ,3  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+39    ,9  ,1  ,14 ,4  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+40    ,0  ,0  ,15 ,5  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+41    ,1  ,1  ,16 ,6  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+42    ,2  ,0  ,17 ,7  ,5)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+43    ,3  ,1  ,18 ,8  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+44    ,4  ,0  ,19 ,9  ,7) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+45    ,5  ,1  ,20 ,0  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+46    ,6  ,0  ,21 ,1  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+47    ,7  ,1  ,22 ,2  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+48    ,8  ,0  ,23 ,3  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES(index+49    ,9  ,1  ,24 ,4  ,12)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
 void slowperformance_macro_lp_deri_hp_half_dependencies_div(float* input, float* output, int samples_to_process) 
 {
@@ -1312,752 +1312,752 @@ void slowperformance_macro_lp_deri_hp_half_dependencies_div(float* input, float*
     }
 }
 
-// void slowperformance_macro_lp_deri_hp_half_div(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp_half_div(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, halfPtr1, halfPtr2, index;
-//     float fdatum, y0, z, y;
-//     float LPBUFFER_LGTH_INV = 1/((float)LPBUFFER_LGTH);
-//     float HPBUFFER_LGTH_INV = 1/((float)HPBUFFER_LGTH);
-//     float WINDOW_WIDTH_INV = 1/((float)WINDOW_WIDTH);
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, halfPtr1, halfPtr2, index;
+    float fdatum, y0, z, y;
+    float LPBUFFER_LGTH_INV = 1/((float)LPBUFFER_LGTH);
+    float HPBUFFER_LGTH_INV = 1/((float)HPBUFFER_LGTH);
+    float WINDOW_WIDTH_INV = 1/((float)WINDOW_WIDTH);
 
-//     for(index = 0; index <= samples_to_process - 50 ; index+=50)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index       ,0  ,0  ,0  ,5  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+1     ,1  ,1  ,1  ,6  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+2     ,2  ,0  ,2  ,7  ,15)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+3     ,3  ,1  ,3  ,8  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+4     ,4  ,0  ,4  ,9  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+5     ,5  ,1  ,5  ,0  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+6     ,6  ,0  ,6  ,1  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+7     ,7  ,1  ,7  ,2  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+8     ,8  ,0  ,8  ,3  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+9     ,9  ,1  ,9  ,4  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+10    ,0  ,0  ,10 ,5  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+11    ,1  ,1  ,11 ,6  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+12    ,2  ,0  ,12 ,7  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+13    ,3  ,1  ,13 ,8  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+14    ,4  ,0  ,14 ,9  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+15    ,5  ,1  ,15 ,0  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+16    ,6  ,0  ,16 ,1  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+17    ,7  ,1  ,17 ,2  ,5) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+18    ,8  ,0  ,18 ,3  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+19    ,9  ,1  ,19 ,4  ,7)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+20    ,0  ,0  ,20 ,5  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+21    ,1  ,1  ,21 ,6  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+22    ,2  ,0  ,22 ,7  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+23    ,3  ,1  ,23 ,8  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+24    ,4  ,0  ,24 ,9  ,12)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+25    ,5  ,1  ,0  ,0  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+26    ,6  ,0  ,1  ,1  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+27    ,7  ,1  ,2  ,2  ,15) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+28    ,8  ,0  ,3  ,3  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+29    ,9  ,1  ,4  ,4  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+30    ,0  ,0  ,5  ,5  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+31    ,1  ,1  ,6  ,6  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+32    ,2  ,0  ,7  ,7  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+33    ,3  ,1  ,8  ,8  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+34    ,4  ,0  ,9  ,9  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+35    ,5  ,1  ,10 ,0  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+36    ,6  ,0  ,11 ,1  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+37    ,7  ,1  ,12 ,2  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+38    ,8  ,0  ,13 ,3  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+39    ,9  ,1  ,14 ,4  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+40    ,0  ,0  ,15 ,5  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+41    ,1  ,1  ,16 ,6  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+42    ,2  ,0  ,17 ,7  ,5)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+43    ,3  ,1  ,18 ,8  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+44    ,4  ,0  ,19 ,9  ,7) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+45    ,5  ,1  ,20 ,0  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+46    ,6  ,0  ,21 ,1  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+47    ,7  ,1  ,22 ,2  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+48    ,8  ,0  ,23 ,3  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+49    ,9  ,1  ,24 ,4  ,12)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 50 ; index+=50)
+    {
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index       ,0  ,0  ,0  ,5  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+1     ,1  ,1  ,1  ,6  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+2     ,2  ,0  ,2  ,7  ,15)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+3     ,3  ,1  ,3  ,8  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+4     ,4  ,0  ,4  ,9  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+5     ,5  ,1  ,5  ,0  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+6     ,6  ,0  ,6  ,1  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+7     ,7  ,1  ,7  ,2  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+8     ,8  ,0  ,8  ,3  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+9     ,9  ,1  ,9  ,4  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+10    ,0  ,0  ,10 ,5  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+11    ,1  ,1  ,11 ,6  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+12    ,2  ,0  ,12 ,7  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+13    ,3  ,1  ,13 ,8  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+14    ,4  ,0  ,14 ,9  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+15    ,5  ,1  ,15 ,0  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+16    ,6  ,0  ,16 ,1  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+17    ,7  ,1  ,17 ,2  ,5) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+18    ,8  ,0  ,18 ,3  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+19    ,9  ,1  ,19 ,4  ,7)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+20    ,0  ,0  ,20 ,5  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+21    ,1  ,1  ,21 ,6  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+22    ,2  ,0  ,22 ,7  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+23    ,3  ,1  ,23 ,8  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+24    ,4  ,0  ,24 ,9  ,12)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+25    ,5  ,1  ,0  ,0  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+26    ,6  ,0  ,1  ,1  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+27    ,7  ,1  ,2  ,2  ,15) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+28    ,8  ,0  ,3  ,3  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+29    ,9  ,1  ,4  ,4  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+30    ,0  ,0  ,5  ,5  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+31    ,1  ,1  ,6  ,6  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+32    ,2  ,0  ,7  ,7  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+33    ,3  ,1  ,8  ,8  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+34    ,4  ,0  ,9  ,9  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+35    ,5  ,1  ,10 ,0  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+36    ,6  ,0  ,11 ,1  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+37    ,7  ,1  ,12 ,2  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+38    ,8  ,0  ,13 ,3  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+39    ,9  ,1  ,14 ,4  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+40    ,0  ,0  ,15 ,5  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+41    ,1  ,1  ,16 ,6  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+42    ,2  ,0  ,17 ,7  ,5)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+43    ,3  ,1  ,18 ,8  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+44    ,4  ,0  ,19 ,9  ,7) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+45    ,5  ,1  ,20 ,0  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+46    ,6  ,0  ,21 ,1  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+47    ,7  ,1  ,22 ,2  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+48    ,8  ,0  ,23 ,3  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV(index+49    ,9  ,1  ,24 ,4  ,12)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
-// void slowperformance_macro_lp_deri_hp_half_div_const_replace(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp_half_div_const_replace(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, halfPtr1, halfPtr2, index;
-//     float fdatum, y0, z, y;
-//     float LPBUFFER_LGTH_INV_SQR = 1/((float)LPBUFFER_LGTH*(float)LPBUFFER_LGTH*0.25);
-//     float HPBUFFER_LGTH_INV = 1/((float)HPBUFFER_LGTH);
-//     float WINDOW_WIDTH_INV = 1/((float)WINDOW_WIDTH);
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, halfPtr1, halfPtr2, index;
+    float fdatum, y0, z, y;
+    float LPBUFFER_LGTH_INV_SQR = 1/((float)LPBUFFER_LGTH*(float)LPBUFFER_LGTH*0.25);
+    float HPBUFFER_LGTH_INV = 1/((float)HPBUFFER_LGTH);
+    float WINDOW_WIDTH_INV = 1/((float)WINDOW_WIDTH);
 
-//     for(index = 0; index <= samples_to_process - 50 ; index+=50)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index       ,0  ,0  ,0  ,5  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+1     ,1  ,1  ,1  ,6  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+2     ,2  ,0  ,2  ,7  ,15)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+3     ,3  ,1  ,3  ,8  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+4     ,4  ,0  ,4  ,9  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+5     ,5  ,1  ,5  ,0  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+6     ,6  ,0  ,6  ,1  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+7     ,7  ,1  ,7  ,2  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+8     ,8  ,0  ,8  ,3  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+9     ,9  ,1  ,9  ,4  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+10    ,0  ,0  ,10 ,5  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+11    ,1  ,1  ,11 ,6  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+12    ,2  ,0  ,12 ,7  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+13    ,3  ,1  ,13 ,8  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+14    ,4  ,0  ,14 ,9  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+15    ,5  ,1  ,15 ,0  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+16    ,6  ,0  ,16 ,1  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+17    ,7  ,1  ,17 ,2  ,5) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+18    ,8  ,0  ,18 ,3  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+19    ,9  ,1  ,19 ,4  ,7)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+20    ,0  ,0  ,20 ,5  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+21    ,1  ,1  ,21 ,6  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+22    ,2  ,0  ,22 ,7  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+23    ,3  ,1  ,23 ,8  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+24    ,4  ,0  ,24 ,9  ,12)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+25    ,5  ,1  ,0  ,0  ,13)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+26    ,6  ,0  ,1  ,1  ,14)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+27    ,7  ,1  ,2  ,2  ,15) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+28    ,8  ,0  ,3  ,3  ,16)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+29    ,9  ,1  ,4  ,4  ,17)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+30    ,0  ,0  ,5  ,5  ,18)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+31    ,1  ,1  ,6  ,6  ,19)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+32    ,2  ,0  ,7  ,7  ,20)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+33    ,3  ,1  ,8  ,8  ,21)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+34    ,4  ,0  ,9  ,9  ,22)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+35    ,5  ,1  ,10 ,0  ,23)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+36    ,6  ,0  ,11 ,1  ,24)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+37    ,7  ,1  ,12 ,2  ,0)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+38    ,8  ,0  ,13 ,3  ,1)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+39    ,9  ,1  ,14 ,4  ,2)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+40    ,0  ,0  ,15 ,5  ,3)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+41    ,1  ,1  ,16 ,6  ,4)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+42    ,2  ,0  ,17 ,7  ,5)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+43    ,3  ,1  ,18 ,8  ,6)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+44    ,4  ,0  ,19 ,9  ,7) 
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+45    ,5  ,1  ,20 ,0  ,8)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+46    ,6  ,0  ,21 ,1  ,9)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+47    ,7  ,1  ,22 ,2  ,10)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+48    ,8  ,0  ,23 ,3  ,11)
-//         UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+49    ,9  ,1  ,24 ,4  ,12)
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 50 ; index+=50)
+    {
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index       ,0  ,0  ,0  ,5  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+1     ,1  ,1  ,1  ,6  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+2     ,2  ,0  ,2  ,7  ,15)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+3     ,3  ,1  ,3  ,8  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+4     ,4  ,0  ,4  ,9  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+5     ,5  ,1  ,5  ,0  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+6     ,6  ,0  ,6  ,1  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+7     ,7  ,1  ,7  ,2  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+8     ,8  ,0  ,8  ,3  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+9     ,9  ,1  ,9  ,4  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+10    ,0  ,0  ,10 ,5  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+11    ,1  ,1  ,11 ,6  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+12    ,2  ,0  ,12 ,7  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+13    ,3  ,1  ,13 ,8  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+14    ,4  ,0  ,14 ,9  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+15    ,5  ,1  ,15 ,0  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+16    ,6  ,0  ,16 ,1  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+17    ,7  ,1  ,17 ,2  ,5) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+18    ,8  ,0  ,18 ,3  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+19    ,9  ,1  ,19 ,4  ,7)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+20    ,0  ,0  ,20 ,5  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+21    ,1  ,1  ,21 ,6  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+22    ,2  ,0  ,22 ,7  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+23    ,3  ,1  ,23 ,8  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+24    ,4  ,0  ,24 ,9  ,12)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+25    ,5  ,1  ,0  ,0  ,13)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+26    ,6  ,0  ,1  ,1  ,14)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+27    ,7  ,1  ,2  ,2  ,15) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+28    ,8  ,0  ,3  ,3  ,16)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+29    ,9  ,1  ,4  ,4  ,17)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+30    ,0  ,0  ,5  ,5  ,18)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+31    ,1  ,1  ,6  ,6  ,19)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+32    ,2  ,0  ,7  ,7  ,20)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+33    ,3  ,1  ,8  ,8  ,21)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+34    ,4  ,0  ,9  ,9  ,22)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+35    ,5  ,1  ,10 ,0  ,23)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+36    ,6  ,0  ,11 ,1  ,24)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+37    ,7  ,1  ,12 ,2  ,0)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+38    ,8  ,0  ,13 ,3  ,1)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+39    ,9  ,1  ,14 ,4  ,2)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+40    ,0  ,0  ,15 ,5  ,3)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+41    ,1  ,1  ,16 ,6  ,4)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+42    ,2  ,0  ,17 ,7  ,5)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+43    ,3  ,1  ,18 ,8  ,6)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+44    ,4  ,0  ,19 ,9  ,7) 
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+45    ,5  ,1  ,20 ,0  ,8)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+46    ,6  ,0  ,21 ,1  ,9)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+47    ,7  ,1  ,22 ,2  ,10)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+48    ,8  ,0  ,23 ,3  ,11)
+        UNROLL_MACRO_LP_DERI_HP_HALF_DIV_CONST_REPLACE(index+49    ,9  ,1  ,24 ,4  ,12)
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
 
-// void slowperformance_macro_lp_deri_hp_ptr(float* input, float* output, int samples_to_process) 
-// {
-//     // std::cout << "loop length "<< samples_to_process<<"\n";
-//     // data buffer for lpfilt
-//     static float lp_data[LPBUFFER_LGTH];
-//     // data buffer for hpfilt
-//     static float hp_data[HPBUFFER_LGTH];
-//     // data buffer for derivative
-//     static float derBuff[DERIV_LENGTH] ;
-//     // data buffer for moving window average
-//     static float data[WINDOW_WIDTH];
+void slowperformance_macro_lp_deri_hp_ptr(float* input, float* output, int samples_to_process) 
+{
+    // std::cout << "loop length "<< samples_to_process<<"\n";
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
         
-//     // ------- initialize filters ------- //
-//     //lpfilt
-//     for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
-//         lp_data[i_init] = 0.f;
-//     //hpfilt
-//     for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
-//         hp_data[i_init] = 0.f;
-//     //derivative
-//     for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
-//         derBuff[i_init] = 0 ;
-//     //movint window integration
-//     for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
-//         data[i_init] = 0 ;
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
         
-//     static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-//     static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-//     int halfPtr, index;
-//     float fdatum, y0, z, y;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y;
 
-//     for(index = 0; index <= samples_to_process - 400 ; index+=400)
-//     {
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index       ,0  ,0  ,0  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+1     ,1  ,1  ,1  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+2     ,2  ,0  ,2  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+3     ,3  ,1  ,3  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+4     ,4  ,0  ,4  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+5     ,5  ,1  ,5  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+6     ,6  ,0  ,6  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+7     ,7  ,1  ,7  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+8     ,8  ,0  ,8  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+9     ,9  ,1  ,9  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+10    ,0  ,0  ,10 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+11    ,1  ,1  ,11 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+12    ,2  ,0  ,12 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+13    ,3  ,1  ,13 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+14    ,4  ,0  ,14 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+15    ,5  ,1  ,15 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+16    ,6  ,0  ,16 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+17    ,7  ,1  ,17 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+18    ,8  ,0  ,18 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+19    ,9  ,1  ,19 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+20    ,0  ,0  ,20 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+21    ,1  ,1  ,21 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+22    ,2  ,0  ,22 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+23    ,3  ,1  ,23 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+24    ,4  ,0  ,24 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+25    ,5  ,1  ,0  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+26    ,6  ,0  ,1  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+27    ,7  ,1  ,2  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+28    ,8  ,0  ,3  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+29    ,9  ,1  ,4  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+30    ,0  ,0  ,5  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+31    ,1  ,1  ,6  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+32    ,2  ,0  ,7  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+33    ,3  ,1  ,8  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+34    ,4  ,0  ,9  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+35    ,5  ,1  ,10 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+36    ,6  ,0  ,11 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+37    ,7  ,1  ,12 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+38    ,8  ,0  ,13 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+39    ,9  ,1  ,14 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+40    ,0  ,0  ,15 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+41    ,1  ,1  ,16 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+42    ,2  ,0  ,17 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+43    ,3  ,1  ,18 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+44    ,4  ,0  ,19 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+45    ,5  ,1  ,20 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+46    ,6  ,0  ,21 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+47    ,7  ,1  ,22 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+48    ,8  ,0  ,23 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+49    ,9  ,1  ,24 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+50    ,0  ,0  ,0  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+51    ,1  ,1  ,1  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+52    ,2  ,0  ,2  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+53    ,3  ,1  ,3  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+54    ,4  ,0  ,4  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+55    ,5  ,1  ,5  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+56    ,6  ,0  ,6  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+57    ,7  ,1  ,7  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+58    ,8  ,0  ,8  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+59    ,9  ,1  ,9  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+60    ,0  ,0  ,10 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+61    ,1  ,1  ,11 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+62    ,2  ,0  ,12 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+63    ,3  ,1  ,13 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+64    ,4  ,0  ,14 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+65    ,5  ,1  ,15 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+66    ,6  ,0  ,16 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+67    ,7  ,1  ,17 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+68    ,8  ,0  ,18 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+69    ,9  ,1  ,19 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+70    ,0  ,0  ,20 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+71    ,1  ,1  ,21 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+72    ,2  ,0  ,22 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+73    ,3  ,1  ,23 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+74    ,4  ,0  ,24 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+75    ,5  ,1  ,0  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+76    ,6  ,0  ,1  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+77    ,7  ,1  ,2  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+78    ,8  ,0  ,3  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+79    ,9  ,1  ,4  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+80    ,0  ,0  ,5  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+81    ,1  ,1  ,6  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+82    ,2  ,0  ,7  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+83    ,3  ,1  ,8  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+84    ,4  ,0  ,9  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+85    ,5  ,1  ,10 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+86    ,6  ,0  ,11 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+87    ,7  ,1  ,12 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+88    ,8  ,0  ,13 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+89    ,9  ,1  ,14 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+90    ,0  ,0  ,15 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+91    ,1  ,1  ,16 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+92    ,2  ,0  ,17 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+93    ,3  ,1  ,18 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+94    ,4  ,0  ,19 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+95    ,5  ,1  ,20 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+96    ,6  ,0  ,21 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+97    ,7  ,1  ,22 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+98    ,8  ,0  ,23 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+99    ,9  ,1  ,24 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+100   ,0  ,0  ,0  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+101   ,1  ,1  ,1  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+102   ,2  ,0  ,2  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+103   ,3  ,1  ,3  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+104   ,4  ,0  ,4  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+105   ,5  ,1  ,5  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+106   ,6  ,0  ,6  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+107   ,7  ,1  ,7  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+108   ,8  ,0  ,8  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+109   ,9  ,1  ,9  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+110   ,0  ,0  ,10 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+111   ,1  ,1  ,11 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+112   ,2  ,0  ,12 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+113   ,3  ,1  ,13 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+114   ,4  ,0  ,14 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+115   ,5  ,1  ,15 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+116   ,6  ,0  ,16 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+117   ,7  ,1  ,17 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+118   ,8  ,0  ,18 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+119   ,9  ,1  ,19 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+120   ,0  ,0  ,20 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+121   ,1  ,1  ,21 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+122   ,2  ,0  ,22 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+123   ,3  ,1  ,23 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+124   ,4  ,0  ,24 ,12 )    
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+125   ,5  ,1  ,0  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+126   ,6  ,0  ,1  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+127   ,7  ,1  ,2  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+128   ,8  ,0  ,3  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+129   ,9  ,1  ,4  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+130   ,0  ,0  ,5  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+131   ,1  ,1  ,6  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+132   ,2  ,0  ,7  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+133   ,3  ,1  ,8  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+134   ,4  ,0  ,9  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+135   ,5  ,1  ,10 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+136   ,6  ,0  ,11 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+137   ,7  ,1  ,12 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+138   ,8  ,0  ,13 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+139   ,9  ,1  ,14 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+140   ,0  ,0  ,15 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+141   ,1  ,1  ,16 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+142   ,2  ,0  ,17 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+143   ,3  ,1  ,18 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+144   ,4  ,0  ,19 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+145   ,5  ,1  ,20 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+146   ,6  ,0  ,21 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+147   ,7  ,1  ,22 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+148   ,8  ,0  ,23 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+149   ,9  ,1  ,24 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+150   ,0  ,0  ,0  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+151   ,1  ,1  ,1  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+152   ,2  ,0  ,2  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+153   ,3  ,1  ,3  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+154   ,4  ,0  ,4  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+155   ,5  ,1  ,5  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+156   ,6  ,0  ,6  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+157   ,7  ,1  ,7  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+158   ,8  ,0  ,8  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+159   ,9  ,1  ,9  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+160   ,0  ,0  ,10 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+161   ,1  ,1  ,11 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+162   ,2  ,0  ,12 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+163   ,3  ,1  ,13 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+164   ,4  ,0  ,14 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+165   ,5  ,1  ,15 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+166   ,6  ,0  ,16 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+167   ,7  ,1  ,17 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+168   ,8  ,0  ,18 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+169   ,9  ,1  ,19 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+170   ,0  ,0  ,20 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+171   ,1  ,1  ,21 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+172   ,2  ,0  ,22 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+173   ,3  ,1  ,23 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+174   ,4  ,0  ,24 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+175   ,5  ,1  ,0  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+176   ,6  ,0  ,1  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+177   ,7  ,1  ,2  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+178   ,8  ,0  ,3  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+179   ,9  ,1  ,4  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+180   ,0  ,0  ,5  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+181   ,1  ,1  ,6  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+182   ,2  ,0  ,7  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+183   ,3  ,1  ,8  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+184   ,4  ,0  ,9  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+185   ,5  ,1  ,10 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+186   ,6  ,0  ,11 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+187   ,7  ,1  ,12 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+188   ,8  ,0  ,13 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+189   ,9  ,1  ,14 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+190   ,0  ,0  ,15 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+191   ,1  ,1  ,16 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+192   ,2  ,0  ,17 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+193   ,3  ,1  ,18 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+194   ,4  ,0  ,19 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+195   ,5  ,1  ,20 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+196   ,6  ,0  ,21 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+197   ,7  ,1  ,22 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+198   ,8  ,0  ,23 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+199   ,9  ,1  ,24 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+200   ,0  ,0  ,0  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+201   ,1  ,1  ,1  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+202   ,2  ,0  ,2  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+203   ,3  ,1  ,3  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+204   ,4  ,0  ,4  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+205   ,5  ,1  ,5  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+206   ,6  ,0  ,6  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+207   ,7  ,1  ,7  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+208   ,8  ,0  ,8  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+209   ,9  ,1  ,9  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+210   ,0  ,0  ,10 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+211   ,1  ,1  ,11 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+212   ,2  ,0  ,12 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+213   ,3  ,1  ,13 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+214   ,4  ,0  ,14 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+215   ,5  ,1  ,15 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+216   ,6  ,0  ,16 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+217   ,7  ,1  ,17 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+218   ,8  ,0  ,18 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+219   ,9  ,1  ,19 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+220   ,0  ,0  ,20 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+221   ,1  ,1  ,21 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+222   ,2  ,0  ,22 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+223   ,3  ,1  ,23 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+224   ,4  ,0  ,24 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+225   ,5  ,1  ,0  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+226   ,6  ,0  ,1  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+227   ,7  ,1  ,2  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+228   ,8  ,0  ,3  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+229   ,9  ,1  ,4  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+230   ,0  ,0  ,5  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+231   ,1  ,1  ,6  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+232   ,2  ,0  ,7  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+233   ,3  ,1  ,8  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+234   ,4  ,0  ,9  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+235   ,5  ,1  ,10 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+236   ,6  ,0  ,11 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+237   ,7  ,1  ,12 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+238   ,8  ,0  ,13 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+239   ,9  ,1  ,14 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+240   ,0  ,0  ,15 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+241   ,1  ,1  ,16 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+242   ,2  ,0  ,17 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+243   ,3  ,1  ,18 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+244   ,4  ,0  ,19 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+245   ,5  ,1  ,20 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+246   ,6  ,0  ,21 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+247   ,7  ,1  ,22 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+248   ,8  ,0  ,23 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+249   ,9  ,1  ,24 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+250   ,0  ,0  ,0  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+251   ,1  ,1  ,1  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+252   ,2  ,0  ,2  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+253   ,3  ,1  ,3  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+254   ,4  ,0  ,4  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+255   ,5  ,1  ,5  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+256   ,6  ,0  ,6  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+257   ,7  ,1  ,7  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+258   ,8  ,0  ,8  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+259   ,9  ,1  ,9  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+260   ,0  ,0  ,10 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+261   ,1  ,1  ,11 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+262   ,2  ,0  ,12 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+263   ,3  ,1  ,13 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+264   ,4  ,0  ,14 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+265   ,5  ,1  ,15 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+266   ,6  ,0  ,16 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+267   ,7  ,1  ,17 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+268   ,8  ,0  ,18 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+269   ,9  ,1  ,19 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+270   ,0  ,0  ,20 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+271   ,1  ,1  ,21 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+272   ,2  ,0  ,22 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+273   ,3  ,1  ,23 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+274   ,4  ,0  ,24 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+275   ,5  ,1  ,0  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+276   ,6  ,0  ,1  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+277   ,7  ,1  ,2  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+278   ,8  ,0  ,3  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+279   ,9  ,1  ,4  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+280   ,0  ,0  ,5  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+281   ,1  ,1  ,6  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+282   ,2  ,0  ,7  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+283   ,3  ,1  ,8  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+284   ,4  ,0  ,9  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+285   ,5  ,1  ,10 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+286   ,6  ,0  ,11 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+287   ,7  ,1  ,12 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+288   ,8  ,0  ,13 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+289   ,9  ,1  ,14 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+290   ,0  ,0  ,15 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+291   ,1  ,1  ,16 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+292   ,2  ,0  ,17 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+293   ,3  ,1  ,18 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+294   ,4  ,0  ,19 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+295   ,5  ,1  ,20 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+296   ,6  ,0  ,21 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+297   ,7  ,1  ,22 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+298   ,8  ,0  ,23 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+299   ,9  ,1  ,24 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+300   ,0  ,0  ,0  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+301   ,1  ,1  ,1  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+302   ,2  ,0  ,2  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+303   ,3  ,1  ,3  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+304   ,4  ,0  ,4  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+305   ,5  ,1  ,5  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+306   ,6  ,0  ,6  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+307   ,7  ,1  ,7  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+308   ,8  ,0  ,8  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+309   ,9  ,1  ,9  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+310   ,0  ,0  ,10 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+311   ,1  ,1  ,11 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+312   ,2  ,0  ,12 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+313   ,3  ,1  ,13 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+314   ,4  ,0  ,14 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+315   ,5  ,1  ,15 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+316   ,6  ,0  ,16 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+317   ,7  ,1  ,17 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+318   ,8  ,0  ,18 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+319   ,9  ,1  ,19 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+320   ,0  ,0  ,20 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+321   ,1  ,1  ,21 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+322   ,2  ,0  ,22 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+323   ,3  ,1  ,23 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+324   ,4  ,0  ,24 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+325   ,5  ,1  ,0  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+326   ,6  ,0  ,1  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+327   ,7  ,1  ,2  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+328   ,8  ,0  ,3  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+329   ,9  ,1  ,4  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+330   ,0  ,0  ,5  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+331   ,1  ,1  ,6  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+332   ,2  ,0  ,7  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+333   ,3  ,1  ,8  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+334   ,4  ,0  ,9  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+335   ,5  ,1  ,10 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+336   ,6  ,0  ,11 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+337   ,7  ,1  ,12 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+338   ,8  ,0  ,13 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+339   ,9  ,1  ,14 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+340   ,0  ,0  ,15 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+341   ,1  ,1  ,16 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+342   ,2  ,0  ,17 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+343   ,3  ,1  ,18 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+344   ,4  ,0  ,19 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+345   ,5  ,1  ,20 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+346   ,6  ,0  ,21 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+347   ,7  ,1  ,22 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+348   ,8  ,0  ,23 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+349   ,9  ,1  ,24 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+350   ,0  ,0  ,0  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+351   ,1  ,1  ,1  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+352   ,2  ,0  ,2  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+353   ,3  ,1  ,3  ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+354   ,4  ,0  ,4  ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+355   ,5  ,1  ,5  ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+356   ,6  ,0  ,6  ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+357   ,7  ,1  ,7  ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+358   ,8  ,0  ,8  ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+359   ,9  ,1  ,9  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+360   ,0  ,0  ,10 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+361   ,1  ,1  ,11 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+362   ,2  ,0  ,12 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+363   ,3  ,1  ,13 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+364   ,4  ,0  ,14 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+365   ,5  ,1  ,15 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+366   ,6  ,0  ,16 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+367   ,7  ,1  ,17 ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+368   ,8  ,0  ,18 ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+369   ,9  ,1  ,19 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+370   ,0  ,0  ,20 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+371   ,1  ,1  ,21 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+372   ,2  ,0  ,22 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+373   ,3  ,1  ,23 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+374   ,4  ,0  ,24 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+375   ,5  ,1  ,0  ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+376   ,6  ,0  ,1  ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+377   ,7  ,1  ,2  ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+378   ,8  ,0  ,3  ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+379   ,9  ,1  ,4  ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+380   ,0  ,0  ,5  ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+381   ,1  ,1  ,6  ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+382   ,2  ,0  ,7  ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+383   ,3  ,1  ,8  ,15 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+384   ,4  ,0  ,9  ,0  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+385   ,5  ,1  ,10 ,1  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+386   ,6  ,0  ,11 ,2  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+387   ,7  ,1  ,12 ,3  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+388   ,8  ,0  ,13 ,4  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+389   ,9  ,1  ,14 ,5  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+390   ,0  ,0  ,15 ,6  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+391   ,1  ,1  ,16 ,7  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+392   ,2  ,0  ,17 ,8  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+393   ,3  ,1  ,18 ,9  )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+394   ,4  ,0  ,19 ,10 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+395   ,5  ,1  ,20 ,11 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+396   ,6  ,0  ,21 ,12 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+397   ,7  ,1  ,22 ,13 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+398   ,8  ,0  ,23 ,14 )
-//         UNROLL_MACRO_LP_DERI_HP_PTR(index+399   ,9  ,1  ,24 ,15 )
-//     }
-//     for(; index < samples_to_process; index++)
-//     {
-//         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
-//         if(halfPtr < 0)                         // to x[n-6].
-//             halfPtr += LPBUFFER_LGTH ;
+    for(index = 0; index <= samples_to_process - 400 ; index+=400)
+    {
+        UNROLL_MACRO_LP_DERI_HP_PTR(index       ,0  ,0  ,0  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+1     ,1  ,1  ,1  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+2     ,2  ,0  ,2  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+3     ,3  ,1  ,3  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+4     ,4  ,0  ,4  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+5     ,5  ,1  ,5  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+6     ,6  ,0  ,6  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+7     ,7  ,1  ,7  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+8     ,8  ,0  ,8  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+9     ,9  ,1  ,9  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+10    ,0  ,0  ,10 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+11    ,1  ,1  ,11 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+12    ,2  ,0  ,12 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+13    ,3  ,1  ,13 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+14    ,4  ,0  ,14 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+15    ,5  ,1  ,15 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+16    ,6  ,0  ,16 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+17    ,7  ,1  ,17 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+18    ,8  ,0  ,18 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+19    ,9  ,1  ,19 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+20    ,0  ,0  ,20 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+21    ,1  ,1  ,21 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+22    ,2  ,0  ,22 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+23    ,3  ,1  ,23 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+24    ,4  ,0  ,24 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+25    ,5  ,1  ,0  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+26    ,6  ,0  ,1  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+27    ,7  ,1  ,2  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+28    ,8  ,0  ,3  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+29    ,9  ,1  ,4  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+30    ,0  ,0  ,5  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+31    ,1  ,1  ,6  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+32    ,2  ,0  ,7  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+33    ,3  ,1  ,8  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+34    ,4  ,0  ,9  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+35    ,5  ,1  ,10 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+36    ,6  ,0  ,11 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+37    ,7  ,1  ,12 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+38    ,8  ,0  ,13 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+39    ,9  ,1  ,14 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+40    ,0  ,0  ,15 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+41    ,1  ,1  ,16 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+42    ,2  ,0  ,17 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+43    ,3  ,1  ,18 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+44    ,4  ,0  ,19 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+45    ,5  ,1  ,20 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+46    ,6  ,0  ,21 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+47    ,7  ,1  ,22 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+48    ,8  ,0  ,23 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+49    ,9  ,1  ,24 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+50    ,0  ,0  ,0  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+51    ,1  ,1  ,1  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+52    ,2  ,0  ,2  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+53    ,3  ,1  ,3  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+54    ,4  ,0  ,4  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+55    ,5  ,1  ,5  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+56    ,6  ,0  ,6  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+57    ,7  ,1  ,7  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+58    ,8  ,0  ,8  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+59    ,9  ,1  ,9  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+60    ,0  ,0  ,10 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+61    ,1  ,1  ,11 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+62    ,2  ,0  ,12 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+63    ,3  ,1  ,13 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+64    ,4  ,0  ,14 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+65    ,5  ,1  ,15 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+66    ,6  ,0  ,16 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+67    ,7  ,1  ,17 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+68    ,8  ,0  ,18 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+69    ,9  ,1  ,19 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+70    ,0  ,0  ,20 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+71    ,1  ,1  ,21 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+72    ,2  ,0  ,22 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+73    ,3  ,1  ,23 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+74    ,4  ,0  ,24 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+75    ,5  ,1  ,0  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+76    ,6  ,0  ,1  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+77    ,7  ,1  ,2  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+78    ,8  ,0  ,3  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+79    ,9  ,1  ,4  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+80    ,0  ,0  ,5  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+81    ,1  ,1  ,6  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+82    ,2  ,0  ,7  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+83    ,3  ,1  ,8  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+84    ,4  ,0  ,9  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+85    ,5  ,1  ,10 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+86    ,6  ,0  ,11 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+87    ,7  ,1  ,12 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+88    ,8  ,0  ,13 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+89    ,9  ,1  ,14 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+90    ,0  ,0  ,15 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+91    ,1  ,1  ,16 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+92    ,2  ,0  ,17 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+93    ,3  ,1  ,18 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+94    ,4  ,0  ,19 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+95    ,5  ,1  ,20 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+96    ,6  ,0  ,21 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+97    ,7  ,1  ,22 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+98    ,8  ,0  ,23 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+99    ,9  ,1  ,24 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+100   ,0  ,0  ,0  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+101   ,1  ,1  ,1  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+102   ,2  ,0  ,2  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+103   ,3  ,1  ,3  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+104   ,4  ,0  ,4  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+105   ,5  ,1  ,5  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+106   ,6  ,0  ,6  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+107   ,7  ,1  ,7  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+108   ,8  ,0  ,8  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+109   ,9  ,1  ,9  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+110   ,0  ,0  ,10 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+111   ,1  ,1  ,11 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+112   ,2  ,0  ,12 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+113   ,3  ,1  ,13 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+114   ,4  ,0  ,14 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+115   ,5  ,1  ,15 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+116   ,6  ,0  ,16 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+117   ,7  ,1  ,17 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+118   ,8  ,0  ,18 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+119   ,9  ,1  ,19 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+120   ,0  ,0  ,20 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+121   ,1  ,1  ,21 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+122   ,2  ,0  ,22 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+123   ,3  ,1  ,23 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+124   ,4  ,0  ,24 ,12 )    
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+125   ,5  ,1  ,0  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+126   ,6  ,0  ,1  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+127   ,7  ,1  ,2  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+128   ,8  ,0  ,3  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+129   ,9  ,1  ,4  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+130   ,0  ,0  ,5  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+131   ,1  ,1  ,6  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+132   ,2  ,0  ,7  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+133   ,3  ,1  ,8  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+134   ,4  ,0  ,9  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+135   ,5  ,1  ,10 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+136   ,6  ,0  ,11 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+137   ,7  ,1  ,12 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+138   ,8  ,0  ,13 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+139   ,9  ,1  ,14 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+140   ,0  ,0  ,15 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+141   ,1  ,1  ,16 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+142   ,2  ,0  ,17 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+143   ,3  ,1  ,18 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+144   ,4  ,0  ,19 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+145   ,5  ,1  ,20 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+146   ,6  ,0  ,21 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+147   ,7  ,1  ,22 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+148   ,8  ,0  ,23 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+149   ,9  ,1  ,24 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+150   ,0  ,0  ,0  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+151   ,1  ,1  ,1  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+152   ,2  ,0  ,2  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+153   ,3  ,1  ,3  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+154   ,4  ,0  ,4  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+155   ,5  ,1  ,5  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+156   ,6  ,0  ,6  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+157   ,7  ,1  ,7  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+158   ,8  ,0  ,8  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+159   ,9  ,1  ,9  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+160   ,0  ,0  ,10 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+161   ,1  ,1  ,11 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+162   ,2  ,0  ,12 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+163   ,3  ,1  ,13 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+164   ,4  ,0  ,14 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+165   ,5  ,1  ,15 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+166   ,6  ,0  ,16 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+167   ,7  ,1  ,17 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+168   ,8  ,0  ,18 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+169   ,9  ,1  ,19 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+170   ,0  ,0  ,20 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+171   ,1  ,1  ,21 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+172   ,2  ,0  ,22 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+173   ,3  ,1  ,23 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+174   ,4  ,0  ,24 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+175   ,5  ,1  ,0  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+176   ,6  ,0  ,1  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+177   ,7  ,1  ,2  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+178   ,8  ,0  ,3  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+179   ,9  ,1  ,4  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+180   ,0  ,0  ,5  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+181   ,1  ,1  ,6  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+182   ,2  ,0  ,7  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+183   ,3  ,1  ,8  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+184   ,4  ,0  ,9  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+185   ,5  ,1  ,10 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+186   ,6  ,0  ,11 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+187   ,7  ,1  ,12 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+188   ,8  ,0  ,13 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+189   ,9  ,1  ,14 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+190   ,0  ,0  ,15 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+191   ,1  ,1  ,16 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+192   ,2  ,0  ,17 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+193   ,3  ,1  ,18 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+194   ,4  ,0  ,19 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+195   ,5  ,1  ,20 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+196   ,6  ,0  ,21 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+197   ,7  ,1  ,22 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+198   ,8  ,0  ,23 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+199   ,9  ,1  ,24 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+200   ,0  ,0  ,0  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+201   ,1  ,1  ,1  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+202   ,2  ,0  ,2  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+203   ,3  ,1  ,3  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+204   ,4  ,0  ,4  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+205   ,5  ,1  ,5  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+206   ,6  ,0  ,6  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+207   ,7  ,1  ,7  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+208   ,8  ,0  ,8  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+209   ,9  ,1  ,9  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+210   ,0  ,0  ,10 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+211   ,1  ,1  ,11 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+212   ,2  ,0  ,12 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+213   ,3  ,1  ,13 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+214   ,4  ,0  ,14 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+215   ,5  ,1  ,15 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+216   ,6  ,0  ,16 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+217   ,7  ,1  ,17 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+218   ,8  ,0  ,18 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+219   ,9  ,1  ,19 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+220   ,0  ,0  ,20 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+221   ,1  ,1  ,21 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+222   ,2  ,0  ,22 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+223   ,3  ,1  ,23 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+224   ,4  ,0  ,24 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+225   ,5  ,1  ,0  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+226   ,6  ,0  ,1  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+227   ,7  ,1  ,2  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+228   ,8  ,0  ,3  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+229   ,9  ,1  ,4  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+230   ,0  ,0  ,5  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+231   ,1  ,1  ,6  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+232   ,2  ,0  ,7  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+233   ,3  ,1  ,8  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+234   ,4  ,0  ,9  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+235   ,5  ,1  ,10 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+236   ,6  ,0  ,11 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+237   ,7  ,1  ,12 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+238   ,8  ,0  ,13 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+239   ,9  ,1  ,14 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+240   ,0  ,0  ,15 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+241   ,1  ,1  ,16 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+242   ,2  ,0  ,17 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+243   ,3  ,1  ,18 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+244   ,4  ,0  ,19 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+245   ,5  ,1  ,20 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+246   ,6  ,0  ,21 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+247   ,7  ,1  ,22 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+248   ,8  ,0  ,23 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+249   ,9  ,1  ,24 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+250   ,0  ,0  ,0  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+251   ,1  ,1  ,1  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+252   ,2  ,0  ,2  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+253   ,3  ,1  ,3  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+254   ,4  ,0  ,4  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+255   ,5  ,1  ,5  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+256   ,6  ,0  ,6  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+257   ,7  ,1  ,7  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+258   ,8  ,0  ,8  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+259   ,9  ,1  ,9  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+260   ,0  ,0  ,10 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+261   ,1  ,1  ,11 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+262   ,2  ,0  ,12 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+263   ,3  ,1  ,13 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+264   ,4  ,0  ,14 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+265   ,5  ,1  ,15 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+266   ,6  ,0  ,16 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+267   ,7  ,1  ,17 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+268   ,8  ,0  ,18 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+269   ,9  ,1  ,19 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+270   ,0  ,0  ,20 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+271   ,1  ,1  ,21 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+272   ,2  ,0  ,22 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+273   ,3  ,1  ,23 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+274   ,4  ,0  ,24 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+275   ,5  ,1  ,0  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+276   ,6  ,0  ,1  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+277   ,7  ,1  ,2  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+278   ,8  ,0  ,3  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+279   ,9  ,1  ,4  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+280   ,0  ,0  ,5  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+281   ,1  ,1  ,6  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+282   ,2  ,0  ,7  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+283   ,3  ,1  ,8  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+284   ,4  ,0  ,9  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+285   ,5  ,1  ,10 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+286   ,6  ,0  ,11 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+287   ,7  ,1  ,12 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+288   ,8  ,0  ,13 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+289   ,9  ,1  ,14 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+290   ,0  ,0  ,15 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+291   ,1  ,1  ,16 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+292   ,2  ,0  ,17 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+293   ,3  ,1  ,18 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+294   ,4  ,0  ,19 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+295   ,5  ,1  ,20 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+296   ,6  ,0  ,21 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+297   ,7  ,1  ,22 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+298   ,8  ,0  ,23 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+299   ,9  ,1  ,24 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+300   ,0  ,0  ,0  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+301   ,1  ,1  ,1  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+302   ,2  ,0  ,2  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+303   ,3  ,1  ,3  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+304   ,4  ,0  ,4  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+305   ,5  ,1  ,5  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+306   ,6  ,0  ,6  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+307   ,7  ,1  ,7  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+308   ,8  ,0  ,8  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+309   ,9  ,1  ,9  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+310   ,0  ,0  ,10 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+311   ,1  ,1  ,11 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+312   ,2  ,0  ,12 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+313   ,3  ,1  ,13 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+314   ,4  ,0  ,14 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+315   ,5  ,1  ,15 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+316   ,6  ,0  ,16 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+317   ,7  ,1  ,17 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+318   ,8  ,0  ,18 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+319   ,9  ,1  ,19 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+320   ,0  ,0  ,20 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+321   ,1  ,1  ,21 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+322   ,2  ,0  ,22 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+323   ,3  ,1  ,23 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+324   ,4  ,0  ,24 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+325   ,5  ,1  ,0  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+326   ,6  ,0  ,1  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+327   ,7  ,1  ,2  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+328   ,8  ,0  ,3  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+329   ,9  ,1  ,4  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+330   ,0  ,0  ,5  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+331   ,1  ,1  ,6  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+332   ,2  ,0  ,7  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+333   ,3  ,1  ,8  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+334   ,4  ,0  ,9  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+335   ,5  ,1  ,10 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+336   ,6  ,0  ,11 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+337   ,7  ,1  ,12 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+338   ,8  ,0  ,13 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+339   ,9  ,1  ,14 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+340   ,0  ,0  ,15 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+341   ,1  ,1  ,16 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+342   ,2  ,0  ,17 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+343   ,3  ,1  ,18 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+344   ,4  ,0  ,19 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+345   ,5  ,1  ,20 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+346   ,6  ,0  ,21 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+347   ,7  ,1  ,22 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+348   ,8  ,0  ,23 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+349   ,9  ,1  ,24 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+350   ,0  ,0  ,0  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+351   ,1  ,1  ,1  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+352   ,2  ,0  ,2  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+353   ,3  ,1  ,3  ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+354   ,4  ,0  ,4  ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+355   ,5  ,1  ,5  ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+356   ,6  ,0  ,6  ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+357   ,7  ,1  ,7  ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+358   ,8  ,0  ,8  ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+359   ,9  ,1  ,9  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+360   ,0  ,0  ,10 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+361   ,1  ,1  ,11 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+362   ,2  ,0  ,12 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+363   ,3  ,1  ,13 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+364   ,4  ,0  ,14 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+365   ,5  ,1  ,15 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+366   ,6  ,0  ,16 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+367   ,7  ,1  ,17 ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+368   ,8  ,0  ,18 ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+369   ,9  ,1  ,19 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+370   ,0  ,0  ,20 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+371   ,1  ,1  ,21 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+372   ,2  ,0  ,22 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+373   ,3  ,1  ,23 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+374   ,4  ,0  ,24 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+375   ,5  ,1  ,0  ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+376   ,6  ,0  ,1  ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+377   ,7  ,1  ,2  ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+378   ,8  ,0  ,3  ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+379   ,9  ,1  ,4  ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+380   ,0  ,0  ,5  ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+381   ,1  ,1  ,6  ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+382   ,2  ,0  ,7  ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+383   ,3  ,1  ,8  ,15 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+384   ,4  ,0  ,9  ,0  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+385   ,5  ,1  ,10 ,1  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+386   ,6  ,0  ,11 ,2  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+387   ,7  ,1  ,12 ,3  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+388   ,8  ,0  ,13 ,4  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+389   ,9  ,1  ,14 ,5  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+390   ,0  ,0  ,15 ,6  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+391   ,1  ,1  ,16 ,7  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+392   ,2  ,0  ,17 ,8  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+393   ,3  ,1  ,18 ,9  )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+394   ,4  ,0  ,19 ,10 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+395   ,5  ,1  ,20 ,11 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+396   ,6  ,0  ,21 ,12 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+397   ,7  ,1  ,22 ,13 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+398   ,8  ,0  ,23 ,14 )
+        UNROLL_MACRO_LP_DERI_HP_PTR(index+399   ,9  ,1  ,24 ,15 )
+    }
+    for(; index < samples_to_process; index++)
+    {
+        halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
 
-//         y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
-//         y2 = y1;
-//         y1 = y0;
-//         fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
-//         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-//         hp_y += fdatum - hp_data[hp_ptr];
-//         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
-//         if(halfPtr < 0)
-//             halfPtr += HPBUFFER_LGTH ;
-//         hp_data[hp_ptr] = fdatum ;
-//         fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-//         y = fdatum - derBuff[derI] ;
-//         derBuff[derI] = fdatum;
-//         fdatum = y;
-//         fdatum = fabs(fdatum) ;             // Take the absolute value.
-//         sum += fdatum ;
-//         sum -= data[ptr] ;
-//         data[ptr] = fdatum ;
+        hp_y += fdatum - hp_data[hp_ptr];
+        halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[hp_ptr] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
+        y = fdatum - derBuff[derI] ;
+        derBuff[derI] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum ;
+        sum -= data[ptr] ;
+        data[ptr] = fdatum ;
 
-//         if((sum / (float)WINDOW_WIDTH) > 32000.f)
-//         {
-//             output[index] = 32000.f ;
-//         } 
-//         else 
-//         {
-//             output[index] = sum / (float)WINDOW_WIDTH ;
-//         }
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        {
+            output[index] = 32000.f ;
+        } 
+        else 
+        {
+            output[index] = sum / (float)WINDOW_WIDTH ;
+        }
 
-//         if(++lp_ptr == LPBUFFER_LGTH)
-//             lp_ptr = 0 ;
-//         if(++derI == DERIV_LENGTH)
-//             derI = 0 ;
-//         if(++hp_ptr == HPBUFFER_LGTH)
-//             hp_ptr = 0 ;
-//         if(++ptr == WINDOW_WIDTH)
-//             ptr = 0 ;
-//     }
-// }
+        if(++lp_ptr == LPBUFFER_LGTH)
+            lp_ptr = 0 ;
+        if(++derI == DERIV_LENGTH)
+            derI = 0 ;
+        if(++hp_ptr == HPBUFFER_LGTH)
+            hp_ptr = 0 ;
+        if(++ptr == WINDOW_WIDTH)
+            ptr = 0 ;
+    }
+}
 
 
 void slowperformance_macro_lp_deri_hp_ptr_half(float* input, float* output, int samples_to_process) 
