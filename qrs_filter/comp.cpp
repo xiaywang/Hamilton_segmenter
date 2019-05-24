@@ -1578,7 +1578,7 @@ void slowperformance_macro_lp_deri_hp_half_div_const_replace(float* input, float
     }
 }
 
-
+/*
 void slowperformance_macro_lp_deri_hp_ptr(float* input, float* output, int samples_to_process) 
 {
     // std::cout << "loop length "<< samples_to_process<<"\n";
@@ -2058,8 +2058,8 @@ void slowperformance_macro_lp_deri_hp_ptr(float* input, float* output, int sampl
             ptr = 0 ;
     }
 }
-
-
+*/
+/*
 void slowperformance_macro_lp_deri_hp_ptr_half(float* input, float* output, int samples_to_process) 
 {
     // std::cout << "loop length "<< samples_to_process<<"\n";
@@ -2539,7 +2539,8 @@ void slowperformance_macro_lp_deri_hp_ptr_half(float* input, float* output, int 
             ptr = 0 ;
     }
 }
-
+*/
+/*
 void slowperformance_macro_lp_deri_hp_ptr_half_div(float* input, float* output, int samples_to_process) 
 {
     // std::cout << "loop length "<< samples_to_process<<"\n";
@@ -3022,7 +3023,7 @@ void slowperformance_macro_lp_deri_hp_ptr_half_div(float* input, float* output, 
             ptr = 0 ;
     }
 }
-
+*/
 
 void slowperformance2(float* datum, float* filtOutput, int sampleLength) 
 {

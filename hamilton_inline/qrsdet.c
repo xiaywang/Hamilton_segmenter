@@ -86,6 +86,39 @@ Returns:
 #define QRSDET_LOOP_UNROLL
 
 #define QRS_SCALAR
+
+//MACRO for loop unrolling in qrsfilt
+#define RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index,lp_ptr,derI,hp_ptr,halfPtr1,halfPtr2) {\
+        y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr1]*2.0f) + lp_data[lp_ptr] ;\
+        y2 = y1;\
+        y1 = y0;\
+        fdatum = y0 * lpbuffer_sqr_div_4;\
+        lp_data[lp_ptr] = datum[index] ;           \
+        \
+        hp_y += fdatum - hp_data[hp_ptr];\
+        hp_data[hp_ptr] = fdatum ;\
+        fdatum2 = hp_data[halfPtr2] - (hp_y * HPBUFFER_LGTH_INV);\
+        y = fdatum2 - derBuff[derI] ;\
+        derBuff[derI] = fdatum2;\
+        fdatum3 = y;\
+        fdatum3 = fabs(fdatum3) ;            \
+        sum -= data[ptr] ;\
+        data[ptr] = fdatum3 ;\
+        sum += fdatum3 ;\
+        sum_temp = sum * WINDOW_WIDTH_INV;\
+        if(sum_temp > 32000.f)\
+        {\
+            filtOutput[index] = 32000.f ;\
+        } \
+        else \
+        {\
+            filtOutput[index] = sum_temp;\
+        }\
+        \
+        if(++ptr == WINDOW_WIDTH)\
+            ptr = 0 ;\
+        }
+
 // Local Prototypes.
 
 void QRSFilter(float* datum, float* output, int sampleLength, int init) ;
@@ -654,103 +687,99 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
 	}
 #endif // INIT_INLINE
         
-    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
-    static int ptr_array[4] = {0}; // lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
-    int halfPtr, index;
-    float fdatum, y0, z, y, output_temp;
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0, sum_temp = 0.0;
+    static int lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, halfPtr1, halfPtr2, index;
+    float fdatum, fdatum2, fdatum3, y0, z, y, output_temp;
+    static float LPBUFFER_LGTH_INV = 1/((float)LPBUFFER_LGTH);
+    static float HPBUFFER_LGTH_INV = 1/((float)HPBUFFER_LGTH);
+    static float WINDOW_WIDTH_INV = 1/((float)WINDOW_WIDTH);
     static float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
-    static float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
-    static float window_width_inv = 1/ (float)WINDOW_WIDTH;
+
+    for(; index <= sampleLength - 50 ; index+=50)
+    {
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index       ,0  ,0  ,0  ,5  ,13)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+1     ,1  ,1  ,1  ,6  ,14)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+2     ,2  ,0  ,2  ,7  ,15)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+3     ,3  ,1  ,3  ,8  ,16)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+4     ,4  ,0  ,4  ,9  ,17)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+5     ,5  ,1  ,5  ,0  ,18)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+6     ,6  ,0  ,6  ,1  ,19)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+7     ,7  ,1  ,7  ,2  ,20)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+8     ,8  ,0  ,8  ,3  ,21)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+9     ,9  ,1  ,9  ,4  ,22)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+10    ,0  ,0  ,10 ,5  ,23)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+11    ,1  ,1  ,11 ,6  ,24)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+12    ,2  ,0  ,12 ,7  ,0)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+13    ,3  ,1  ,13 ,8  ,1)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+14    ,4  ,0  ,14 ,9  ,2)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+15    ,5  ,1  ,15 ,0  ,3)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+16    ,6  ,0  ,16 ,1  ,4)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+17    ,7  ,1  ,17 ,2  ,5) 
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+18    ,8  ,0  ,18 ,3  ,6)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+19    ,9  ,1  ,19 ,4  ,7)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+20    ,0  ,0  ,20 ,5  ,8)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+21    ,1  ,1  ,21 ,6  ,9)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+22    ,2  ,0  ,22 ,7  ,10)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+23    ,3  ,1  ,23 ,8  ,11)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+24    ,4  ,0  ,24 ,9  ,12)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+25    ,5  ,1  ,0  ,0  ,13)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+26    ,6  ,0  ,1  ,1  ,14)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+27    ,7  ,1  ,2  ,2  ,15) 
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+28    ,8  ,0  ,3  ,3  ,16)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+29    ,9  ,1  ,4  ,4  ,17)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+30    ,0  ,0  ,5  ,5  ,18)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+31    ,1  ,1  ,6  ,6  ,19)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+32    ,2  ,0  ,7  ,7  ,20)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+33    ,3  ,1  ,8  ,8  ,21)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+34    ,4  ,0  ,9  ,9  ,22)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+35    ,5  ,1  ,10 ,0  ,23)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+36    ,6  ,0  ,11 ,1  ,24)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+37    ,7  ,1  ,12 ,2  ,0)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+38    ,8  ,0  ,13 ,3  ,1)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+39    ,9  ,1  ,14 ,4  ,2)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+40    ,0  ,0  ,15 ,5  ,3)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+41    ,1  ,1  ,16 ,6  ,4)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+42    ,2  ,0  ,17 ,7  ,5)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+43    ,3  ,1  ,18 ,8  ,6)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+44    ,4  ,0  ,19 ,9  ,7) 
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+45    ,5  ,1  ,20 ,0  ,8)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+46    ,6  ,0  ,21 ,1  ,9)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+47    ,7  ,1  ,22 ,2  ,10)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+48    ,8  ,0  ,23 ,3  ,11)
+        RENAME_UNROLL_MACRO_LP_DERI_HP_HALF_DEPENDENCIES_DIV(index+49    ,9  ,1  ,24 ,4  ,12)
+        #ifdef OPERATION_COUNTER
+        //fabs() counted as 1mult
+        float_mul_counter+=50*6;
+        float_add_counter+=50*10;
+        float_comp_counter+=50*1;
+        #endif
+    }
+
     static int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
     static int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
-
-    #ifdef OPERATION_COUNTER
-    float_div_counter+=3;
-    float_mul_counter+=2;
-    #endif
-
+    static int ptr_array[4] = {0}; // lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
     __m128i maxMask = _mm_set_epi32(WINDOW_WIDTH, DERIV_LENGTH, HPBUFFER_LGTH, LPBUFFER_LGTH);
     __m128i oneVec = _mm_set_epi32(1, 1, 1, 1);
 
-    int i;
-    for(i=0; i < sampleLength - BLOCKING_SIZE_QRSFILT+1; i+= BLOCKING_SIZE_QRSFILT)
-    {
-        for(int j=0; j < BLOCKING_SIZE_QRSFILT; j++)
-        {
-            index = i + j;
-            halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
-            if(halfPtr < 0)                         // to x[n-6].
-                halfPtr += LPBUFFER_LGTH ;
-
-            y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
-            y2 = y1;
-            y1 = y0;
-            fdatum = y0 * lpbuffer_sqr_div_4;
-            lp_data[ptr_array[0]] = datum[index] ;            // Stick most recent sample into
-            
-            hp_y += fdatum - hp_data[ptr_array[1]];
-            halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
-            if(halfPtr < 0)
-                halfPtr += HPBUFFER_LGTH ;
-            hp_data[ptr_array[1]] = fdatum ;
-            fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
-            y = fdatum - derBuff[ptr_array[2]] ;
-            derBuff[ptr_array[2]] = fdatum;
-            fdatum = y;
-            fdatum = fabs(fdatum) ;             // Take the absolute value.
-            sum += fdatum - data[ptr_array[3]] ;
-            data[ptr_array[3]] = fdatum ;
-
-            #ifdef OPERATION_COUNTER
-            float_comp_counter++;
-            float_mul_counter++;
-            #endif
-            if((sum * window_width_inv) > 32000.f)
-            {
-                output_temp = 32000.f ;
-            } 
-            else 
-            {
-                output_temp = sum * window_width_inv ;
-                #ifdef OPERATION_COUNTER
-                float_mul_counter += 1;
-                #endif
-            }
-
-            __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);
-            __m128i ptr_vec = _mm_castps_si128(ptr_vecf);
-            __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);
-            __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);
-            __m128i result =  _mm_and_si128(onePlus, ltmask);
-            __m128 resultf = _mm_castsi128_ps(result);
-            _mm_store_ps((float*)ptr_array, resultf);
-            
-            #ifdef OPERATION_COUNTER
-                float_add_counter += 10;
-                float_mul_counter+=4;
-            #endif
-            filtOutput[index] = output_temp;
-        }
-    }
-
-    for(i; i<sampleLength; i++)
+    for(index; index<sampleLength; index++)
     {
         halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
         if(halfPtr < 0)                         // to x[n-6].
             halfPtr += LPBUFFER_LGTH ;
 
-        y0 = (y1*2.0f) - y2 + datum[i] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+        y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
         y2 = y1;
         y1 = y0;
         fdatum = y0 * lpbuffer_sqr_div_4;
-        lp_data[ptr_array[0]] = datum[i] ;            // Stick most recent sample into
+        lp_data[ptr_array[0]] = datum[index] ;            // Stick most recent sample into
         
         hp_y += fdatum - hp_data[ptr_array[1]];
         halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
         if(halfPtr < 0)
             halfPtr += HPBUFFER_LGTH ;
         hp_data[ptr_array[1]] = fdatum ;
-        fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+        fdatum = hp_data[halfPtr] - (hp_y * HPBUFFER_LGTH_INV);
         y = fdatum - derBuff[ptr_array[2]] ;
         derBuff[ptr_array[2]] = fdatum;
         fdatum = y;
@@ -762,13 +791,13 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
         float_comp_counter++;
         float_mul_counter++;
         #endif
-        if((sum * window_width_inv) > 32000.f)
+        if((sum * WINDOW_WIDTH_INV) > 32000.f)
         {
-            output_temp = 32000.f ;
+            filtOutput[index] = 32000.f ;
         } 
         else 
         {
-            output_temp = sum * window_width_inv ;
+            filtOutput[index] = sum * WINDOW_WIDTH_INV ;
             #ifdef OPERATION_COUNTER
             float_mul_counter += 1;
             #endif
@@ -786,8 +815,8 @@ void QRSFilter(float* datum, float* filtOutput, int sampleLength, int init)
             float_add_counter += 10;
             float_mul_counter+=4;
         #endif
-        filtOutput[i] = output_temp;
     }
+
 }
 
 #else
