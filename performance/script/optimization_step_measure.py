@@ -237,6 +237,3 @@ for plot_index, metrics in enumerate(metrics_list):
 
 			
 
-
-
-
