@@ -1,0 +1,117 @@
+Starting program. 23 functions registered.
+testing functions for correctness
+CORRECT! Slow Performance function is CORRECT! 0
+CORRECT! RENAME function is CORRECT! 9.22515e-06
+CORRECT! Slow Performance with macro function is CORRECT! 0
+CORRECT! Slow Performance with macro lp function is CORRECT! 0
+CORRECT! Slow Performance with macro lp derI function is CORRECT! 0
+CORRECT! Slow Performance with macro lp derI hp function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half dependencies function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp half dependencies no div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance with macro lp derI hp half no div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance with macro lp derI hp half no div and const replaced function is CORRECT! 9.22515e-06
+CORRECT! Slow Performance with macro lp derI hp ptr function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp ptr half function is CORRECT! 5.59321e-07
+CORRECT! Slow Performance with macro lp derI hp ptr half div function is CORRECT! 1.99033e-06
+CORRECT! Slow Performance2 function is CORRECT! 4.34735e-06
+CORRECT! Blocking function is CORRECT! 1.7779e-06
+CORRECT! Blocking precomp div only function is CORRECT! 4.13931e-06
+CORRECT! Blocking precomp div and constant function is CORRECT! 4.34735e-06
+CORRECT! Blocking precomp div and constant, derI short function is CORRECT! 4.34735e-06
+CORRECT! Blocking precomp div and constant, derI short and precomp sum function is CORRECT! 4.34735e-06
+CORRECT! Precomp div and constant, derI short and precomp sum function is CORRECT! 4.34735e-06
+CORRECT! Precomp div function is CORRECT! 4.34735e-06
+CORRECT! Blocking precomp div and x*2 -y*2 -> (x-y)*2 function is CORRECT! 1.37017e-06
+
+Running: Slow Performance
+average 0.477009 flops/cycle
+total of 2308487.484478 cycles
+
+Running: RENAME
+average 0.880644 flops/cycle
+total of 1248655.266010 cycles
+
+Running: Slow Performance with macro
+average 0.476285 flops/cycle
+total of 2312311.074086 cycles
+
+Running: Slow Performance with macro lp
+average 0.576540 flops/cycle
+total of 1912096.564017 cycles
+
+Running: Slow Performance with macro lp derI
+average 0.585100 flops/cycle
+total of 1885081.575291 cycles
+
+Running: Slow Performance with macro lp derI hp
+average 0.632517 flops/cycle
+total of 1739117.734482 cycles
+
+Running: Slow Performance with macro lp derI hp half
+average 0.631748 flops/cycle
+total of 1740489.231519 cycles
+
+Running: Slow Performance with macro lp derI hp half dependencies
+average 0.628425 flops/cycle
+total of 1756442.323526 cycles
+
+Running: Slow Performance with macro lp derI hp half dependencies no div
+average 0.878177 flops/cycle
+total of 1251487.752537 cycles
+
+Running: Slow Performance with macro lp derI hp half no div
+average 0.856110 flops/cycle
+total of 1284478.073996 cycles
+
+Running: Slow Performance with macro lp derI hp half no div and const replaced
+average 0.780496 flops/cycle
+total of 1252344.060826 cycles
+
+Running: Slow Performance with macro lp derI hp ptr
+average 0.598973 flops/cycle
+total of 1855826.818718 cycles
+
+Running: Slow Performance with macro lp derI hp ptr half
+average 0.596008 flops/cycle
+total of 1844112.099954 cycles
+
+Running: Slow Performance with macro lp derI hp ptr half div
+average 0.546863 flops/cycle
+total of 2053850.129806 cycles
+
+Running: Slow Performance2
+average 0.608297 flops/cycle
+total of 1810481.647549 cycles
+
+Running: Blocking
+average 0.490550 flops/cycle
+total of 2244784.493128 cycles
+
+Running: Blocking precomp div only
+average 0.543666 flops/cycle
+total of 2027504.411872 cycles
+
+Running: Blocking precomp div and constant
+average 0.540244 flops/cycle
+total of 1810312.814649 cycles
+
+Running: Blocking precomp div and constant, derI short
+average 0.564876 flops/cycle
+total of 1734235.661893 cycles
+
+Running: Blocking precomp div and constant, derI short and precomp sum
+average 0.565031 flops/cycle
+total of 1731545.246988 cycles
+
+Running: Precomp div and constant, derI short and precomp sum
+average 0.532517 flops/cycle
+total of 1838525.857757 cycles
+
+Running: Precomp div
+average 0.524660 flops/cycle
+total of 1865923.453065 cycles
+
+Running: Blocking precomp div and x*2 -y*2 -> (x-y)*2
+average 0.405489 flops/cycle
+total of 2648589.203456 cycles

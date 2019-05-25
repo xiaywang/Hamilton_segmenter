@@ -1,0 +1,16 @@
+# started on Sat May 25 12:41:30 2019
+
+
+ Performance counter stats for './ourtest':
+
+             6'498      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+             2'946      LLC-stores                                                  
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.003599410 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog

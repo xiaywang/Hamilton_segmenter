@@ -1,0 +1,11 @@
+# started on Sat May 25 12:42:49 2019
+
+
+ Performance counter stats for './ourtest':
+
+           647'205      dTLB-loads                                                  
+             2'048      dTLB-load-misses          #    0.32% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.001669381 seconds time elapsed
+

@@ -1,0 +1,273 @@
+Block Size: 1
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         1'018'807      L1-dcache-loads                                             
+            12'262      L1-dcache-load-misses     #    1.20% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002209262 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 2
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           815'220      L1-dcache-loads                                             
+            12'326      L1-dcache-load-misses     #    1.51% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002112823 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 5
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           686'061      L1-dcache-loads                                             
+            12'098      L1-dcache-load-misses     #    1.76% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002137355 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 10
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           647'637      L1-dcache-loads                                             
+            12'191      L1-dcache-load-misses     #    1.88% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002050768 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 20
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           627'227      L1-dcache-loads                                             
+            12'472      L1-dcache-load-misses     #    1.99% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002057056 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 50
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           611'669      L1-dcache-loads                                             
+            12'385      L1-dcache-load-misses     #    2.02% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.001997105 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 100
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           607'992      L1-dcache-loads                                             
+            12'309      L1-dcache-load-misses     #    2.02% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002158843 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 200
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           608'160      L1-dcache-loads                                             
+            12'706      L1-dcache-load-misses     #    2.09% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002045656 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 500
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           603'845      L1-dcache-loads                                             
+            12'518      L1-dcache-load-misses     #    2.07% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.001842879 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 1000
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           606'230      L1-dcache-loads                                             
+            13'398      L1-dcache-load-misses     #    2.21% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002070857 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 2000
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           613'328      L1-dcache-loads                                             
+            15'716      L1-dcache-load-misses     #    2.56% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002055358 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 4000
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           614'767      L1-dcache-loads                                             
+            16'613      L1-dcache-load-misses     #    2.70% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002072838 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+Block Size: 7200
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           622'536      L1-dcache-loads                                             
+            17'337      L1-dcache-load-misses     #    2.78% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+     <not counted>      dTLB-loads                                                    (0.00%)
+     <not counted>      dTLB-load-misses                                              (0.00%)
+   <not supported>      dTLB-prefetch-misses                                        
+     <not counted>      LLC-loads                                                     (0.00%)
+   <not supported>      LLC-load-misses                                             
+     <not counted>      LLC-stores                                                    (0.00%)
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002006067 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog

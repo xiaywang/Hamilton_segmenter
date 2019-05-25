@@ -1,0 +1,15 @@
+# started on Sat May 25 12:40:00 2019
+
+
+ Performance counter stats for './ourtest':
+
+         1'185'849      L1-dcache-loads                                             
+            15'079      L1-dcache-load-misses     #    1.27% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.003238674 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog

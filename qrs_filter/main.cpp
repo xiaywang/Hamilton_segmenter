@@ -63,8 +63,28 @@ double get_perf_score(comp_func f);
 void register_functions();
 double perf_test(comp_func f, string desc, int flops);
 
+void qrsfilt_opt_400_50_1(float* datum, float* filtOutput, int sampleLength);
+
 
 void slowperformance(float* input, float* output, int samples_to_process);
+void slowperformance_macro_test(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp_half(float* input, float* output, int samples_to_process);
+
+void slowperformance_macro_lp_deri_hp_half_dependencies(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp_half_dependencies_div(float* input, float* output, int samples_to_process);
+
+void slowperformance_macro_lp_deri_hp_half_div(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp_half_div_const_replace(float* input, float* output, int samples_to_process);
+
+
+void slowperformance_macro_lp_deri_hp_ptr(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp_ptr_half(float* input, float* output, int samples_to_process);
+void slowperformance_macro_lp_deri_hp_ptr_half_div(float* input, float* output, int samples_to_process);
+
+
 void slowperformance2(float* datum, float* filtOutput, int sampleLength);
 void blocking(float* input, float* output, int samples_to_process);
 void blocking_no_divisions1(float* input, float* output, int samples_to_process);
@@ -92,11 +112,30 @@ int numFuncs = 0;
 */
 void register_functions()
 {
-	add_function(&slowperformance, "Slow Performance", cost_analysis);
-	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
-	
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
+
+	add_function(&slowperformance, "Slow Performance", cost_analysis);
+	add_function(&qrsfilt_opt_400_50_1, "RENAME", cost_analysis);
+
+	add_function(&slowperformance_macro_test, "Slow Performance with macro", cost_analysis);
+	add_function(&slowperformance_macro_lp, "Slow Performance with macro lp", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri, "Slow Performance with macro lp derI", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp, "Slow Performance with macro lp derI hp", cost_analysis);
+
+	add_function(&slowperformance_macro_lp_deri_hp_half, "Slow Performance with macro lp derI hp half", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies, "Slow Performance with macro lp derI hp half dependencies", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies_div, "Slow Performance with macro lp derI hp half dependencies no div", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_div, "Slow Performance with macro lp derI hp half no div", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_half_div_const_replace, "Slow Performance with macro lp derI hp half no div and const replaced", cost_analysis_blocking_no_division);
+	
+	add_function(&slowperformance_macro_lp_deri_hp_ptr, "Slow Performance with macro lp derI hp ptr", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_ptr_half, "Slow Performance with macro lp derI hp ptr half", cost_analysis);
+	add_function(&slowperformance_macro_lp_deri_hp_ptr_half_div, "Slow Performance with macro lp derI hp ptr half div", cost_analysis);
+
+
+	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
+	
 
 	add_function(&blocking, "Blocking", cost_analysis);
 	add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
@@ -106,7 +145,7 @@ void register_functions()
 	add_function(&no_divisions2_derI_precomp_sum, "Precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
 	add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
 	add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
-	add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
 }
 
 double nrm_sqr_diff(float *x, float *y, int n) {
@@ -168,9 +207,9 @@ int main(int argc, char **argv)
 		f(filter_input, output, used_samples);
 		double error = nrm_sqr_diff(output, qrsfilt_output, used_samples);
 		if (error > EPS)
-			cout << i << " function is WRONG! "<< error << endl;
+			cout <<"WRONG! "<< funcNames[i] << " function is WRONG! "<< error << endl;
 		else
-			cout << i << " function is CORRECT! "<< error << endl;
+			cout<<"CORRECT! " << funcNames[i] << " function is CORRECT! "<< error << endl;
 	}
 
 
@@ -221,7 +260,7 @@ double perf_test(comp_func f, string desc, int flops)
 	float output[used_samples];
 	int n, i, input_length;
 
-	for (input_length = 500; input_length<=used_samples-500; input_length+=500)
+	for (input_length = 400; input_length<=used_samples-400; input_length+=400)
 	{
 		// cout << "input_length = " << input_length << endl;
 		// Warm-up phase: we determine a number of executions that allows
@@ -262,13 +301,13 @@ double perf_test(comp_func f, string desc, int flops)
 		}
 		cyclesList.sort();
 		cycles = cyclesList.front();
-		printf("%f\n", (flops * input_length) / cycles);
+		// printf("%f\n", (flops * input_length) / cycles);
 		total_cycles += cycles;
 		average += (flops * input_length) / cycles;
 		average_count+= 1;
 		// printf("%f cycles\n", cycles);
 	}
-	printf("average %f\ntotal of %f cycles\n", average/average_count, total_cycles);
+	printf("average %f flops/cycle\ntotal of %f cycles\n", average/average_count, total_cycles);
 	return  (flops * input_length) / cycles;
 }
 
