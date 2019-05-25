@@ -1,9 +1,0 @@
-float adds:		297740
-float mult:		209664
-float div:		35407
-float comp:		80802
-float total only math:	542811
-float total with comp:	623613
-total runtime:    4485792
-performance:      0.121007
-performance (w/ comp):      0.139020
