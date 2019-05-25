@@ -640,7 +640,8 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 	// templates, see if the templates which template
 	// is the best match when no scaling is used.
 	// Then check whether the two close types can be combined.
-
+	//printf("check whether the two close types can be combined\n");
+	//printf("mindiff %f < MATCH_LIMIT %f, nextDiff %f < MATCH_LIMIT, Typecount %d > 1 \n", minDiff, MATCH_LIMIT, nextDiff, TypeCount);
 	if((minDiff < MATCH_LIMIT) && (nextDiff < MATCH_LIMIT) && (TypeCount > 1))
 	{
 		// Compare without scaling.
@@ -662,14 +663,43 @@ void BestMorphMatch(float *newBeat,int *matchType,double *matchIndex, double *mi
 
 		beatDiff = CompareBeats(&BeatTemplates[bestMatch][0],&BeatTemplates[nextBest][0],&shift) ;
 
+		//printf("check beatdiff limit\n");
 		if((beatDiff < COMBINE_LIMIT) &&
 			((*mi2 < 1.0) || (!MinimumBeatVariation(nextBest))))
 		{
+			//printf("beatDiff < COMBINE_LIMIT \n");
 
 			// Combine beats into bestMatch
 			#ifdef OPERATION_COUNTER
 				float_comp_counter+=2;
 			#endif 
+
+			// #ifdef BEATMORPH_OPT
+			// 	// Precompute beattemplates for both bestmatch and nextBest for BeatTemplates, BEATLGTH = 100
+			// 	for(i=0; i<BEATLGTH/8; ++i)
+			// 	{
+					
+			// 		// compute i+shift and i+shift- BEATLGTH
+			// 		if(i+shift > 0) 
+			// 		{
+			// 			if (i+shift-8 < BEATLGTH)
+			// 			{
+
+			// 			}
+			// 			else // calculate the left over ones
+			// 			{
+			// 				int rest = BEATLGTH-(i+shift);
+			// 				for ( int d=0; d< rest; d++)
+			// 				{
+
+			// 				}
+			// 			}
+			// 		}
+					
+			// 	}
+			// 	// 4 float left
+
+			// #endif
 
 			if(bestMatch < nextBest)
 			{

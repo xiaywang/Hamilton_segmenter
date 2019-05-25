@@ -1,0 +1,73 @@
+check whether the two close types can be combined
+mindiff 0.312608 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.292480 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.410373 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.301354 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.318448 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.375265 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.281349 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.411646 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.244755 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.405717 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.225215 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.166223 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.263765 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.546237 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.312058 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.323240 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.274713 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.292928 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.247308 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.141552 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.154257 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.648881 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.543326 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.337170 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.150980 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.384196 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.479244 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.206749 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.164643 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.450494 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.336472 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+check whether the two close types can be combined
+mindiff 0.211450 < MATCH_LIMIT 1.200000, nextDiff 10000.000000 < MATCH_LIMIT, Typecount 1 > 1 
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    3817899
+performance:      0.142175
+performance (w/ comp):      0.163339

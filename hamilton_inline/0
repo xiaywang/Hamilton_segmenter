@@ -1,0 +1,60 @@
+Block Size: 10
+float adds:		182430
+float mult:		36842
+float div:		35373
+float comp:		80724
+float total only math:	254645
+float total with comp:	335369
+QRSdet runtime:   7995924
+QRSfilt runtime:   319557
+Classify runtime: 764377
+QRSdet runtime:   7995924
+QRSdet runtime:   319557
+total runtime:    13652677
+performance:      0.018652
+performance (w/ comp):      0.024564
+Block Size: 20
+float adds:		182330
+float mult:		36822
+float div:		35334
+float comp:		80645
+float total only math:	254486
+float total with comp:	335131
+QRSdet runtime:   2225780
+QRSfilt runtime:   273739
+Classify runtime: 534103
+QRSdet runtime:   2225780
+QRSdet runtime:   273739
+total runtime:    5322538
+performance:      0.047813
+performance (w/ comp):      0.062965
+Block Size: 30
+float adds:		182230
+float mult:		36802
+float div:		35295
+float comp:		80566
+float total only math:	254327
+float total with comp:	334893
+QRSdet runtime:   1295795
+QRSfilt runtime:   174118
+Classify runtime: 488227
+QRSdet runtime:   1295795
+QRSdet runtime:   174118
+total runtime:    3196464
+performance:      0.079565
+performance (w/ comp):      0.104770
+Block Size: 10
+float adds:		182430
+float mult:		36842
+float div:		35373
+float comp:		80724
+float total only math:	254645
+float total with comp:	335369
+QRSdet runtime:   3321626
+QRSfilt runtime:   222857
+Classify runtime: 474135
+QRSdet runtime:   3321626
+QRSdet runtime:   222857
+total runtime:    7094038
+performance:      0.035896
+performance (w/ comp):      0.047275
