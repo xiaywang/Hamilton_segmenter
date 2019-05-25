@@ -100,6 +100,13 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
+void paper(double* input, double* output, int number_of_samples){
+    double A[2][2] = {filter_coefficients[4], filter_coefficients[5], 1, 0};
+    double B[2] = {1, 0};
+    double C[2] = {filter_coefficients[4], filter_coefficients[5]};
+    double D = 1;
+}
+
 void newHope0(double* input, double* output, int number_of_samples){
     static double a0 = 0, a1 = 0, a2 = 0, a3 = 0;
     static double b0 = 0, b1 = 0, b2 = 0, b3 = 0;
