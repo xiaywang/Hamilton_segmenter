@@ -100,11 +100,102 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
-void paper(double* input, double* output, int number_of_samples){
-    double A[2][2] = {filter_coefficients[4], filter_coefficients[5], 1, 0};
-    double B[2] = {1, 0};
-    double C[2] = {filter_coefficients[4], filter_coefficients[5]};
-    double D = 1;
+void split(double* input, double* output, int number_of_samples){
+
+    double temp[NUM_STAGES] = {0}; //temporary store of the "fall-through" value
+    double* z = (double*) calloc(number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+    double* a = (double*) calloc(number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+
+    double y0 = 0, x0 = 0;
+    for(int i = 0; i < number_of_samples; i++)
+    {
+        a[i] = input[i] - x0*new_order1[0] - y0*new_order1[1];
+        y0 = x0;
+        x0 = a[i];
+    }
+
+    int i;
+    y0 = 0, x0 = 0;
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[2];
+    for(i = 2; i < number_of_samples -3; i+=4)
+    {
+        double out = a[i] + a[i-1]*new_order1[2] + a[i-2]*new_order1[3];
+        z[i] = out; // could also be different
+
+        out = a[i+1] + a[i]*new_order1[2] + a[i-1]*new_order1[3];
+        z[i+1] = out; // could also be different
+
+        out = a[i+2] + a[i+1]*new_order1[2] + a[i]*new_order1[3];
+        z[i+2] = out; // could also be different
+
+        out = a[i+3] + a[i+2]*new_order1[2] + a[i+1]*new_order1[3];
+        z[i+3] = out; // could also be different
+    }
+    for(; i < number_of_samples; i++)
+    {
+        double out = a[i] + a[i-1]*new_order1[2] + a[i-2]*new_order1[3];
+        y0 = x0;
+        x0 = a[i];
+        z[i] = out; // could also be different
+    }
+
+    double x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[4] - y*new_order1[5];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    x = 0; y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = a[i] + x*new_order1[6] + y*new_order1[7];
+        y = x;
+        x = a[i];
+        z[i] = out; // could also be different
+    }
+
+    x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[8] - y*new_order1[9];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    x = 0; y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = a[i] + x*new_order1[10] + y*new_order1[11];
+        y = x;
+        x = a[i];
+        z[i] = out; // could also be different
+    }
+
+    x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[12] - y*new_order1[13];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    x = 0; y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = a[i] + x*new_order1[14] + y*new_order1[15];
+        y = x;
+        x = a[i];
+        output[i] = out; // could also be different
+    }
+
+    free(z);
+    free(a);
 }
 
 void newHope0(double* input, double* output, int number_of_samples){
