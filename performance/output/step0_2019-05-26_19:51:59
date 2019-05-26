@@ -1,0 +1,870 @@
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 2070923
+total runtime:    11394080
+performance:      0.048766
+performance (w/ comp):      0.055403
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 456542
+total runtime:    2497288
+performance:      0.222499
+performance (w/ comp):      0.252781
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 856696
+total runtime:    4353166
+performance:      0.127641
+performance (w/ comp):      0.145013
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 465766
+total runtime:    2698942
+performance:      0.205874
+performance (w/ comp):      0.233894
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 475090
+total runtime:    3068254
+performance:      0.181094
+performance (w/ comp):      0.205741
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 588021
+total runtime:    3566830
+performance:      0.155781
+performance (w/ comp):      0.176983
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 749615
+total runtime:    3442235
+performance:      0.161419
+performance (w/ comp):      0.183389
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 545132
+total runtime:    2964384
+performance:      0.187440
+performance (w/ comp):      0.212950
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 602055
+total runtime:    3655189
+performance:      0.152015
+performance (w/ comp):      0.172704
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 528714
+total runtime:    3173585
+performance:      0.175084
+performance (w/ comp):      0.198913
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 467810
+total runtime:    2730344
+performance:      0.203507
+performance (w/ comp):      0.231204
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 575233
+total runtime:    3188824
+performance:      0.174247
+performance (w/ comp):      0.197962
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 543095
+total runtime:    3046546
+performance:      0.182385
+performance (w/ comp):      0.207207
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 559816
+total runtime:    2924125
+performance:      0.190020
+performance (w/ comp):      0.215882
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 532173
+total runtime:    2934381
+performance:      0.189356
+performance (w/ comp):      0.215128
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 491363
+total runtime:    2784061
+performance:      0.199580
+performance (w/ comp):      0.226743
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 492948
+total runtime:    2990048
+performance:      0.185831
+performance (w/ comp):      0.211123
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 511737
+total runtime:    4304929
+performance:      0.129071
+performance (w/ comp):      0.146638
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 926442
+total runtime:    4078573
+performance:      0.136235
+performance (w/ comp):      0.154776
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 477742
+total runtime:    2531810
+performance:      0.219465
+performance (w/ comp):      0.249334
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 583815
+total runtime:    3460630
+performance:      0.160561
+performance (w/ comp):      0.182414
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 636419
+total runtime:    3212421
+performance:      0.172967
+performance (w/ comp):      0.196508
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 538114
+total runtime:    2902909
+performance:      0.191409
+performance (w/ comp):      0.217460
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 819664
+total runtime:    4836811
+performance:      0.114878
+performance (w/ comp):      0.130513
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 598443
+total runtime:    15253657
+performance:      0.036427
+performance (w/ comp):      0.041385
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 535794
+total runtime:    3522257
+performance:      0.157752
+performance (w/ comp):      0.179222
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 494026
+total runtime:    2780140
+performance:      0.199862
+performance (w/ comp):      0.227063
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 511985
+total runtime:    3294954
+performance:      0.168635
+performance (w/ comp):      0.191586
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 565138
+total runtime:    3589531
+performance:      0.154795
+performance (w/ comp):      0.175863
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 438827
+total runtime:    2530531
+performance:      0.219576
+performance (w/ comp):      0.249460
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 439676
+total runtime:    2661308
+performance:      0.208786
+performance (w/ comp):      0.237202
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 624558
+total runtime:    3536433
+performance:      0.157120
+performance (w/ comp):      0.178504
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 465136
+total runtime:    2540143
+performance:      0.218745
+performance (w/ comp):      0.248516
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 589563
+total runtime:    4727801
+performance:      0.117527
+performance (w/ comp):      0.133522
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 682341
+total runtime:    3429891
+performance:      0.162000
+performance (w/ comp):      0.184049
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 444919
+total runtime:    2591252
+performance:      0.214430
+performance (w/ comp):      0.243615
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 663935
+total runtime:    3660373
+performance:      0.151800
+performance (w/ comp):      0.172460
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 614184
+total runtime:    4045701
+performance:      0.137342
+performance (w/ comp):      0.156034
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 565902
+total runtime:    3161807
+performance:      0.175736
+performance (w/ comp):      0.199654
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 482220
+total runtime:    2833839
+performance:      0.196074
+performance (w/ comp):      0.222760
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 500418
+total runtime:    2707643
+performance:      0.205213
+performance (w/ comp):      0.233143
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 607154
+total runtime:    3424951
+performance:      0.162234
+performance (w/ comp):      0.184314
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 646266
+total runtime:    4159405
+performance:      0.133587
+performance (w/ comp):      0.151769
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 526469
+total runtime:    3129696
+performance:      0.177539
+performance (w/ comp):      0.201702
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 571389
+total runtime:    3711857
+performance:      0.149694
+performance (w/ comp):      0.170068
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 846781
+total runtime:    4199573
+performance:      0.132309
+performance (w/ comp):      0.150317
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 534376
+total runtime:    3007998
+performance:      0.184722
+performance (w/ comp):      0.209863
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 624916
+total runtime:    3606661
+performance:      0.154060
+performance (w/ comp):      0.175028
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 457081
+total runtime:    2788515
+performance:      0.199261
+performance (w/ comp):      0.226381
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 514817
+total runtime:    2938073
+performance:      0.189118
+performance (w/ comp):      0.214857
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 533946
+total runtime:    3098632
+performance:      0.179319
+performance (w/ comp):      0.203724
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 475649
+total runtime:    2602474
+performance:      0.213506
+performance (w/ comp):      0.242564
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 487644
+total runtime:    2636897
+performance:      0.210719
+performance (w/ comp):      0.239398
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 582025
+total runtime:    3399956
+performance:      0.163427
+performance (w/ comp):      0.185669
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 443615
+total runtime:    2682883
+performance:      0.207107
+performance (w/ comp):      0.235294
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 751542
+total runtime:    3891112
+performance:      0.142798
+performance (w/ comp):      0.162233
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 612530
+total runtime:    3582155
+performance:      0.155114
+performance (w/ comp):      0.176225
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 467799
+total runtime:    2568733
+performance:      0.216310
+performance (w/ comp):      0.245750
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 658622
+total runtime:    3640374
+performance:      0.152633
+performance (w/ comp):      0.173407
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 631788
+total runtime:    18852334
+performance:      0.029473
+performance (w/ comp):      0.033485
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 517667
+total runtime:    2927514
+performance:      0.189800
+performance (w/ comp):      0.215632
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 527497
+total runtime:    3022543
+performance:      0.183833
+performance (w/ comp):      0.208853
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 533432
+total runtime:    19532711
+performance:      0.028447
+performance (w/ comp):      0.032318
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 516939
+total runtime:    2671609
+performance:      0.207981
+performance (w/ comp):      0.236287
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 605464
+total runtime:    4309639
+performance:      0.128930
+performance (w/ comp):      0.146478
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 424641
+total runtime:    2629782
+performance:      0.211289
+performance (w/ comp):      0.240045
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 502508
+total runtime:    5211453
+performance:      0.106620
+performance (w/ comp):      0.121131
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 584877
+total runtime:    3290911
+performance:      0.168842
+performance (w/ comp):      0.191821
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 469960
+total runtime:    2783143
+performance:      0.199646
+performance (w/ comp):      0.226818
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 475452
+total runtime:    2698779
+performance:      0.205887
+performance (w/ comp):      0.233908
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 669743
+total runtime:    4274291
+performance:      0.129997
+performance (w/ comp):      0.147689
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 521996
+total runtime:    2892331
+performance:      0.192109
+performance (w/ comp):      0.218255
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 549313
+total runtime:    3008039
+performance:      0.184719
+performance (w/ comp):      0.209860
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 582180
+total runtime:    3665146
+performance:      0.151602
+performance (w/ comp):      0.172235
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 486522
+total runtime:    3103273
+performance:      0.179051
+performance (w/ comp):      0.203420
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 482292
+total runtime:    2721499
+performance:      0.204168
+performance (w/ comp):      0.231956
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 465805
+total runtime:    2565287
+performance:      0.216601
+performance (w/ comp):      0.246080
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 518998
+total runtime:    2949930
+performance:      0.188358
+performance (w/ comp):      0.213994
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 688393
+total runtime:    3631251
+performance:      0.153017
+performance (w/ comp):      0.173843
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 3145565
+total runtime:    6096437
+performance:      0.091142
+performance (w/ comp):      0.103547
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 965200
+total runtime:    3982850
+performance:      0.139509
+performance (w/ comp):      0.158496
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 529966
+total runtime:    5119787
+performance:      0.108529
+performance (w/ comp):      0.123299
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 666030
+total runtime:    3764579
+performance:      0.147598
+performance (w/ comp):      0.167686
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 567310
+total runtime:    3137737
+performance:      0.177084
+performance (w/ comp):      0.201185
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 596036
+total runtime:    9137690
+performance:      0.060808
+performance (w/ comp):      0.069084
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 747515
+total runtime:    3254180
+performance:      0.170747
+performance (w/ comp):      0.193987
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+Classify runtime: 527537
+total runtime:    3899422
+performance:      0.142494
+performance (w/ comp):      0.161887
