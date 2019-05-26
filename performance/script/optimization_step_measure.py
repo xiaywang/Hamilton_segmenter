@@ -122,7 +122,7 @@ for plot_index, metrics in enumerate(metrics_list):
 		name= "step"+v[0]
 		step_names.append(name)
 		y_values.append(v[1])
-		d="{:.2f}".format((v[1]-y_values[0])/y_values[0])
+		d="{:.2f}".format(v[1]/y_values[0])
 		delta.append(d)
 
 	errors = []
@@ -131,8 +131,8 @@ for plot_index, metrics in enumerate(metrics_list):
 
 	fig, ax = plt.subplots()
 	x = np.arange(len(step_names))
-	p1 = plt.bar(x, y_values,0.35, yerr=errors)
-	autolabel(p1,delta)
+	#p1 = plt.bar(x, y_values,0.35, yerr=errors)
+	#autolabel(p1,delta)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
 	# block_size_small = [ "{:03.1f}".format(x/1000) for x in block_size]
@@ -211,7 +211,7 @@ for plot_index, metrics in enumerate(metrics_list):
 		name= "step"+v[0]
 		step_names.append(name)
 		y_values.append(v[1])
-		d="{:.2f}".format((v[1]-y_values[0])/y_values[0])
+		d="{:.2f}".format(v[1]/y_values[0])
 		delta.append(d)
 
 	errors = []
@@ -221,8 +221,8 @@ for plot_index, metrics in enumerate(metrics_list):
 
 	fig, ax = plt.subplots()
 	x = np.arange(len(step_names))
-	p1 = plt.bar(x, y_values,0.35,yerr=errors)
-	autolabel(p1,delta)
+	#p1 = plt.bar(x, y_values,0.35,yerr=errors)
+	#autolabel(p1,delta)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
 	# block_size_small = [ "{:03.1f}".format(x/1000) for x in block_size]
