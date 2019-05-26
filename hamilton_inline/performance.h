@@ -1,4 +1,5 @@
 #define OPERATION_COUNTER 
 #define RUNTIME_MEASURE
 #define PRINT 
-#define MAIN_BLOCK_SIZE 1000
+#define INIT_INLINE 1 
+#define MAIN_BLOCK_SIZE 1
