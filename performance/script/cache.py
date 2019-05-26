@@ -24,8 +24,18 @@ for bs in blocksizes:
 	subprocess_cmd("echo Block Size: %s >> %s" %(bs,outputfile))
 	for ct in range(NUM_RUN):
 
-		subprocess_cmd("perf stat -e L1-dcache-loads,L1-dcache-load-misses,L1-dcache-stores,dTLB-loads,dTLB-load-misses,dTLB-prefetch-misses,LLC-loads,LLC-load-misses,LLC-stores,LLC-prefetches ../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+		subprocess_cmd("perf stat -e L1-dcache-loads,L1-dcache-load-misses,L1-dcache-stores ../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
 		#flush disk cache
 		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
+		subprocess_cmd("perf stat -e dTLB-loads,dTLB-load-misses,dTLB-prefetch-misses ../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+		#flush disk cache
+		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+
+		subprocess_cmd("perf stat -e LLC-loads,LLC-load-misses,LLC-stores,LLC-prefetches ../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+		#flush disk cache
+		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 		
+		subprocess_cmd("perf stat -e cycles,instructions,cache-references,cache-misses,bus-cycles ../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+		#flush disk cache
+		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
