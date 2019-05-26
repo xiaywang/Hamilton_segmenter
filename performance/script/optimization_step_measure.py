@@ -10,7 +10,7 @@ import pandas as pd
 import csv
 
 
-NUM_RUN=10000
+NUM_RUN=1000
 
 optimizatino_flag=[" ",
 					"#define MAIN_BLOCK_SIZE 1000",
@@ -139,6 +139,7 @@ for plot_index, metrics in enumerate(metrics_list):
 	x = np.arange(len(step_names))
 	p1 = plt.bar(x, y_values,0.35)
 	autolabel(p1,delta)
+	#p1 = plt.bar(x, y_values,0.35, yerr=errors)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
 	# block_size_small = [ "{:03.1f}".format(x/1000) for x in block_size]
@@ -231,6 +232,8 @@ for plot_index, metrics in enumerate(metrics_list):
 	x = np.arange(len(step_names))
 	p1 = plt.bar(x, y_values,0.35)
 	autolabel(p1,delta)
+	#p1 = plt.bar(x, y_values,0.35,yerr=errors)
+	#autolabel(p1,delta)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
 	# block_size_small = [ "{:03.1f}".format(x/1000) for x in block_size]
