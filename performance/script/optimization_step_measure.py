@@ -5,6 +5,9 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 import statistics
+import sys
+import pandas as pd
+import csv
 
 
 NUM_RUN=10000
@@ -18,7 +21,6 @@ optimizatino_flag=[" ",
 					"#define AVX_OPT 1",
 					"#define NOISECHK_OPT 1"]
 				
-
 #define INIT_INLINE 1
 #define MAIN_BLOCK_SIZE 1000
 #define FASTNOTCH 	1
@@ -28,6 +30,7 @@ optimizatino_flag=[" ",
 #define AVX_OPT 1
 #define NOISECHK_OPT 1
 
+testname = sys.argv[1]
 def subprocess_cmd(command):
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
@@ -79,7 +82,6 @@ for step, opt in enumerate(optimizatino_flag):
 			subprocess_cmd("../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
 			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
-
 dir_results={}
 for filename in glob.glob(os.path.join("./", 'step?_%s')%(nowtime)):
 	with open(filename, "r") as file:
@@ -108,6 +110,10 @@ for plot_index, metrics in enumerate(metrics_list):
 	for key, value in dir_results.items():
 		mean_metrics[key] = Average(value[metrics])
 		stddev_metrics[key]=":.2f".format(statistics.stdev(value[metrics]))
+		# save to csv
+		perf_dataframe=pd.DataFrame.from_dict(value)
+		# print(perf_dataframe)
+		perf_dataframe.to_csv(('step%s.csv')%(key), index=False)
 	# print("mean_metrics:%s"%(mean_metrics))
 
 	# print("sorted mean_metrics: %s"%(sorted(mean_metrics.items(), key=lambda s: s[0])))
@@ -122,7 +128,7 @@ for plot_index, metrics in enumerate(metrics_list):
 		name= "step"+v[0]
 		step_names.append(name)
 		y_values.append(v[1])
-		d="{:.2f}".format((v[1]-y_values[0])/y_values[0])
+		d="{:.2f}".format(v[1]/y_values[0])
 		delta.append(d)
 
 	errors = []
@@ -131,7 +137,7 @@ for plot_index, metrics in enumerate(metrics_list):
 
 	fig, ax = plt.subplots()
 	x = np.arange(len(step_names))
-	p1 = plt.bar(x, y_values,0.35, yerr=errors)
+	p1 = plt.bar(x, y_values,0.35)
 	autolabel(p1,delta)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
@@ -141,7 +147,7 @@ for plot_index, metrics in enumerate(metrics_list):
 	ax.set_xlabel('Optimization Steps')
 	ax.set_title('%s Comparison'%(plot_titles[plot_index]))
 	ax.plot(x, y_values)
-	savefig_filename=plot_titles[plot_index]+nowtime
+	savefig_filename=testname+plot_titles[plot_index]+nowtime
 	plt.savefig(savefig_filename)
 	plt.show(block=False)
 
@@ -154,6 +160,7 @@ optimizatino_flag=[" ",
 					"#define BDAC_OPT 1 \n#define MAIN_BLOCK_SIZE 1",
 					"#define AVX_OPT 1 \n#define MAIN_BLOCK_SIZE 1",
 					"#define NOISECHK_OPT 1 \n#define MAIN_BLOCK_SIZE 1"]
+
 for step, opt in enumerate(optimizatino_flag):
 	outputfile="only_step"+str(step)+"_"+nowtime
 	if step != 0:
@@ -211,7 +218,8 @@ for plot_index, metrics in enumerate(metrics_list):
 		name= "step"+v[0]
 		step_names.append(name)
 		y_values.append(v[1])
-		d="{:.2f}".format((v[1]-y_values[0])/y_values[0])
+		# d="{:.2f}".format((v[1]-y_values[0])/y_values[0])
+		d="{:.2f}".format(v[1]/y_values[0])
 		delta.append(d)
 
 	errors = []
@@ -221,7 +229,7 @@ for plot_index, metrics in enumerate(metrics_list):
 
 	fig, ax = plt.subplots()
 	x = np.arange(len(step_names))
-	p1 = plt.bar(x, y_values,0.35,yerr=errors)
+	p1 = plt.bar(x, y_values,0.35)
 	autolabel(p1,delta)
 	ind = np.arange(len(step_names))
 	ax.set_xticks(ind)
@@ -231,7 +239,7 @@ for plot_index, metrics in enumerate(metrics_list):
 	ax.set_xlabel('Individual Optimization Applied')
 	ax.set_title('%s Comparison'%(plot_titles[plot_index]))
 	ax.plot(x, y_values)
-	savefig_filename="individual_"+plot_titles[plot_index]+nowtime
+	savefig_filename=testname+"individual_"+plot_titles[plot_index]+nowtime
 	plt.savefig(savefig_filename)
 	plt.show(block=False)
 
