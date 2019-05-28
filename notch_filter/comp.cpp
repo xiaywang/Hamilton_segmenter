@@ -103,44 +103,80 @@ new_order1[3]-new_order1[1],
 void split(double* input, double* output, int number_of_samples){
 
     double temp[NUM_STAGES] = {0}; //temporary store of the "fall-through" value
-    double* z = (double*) calloc(number_of_samples, sizeof(double)); //temporary output from first SOS-stage
-    double* a = (double*) calloc(number_of_samples, sizeof(double)); //temporary output from first SOS-stage
+    double* z = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
+    double* a = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
 
-    double y0 = 0, x0 = 0;
-    for(int i = 0; i < number_of_samples; i++)
+    double y = 0, x = 0;
+    int i;
+
+    for(i = 0; i < number_of_samples; i++)
     {
-        a[i] = input[i] - x0*new_order1[0] - y0*new_order1[1];
-        y0 = x0;
-        x0 = a[i];
+        a[i] = input[i] - x*new_order1[0] - y*new_order1[1];
+        y = x;
+        x = a[i];
     }
 
-    int i;
-    y0 = 0, x0 = 0;
     z[0] = a[0];
     z[1] = a[1] + a[0]*new_order1[2];
-    for(i = 2; i < number_of_samples -3; i+=4)
+    z[2] = a[2] + a[1]*new_order1[2] + a[0]*new_order1[3];
+    z[3] = a[3] + a[2]*new_order1[2] + a[1]*new_order1[3];
+    __m256d coef_1 = _mm256_set1_pd(new_order1[2]);
+    __m256d coef_2 = _mm256_set1_pd(new_order1[3]);
+    __m256d vec2V;
+    __m256d vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    // double vec2[4];
+    // double vec3[4] = {a[2],a[3],a[0],a[2]};
+    // double vec1[4];
+    for(i = 4; i < number_of_samples -3; i+=4)
     {
-        double out = a[i] + a[i-1]*new_order1[2] + a[i-2]*new_order1[3];
-        z[i] = out; // could also be different
+        // double vec1[4] = {a[i],a[i+1],a[i+2],a[i+3]}; // 0 1 2 3
+        // double vec1[4] = {a[i],a[i],a[i],a[i]}; // 0 1 2 3
+        // double vec0[4] = {a[i-4],a[i-3],a[i-2],a[i-1]}; // -4 -3 -2 -1
+        // double vec0[4] = {a[i],a[i],a[i],a[i]};
+        // double out[4];
+        // vec2[0] = vec3[0];
+        // vec2[1] = vec3[1];
+        // vec2[2] = vec3[2];
+        // vec2[3] = vec3[3]; // -2 -1 -4 -3
+        // vec3[0] = vec1[2]; // 2 3 0 1 same as above, but from last run
+        // vec3[1] = vec1[3];
+        // vec3[2] = vec1[0];
+        // vec3[3] = vec1[1];
+        // double vec4[4] = {vec2[0],vec2[1],vec3[2],vec3[3]}; // -2 -1 0 1 needed for the second mult
+        // double vec5[4] = {vec1[0], vec4[1], vec1[2],vec4[3]}; // 0 -1 2 1
+        // double vec6[4] = {vec5[1],vec5[0],vec5[3], vec5[2]}; // -1 0 1 2
 
-        out = a[i+1] + a[i]*new_order1[2] + a[i-1]*new_order1[3];
-        z[i+1] = out; // could also be different
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+        
+        // out[0] = vec1[0] + vec6[0]*new_order1[2] + vec4[0]*new_order1[3]; // 0 -1 -2
+        // out[1] = vec1[1] + vec6[1]*new_order1[2] + vec4[1]*new_order1[3]; // 1 0 -1
+        // out[2] = vec1[2] + vec6[2]*new_order1[2] + vec4[2]*new_order1[3]; // 2 1 0
+        // out[3] = vec1[3] + vec6[3]*new_order1[2] + vec4[3]*new_order1[3]; // 3 2 1
 
-        out = a[i+2] + a[i+1]*new_order1[2] + a[i]*new_order1[3];
-        z[i+2] = out; // could also be different
-
-        out = a[i+3] + a[i+2]*new_order1[2] + a[i+1]*new_order1[3];
-        z[i+3] = out; // could also be different
+        // vec2V = vec3V;
+        // z[i] = out[0]; // could also be different
+        // z[i+1] = out[1]; // could also be different
+        // z[i+2] = out[2]; // could also be different
+        // z[i+3] = out[3]; // could also be different
     }
+
     for(; i < number_of_samples; i++)
     {
         double out = a[i] + a[i-1]*new_order1[2] + a[i-2]*new_order1[3];
-        y0 = x0;
-        x0 = a[i];
         z[i] = out; // could also be different
     }
 
-    double x = 0, y = 0;
+    x = 0, y = 0;
     for(i = 0; i < number_of_samples; i++)
     {
         double out = z[i] - x*new_order1[4] - y*new_order1[5];
@@ -149,12 +185,29 @@ void split(double* input, double* output, int number_of_samples){
         a[i] = out;
     }
 
-    x = 0; y = 0;
-    for(i = 0; i < number_of_samples; i++)
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[6];
+    z[2] = a[2] + a[1]*new_order1[6] + a[0]*new_order1[7];
+    z[3] = a[3] + a[2]*new_order1[6] + a[1]*new_order1[7];
+    coef_1 = _mm256_set1_pd(new_order1[6]);
+    coef_2 = _mm256_set1_pd(new_order1[7]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+    }
+    for(; i < number_of_samples; i++)
     {
-        double out = a[i] + x*new_order1[6] + y*new_order1[7];
-        y = x;
-        x = a[i];
+        double out = a[i] + a[i-1]*new_order1[6] + a[i-2]*new_order1[7];
         z[i] = out; // could also be different
     }
 
@@ -167,12 +220,29 @@ void split(double* input, double* output, int number_of_samples){
         a[i] = out;
     }
 
-    x = 0; y = 0;
-    for(i = 0; i < number_of_samples; i++)
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[10];
+    z[2] = a[2] + a[1]*new_order1[10] + a[0]*new_order1[11];
+    z[3] = a[3] + a[2]*new_order1[10] + a[1]*new_order1[11];
+    coef_1 = _mm256_set1_pd(new_order1[10]);
+    coef_2 = _mm256_set1_pd(new_order1[11]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+    }
+    for(; i < number_of_samples; i++)
     {
-        double out = a[i] + x*new_order1[10] + y*new_order1[11];
-        y = x;
-        x = a[i];
+        double out = a[i] + a[i-1]*new_order1[10] + a[i-2]*new_order1[11];
         z[i] = out; // could also be different
     }
 
@@ -185,13 +255,30 @@ void split(double* input, double* output, int number_of_samples){
         a[i] = out;
     }
 
-    x = 0; y = 0;
-    for(i = 0; i < number_of_samples; i++)
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[14];
+    z[2] = a[2] + a[1]*new_order1[14] + a[0]*new_order1[15];
+    z[3] = a[3] + a[2]*new_order1[14] + a[1]*new_order1[15];
+    coef_1 = _mm256_set1_pd(new_order1[14]);
+    coef_2 = _mm256_set1_pd(new_order1[15]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(output+i, outV);
+    }
+    for(; i < number_of_samples; i++)
     {
-        double out = a[i] + x*new_order1[14] + y*new_order1[15];
-        y = x;
-        x = a[i];
-        output[i] = out; // could also be different
+        double out = a[i] + a[i-1]*new_order1[14] + a[i-2]*new_order1[15];
+        z[i] = out; // could also be different
     }
 
     free(z);

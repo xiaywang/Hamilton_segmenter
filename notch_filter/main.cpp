@@ -217,7 +217,7 @@ double perf_test(comp_func f, string desc, int flops)
 	double output[sample_length];
 	int n;
 
-	for (int i = 5000; i<=120000; i+=5000)
+	for (int i = 5000; i<=100000; i+=5000)
 	{
 		n = i;
 
