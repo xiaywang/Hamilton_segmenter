@@ -55,32 +55,33 @@ target_dir = "../../hamilton_inline/"
 performance_header_path = target_dir+"performance.h"
 ourtest_path = target_dir+"ourtest"
 
-now = datetime.datetime.now()
+# now = datetime.datetime.now()
 
-nowtime=now.strftime("%Y-%m-%d_%H:%M:%S")
+# nowtime=now.strftime("%Y-%m-%d_%H:%M:%S")
 
+nowtime=sys.argv[2]
 #incremental tests
 
-for step, opt in enumerate(optimizatino_flag):
-	outputfile="step"+str(step)+"_"+nowtime
-	if step != 0:
-		with open("../../hamilton_inline/performance.h","w") as config_file:
-			config_file.write("#define OPERATION_COUNTER \n#define RUNTIME_MEASURE\n#define PRINT \n")
-			for i in optimizatino_flag[:step+1]:
-				config_file.write("%s\n"%(i))
-		# recompile the program
-		subprocess_cmd("cd ../../hamilton_inline/; make clean all")
-		#flush disk cache
-		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# for step, opt in enumerate(optimizatino_flag):
+# 	outputfile="step"+str(step)+"_"+nowtime
+# 	if step != 0:
+# 		with open("../../hamilton_inline/performance.h","w") as config_file:
+# 			config_file.write("#define OPERATION_COUNTER \n#define RUNTIME_MEASURE\n#define PRINT \n")
+# 			for i in optimizatino_flag[:step+1]:
+# 				config_file.write("%s\n"%(i))
+# 		# recompile the program
+# 		subprocess_cmd("cd ../../hamilton_inline/; make clean all")
+# 		#flush disk cache
+# 		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
-	for num in range(NUM_RUN):
-		if step == 0:
-			# run baseline 
-			subprocess_cmd("../../hamilton_float/ourtest 2>&1 | tee -a %s"%(outputfile))
-			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
-		else:
-			subprocess_cmd("../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
-			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# 	for num in range(NUM_RUN):
+# 		if step == 0:
+# 			# run baseline 
+# 			subprocess_cmd("../../hamilton_float/ourtest 2>&1 | tee -a %s"%(outputfile))
+# 			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# 		else:
+# 			subprocess_cmd("../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+# 			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
 dir_results={}
 for filename in glob.glob(os.path.join("./", 'step?_%s')%(nowtime)):
@@ -114,7 +115,7 @@ for plot_index, metrics in enumerate(metrics_list):
 		perf_dataframe=pd.DataFrame.from_dict(value)
 		# print(perf_dataframe)
 		perf_dataframe.to_csv(('step%s.csv')%(key), index=False)
-	# print("mean_metrics:%s"%(mean_metrics))
+		# print("mean_metrics:%s"%(mean_metrics))
 
 	# print("sorted mean_metrics: %s"%(sorted(mean_metrics.items(), key=lambda s: s[0])))
 	sorted_mean_metrics=sorted(mean_metrics.items(), key=lambda s: s[0])
@@ -162,25 +163,25 @@ optimizatino_flag=[" ",
 					"#define AVX_OPT 1 \n#define MAIN_BLOCK_SIZE 1",
 					"#define NOISECHK_OPT 1 \n#define MAIN_BLOCK_SIZE 1"]
 
-for step, opt in enumerate(optimizatino_flag):
-	outputfile="only_step"+str(step)+"_"+nowtime
-	if step != 0:
-		with open("../../hamilton_inline/performance.h","w") as config_file:
-			config_file.write("#define OPERATION_COUNTER \n#define RUNTIME_MEASURE\n#define PRINT \n")
-			config_file.write("%s\n"%(opt))
-		# recompile the program
-		subprocess_cmd("cd ../../hamilton_inline/; make clean all")
-		#flush disk cache
-		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# for step, opt in enumerate(optimizatino_flag):
+# 	outputfile="only_step"+str(step)+"_"+nowtime
+# 	if step != 0:
+# 		with open("../../hamilton_inline/performance.h","w") as config_file:
+# 			config_file.write("#define OPERATION_COUNTER \n#define RUNTIME_MEASURE\n#define PRINT \n")
+# 			config_file.write("%s\n"%(opt))
+# 		# recompile the program
+# 		subprocess_cmd("cd ../../hamilton_inline/; make clean all")
+# 		#flush disk cache
+# 		subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
-	for num in range(NUM_RUN):
-		if step == 0:
-			# run baseline 
-			subprocess_cmd("../../hamilton_float/ourtest 2>&1 | tee -a %s"%(outputfile))
-			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
-		else:
-			subprocess_cmd("../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
-			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# 	for num in range(NUM_RUN):
+# 		if step == 0:
+# 			# run baseline 
+# 			subprocess_cmd("../../hamilton_float/ourtest 2>&1 | tee -a %s"%(outputfile))
+# 			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
+# 		else:
+# 			subprocess_cmd("../../hamilton_inline/ourtest 2>&1 | tee -a %s"%(outputfile))
+# 			subprocess_cmd("sync; echo 1 > /proc/sys/vm/drop_caches")
 
 dir_results={}
 for filename in glob.glob(os.path.join("./", 'only_step*_%s')%(nowtime)):

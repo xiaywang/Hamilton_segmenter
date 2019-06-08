@@ -260,8 +260,8 @@ void BeatDetectAndClassify(float* ecgSample, int* delayArray, int sampleLength, 
 
 			
 			#ifdef OPERATION_COUNTER 
-			float_add_counter++;
-			float_div_counter++;
+			float_add_counter+=16;
+			float_div_counter+=16;
 			#endif
 		}
 		for(;i<BEATLGTH;i++){
