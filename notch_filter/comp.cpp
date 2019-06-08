@@ -100,6 +100,86 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
+void splitFloat(float* input, float* output, int number_of_samples) {
+    float* z = (float*) aligned_alloc(8*sizeof(float), number_of_samples*sizeof(float)); //temporary output from first SOS-stage
+    float* a = (float*) aligned_alloc(8*sizeof(float), number_of_samples*sizeof(float)); //temporary output from first SOS-stage
+
+    float t_x[4] ={0} , t_y[4] = {0};
+    float temp_x, temp_z;
+
+    int i = 0;
+
+    float x = 0.f, y = 0.f;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        a[i] = input[i] - x*filter_coefficients[4] - y*filter_coefficients[5];
+        y = x;
+        x = a[i];
+    }
+
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*filter_coefficients[1];
+    z[2] = a[2] + a[1]*filter_coefficients[1] + a[0]*filter_coefficients[2];
+    z[3] = a[3] + a[2]*filter_coefficients[1] + a[1]*filter_coefficients[2];
+    z[4] = a[4] + a[3]*filter_coefficients[1] + a[2]*filter_coefficients[2];
+    z[5] = a[5] + a[4]*filter_coefficients[1] + a[3]*filter_coefficients[2];
+    z[6] = a[6] + a[5]*filter_coefficients[1] + a[4]*filter_coefficients[2];
+    z[7] = a[7] + a[6]*filter_coefficients[1] + a[5]*filter_coefficients[2];
+
+    __m256 coef_1 = _mm256_set1_ps(filter_coefficients[1]);
+    __m256 coef_2 = _mm256_set1_ps(filter_coefficients[2]);
+    for(i = 8; i < number_of_samples -7; i+=8)
+    {
+        float test_arr[8];
+        __m256 vec1 = _mm256_loadu_ps(a+i);
+        __m256 vec2 = _mm256_loadu_ps(a+i-1);
+        __m256 vec3 = _mm256_loadu_ps(a+i-2);
+        __m256 mul1 = _mm256_mul_ps(vec2, coef_1);
+        __m256 mul2 = _mm256_mul_ps(vec3, coef_2);
+        __m256 add1 = _mm256_add_ps(mul1, vec1);
+        __m256 out = _mm256_add_ps(mul2, add1);
+        _mm256_storeu_ps(z+i, out);
+
+        // z[i  ] = a[i  ] + a[i-1]*filter_coefficients[1] + a[i-2]*filter_coefficients[2];
+        // z[i+1] = a[i+1] + a[i  ]*filter_coefficients[1] + a[i-1]*filter_coefficients[2];
+        // z[i+2] = a[i+2] + a[i+1]*filter_coefficients[1] + a[i  ]*filter_coefficients[2];
+        // z[i+3] = a[i+3] + a[i+2]*filter_coefficients[1] + a[i+1]*filter_coefficients[2];
+        // z[i+4] = a[i+4] + a[i+3]*filter_coefficients[1] + a[i+2]*filter_coefficients[2];
+        // z[i+5] = a[i+5] + a[i+4]*filter_coefficients[1] + a[i+3]*filter_coefficients[2];
+        // z[i+6] = a[i+6] + a[i+5]*filter_coefficients[1] + a[i+4]*filter_coefficients[2];
+        // z[i+7] = a[i+7] + a[i+6]*filter_coefficients[1] + a[i+5]*filter_coefficients[2];
+    }
+    for(; i < number_of_samples; i++)
+    {
+        float out = a[i] + a[i-1]*filter_coefficients[1] + a[i-2]*filter_coefficients[2];
+        z[i] = out; // could also be different
+    }
+
+    for (int i = 0; i < number_of_samples; i++)
+    {
+        float temp_1 = z[i] - t_x[1]*filter_coefficients[10] - t_y[1]*filter_coefficients[11];
+        float z_1 = temp_1 + t_x[1]*filter_coefficients[7] + t_y[1]*filter_coefficients[8];
+        t_y[1] = t_x[1];
+        t_x[1] = temp_1;
+
+        float temp_2 = z_1 - t_x[2]*filter_coefficients[16] - t_y[2]*filter_coefficients[17];
+        float z_2 = temp_2 + t_x[2]*filter_coefficients[13] + t_y[2]*filter_coefficients[14];
+        t_y[2] = t_x[2];
+        t_x[2] = temp_2;
+
+        float temp_3 = z_2 - t_x[3]*filter_coefficients[22] - t_y[3]*filter_coefficients[23];
+        float z_3 = temp_3 + t_x[3]*filter_coefficients[19] + t_y[3]*filter_coefficients[20];
+        t_y[3] = t_x[3];
+        t_x[3] = temp_3;
+
+        output[i] = z_3;
+    }
+
+    free(a);
+    free(z);
+
+}
+
 void split(double* input, double* output, int number_of_samples){
 
     double* z = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage

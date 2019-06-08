@@ -42,7 +42,11 @@
 #include "matlab_data.h"
 
 /* prototype of the function you need to optimize */
+#ifdef DOUBLE
 typedef void(*comp_func)(double *, double *, int);
+#else
+typedef void(*comp_func)(float *, float *, int);
+#endif
 
 #define cost_analysis 40.0
 #define CYCLES_REQUIRED 1e7
@@ -53,7 +57,7 @@ typedef void(*comp_func)(double *, double *, int);
 
 using namespace std;
 
-#define DOUBLE
+// #define DOUBLE
 
 //headers
 double get_perf_score(comp_func f);
@@ -134,6 +138,7 @@ double nrm_sqr_diff(float *x, float *y, int n) {
     	// printf("%f matlab %f\n",x[i],y[i] );
         nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
         if(nrm_sqr > EPS){
+        	printf("error threshhold over in sample %i\n", i);
         	return nrm_sqr;
         }
     }
@@ -200,7 +205,11 @@ int main(int argc, char **argv)
 		memcpy(output, output_old, sample_length*sizeof(float));
 		#endif
 		comp_func f = userFuncs[i];
+		#ifdef DOUBLE
 		f(matlab_input, output, n);
+		#else
+		f(matlab_input_float, output, n);
+		#endif
 		if(i == 0){
 			#ifdef DOUBLE
 			memcpy(exampleOut, output, sample_length*sizeof(double));
@@ -216,12 +225,12 @@ int main(int argc, char **argv)
 
 
 
-	for (i = 0; i < numFuncs; i++)
-	{
-        cout << endl << "Running: " << funcNames[i] << endl;
-		perf = perf_test(userFuncs[i], funcNames[i], funcFlops[i]);
-        cout << perf << " flops per cycle" << endl;
-	}
+	// for (i = 0; i < numFuncs; i++)
+	// {
+ //        cout << endl << "Running: " << funcNames[i] << endl;
+	// 	perf = perf_test(userFuncs[i], funcNames[i], funcFlops[i]);
+ //        cout << perf << " flops per cycle" << endl;
+	// }
 
 	return 0;
 }
@@ -256,7 +265,12 @@ double perf_test(comp_func f, string desc, int flops)
 	myInt64 start, end;
 
 	//new variables, n for #loop iterations
-	double output[sample_length];
+	#ifdef DOUBLE
+		double output[sample_length];
+	#else
+		float output[sample_length];
+	#endif
+
 	int n;
 
 	for (int i = 5000; i<=100000; i+=5000)
@@ -270,7 +284,11 @@ double perf_test(comp_func f, string desc, int flops)
 			num_runs = num_runs * multiplier;
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; i++) {
+				#ifdef DOUBLE
 				f(matlab_input, output, n);
+				#else
+				f(matlab_input_float, output, n);
+				#endif
 			}
 			end = stop_tsc(start);
 
@@ -288,7 +306,11 @@ double perf_test(comp_func f, string desc, int flops)
 
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; ++i) {
+				#ifdef DOUBLE
 				f(matlab_input, output, n);
+				#else
+				f(matlab_input_float, output, n);
+				#endif
 			}
 			end = stop_tsc(start);
 
