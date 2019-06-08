@@ -53,6 +53,8 @@ typedef void(*comp_func)(double *, double *, int);
 
 using namespace std;
 
+#define DOUBLE
+
 //headers
 double get_perf_score(comp_func f);
 void register_functions();
@@ -73,6 +75,9 @@ void matrixStyle2(double* input, double* output, int number_of_samples);
 void newHope0(double* input, double* output, int number_of_samples);
 void split(double* input, double* output, int number_of_samples);
 
+void slowperformanceFloat(float* input, float* output, int number_of_samples);
+void splitFloat(float* input, float* output, int number_of_samples);
+
 void add_function(comp_func f, string name, int flop);
 
 /* Global vars, used to keep track of student functions */
@@ -88,6 +93,7 @@ int numFuncs = 0;
 */
 void register_functions()
 {
+	#ifdef DOUBLE
 	add_function(&slowperformance, "Slow Performance", 32);
 	//add_function(&slowperformance2, "Slow Performance2", 32);
 	//add_function(&slowperformance3, "Slow Performance3", 32);
@@ -101,11 +107,15 @@ void register_functions()
 	//add_function(&matrixStyle2, "matrixStyle2", 32);
 	//add_function(&newHope0, "newHope0", 32);
 	add_function(&split, "split", 32);
-
+	#else
+	add_function(&slowperformanceFloat, "slowperformance float", 32);
+	add_function(&splitFloat, "split", 32);
+	#endif
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
 
+#ifdef DOUBLE
 double nrm_sqr_diff(double *x, double *y, int n) {
     double nrm_sqr = 0.0;
     for(int i = 0; i < n; i++) {
@@ -117,6 +127,19 @@ double nrm_sqr_diff(double *x, double *y, int n) {
     }
     return nrm_sqr;
 }
+#else
+double nrm_sqr_diff(float *x, float *y, int n) {
+    double nrm_sqr = 0.0;
+    for(int i = 0; i < n; i++) {
+    	// printf("%f matlab %f\n",x[i],y[i] );
+        nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
+        if(nrm_sqr > EPS){
+        	return nrm_sqr;
+        }
+    }
+    return nrm_sqr;
+}
+#endif
 
 /*
 * Main driver routine - calls register_funcs to get student functions, then
@@ -148,23 +171,42 @@ int main(int argc, char **argv)
 	}
 	cout << numFuncs << " functions registered." << endl;
    
-    //Check validity of functions. 
+    //Check validity of functions.
+    #ifdef DOUBLE
     double output[sample_length];
     double output_old[sample_length];
+    #else
+    float output[sample_length];
+    float output_old[sample_length];
+    #endif
 
     //initialize to 0 (first few output samples will be 0, depending on #coefficients)
     for (int i = 0; i < sample_length; i++)
     {
     	output_old[i] = 0.0;
     }
+    
+    #ifdef DOUBLE
     double exampleOut[sample_length];
+    #else
+    float exampleOut[sample_length];
+    #endif
+
 	for (i = 0; i < numFuncs; i++)
 	{
+		#ifdef DOUBLE
 		memcpy(output, output_old, sample_length*sizeof(double));
+		#else
+		memcpy(output, output_old, sample_length*sizeof(float));
+		#endif
 		comp_func f = userFuncs[i];
 		f(matlab_input, output, n);
 		if(i == 0){
+			#ifdef DOUBLE
 			memcpy(exampleOut, output, sample_length*sizeof(double));
+			#else
+			memcpy(exampleOut, output, sample_length*sizeof(float));
+			#endif
 		} else {
 			double error = nrm_sqr_diff(output, exampleOut, sample_length);
 			if (error > EPS)

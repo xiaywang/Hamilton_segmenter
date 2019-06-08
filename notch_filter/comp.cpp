@@ -102,7 +102,6 @@ new_order1[3]-new_order1[1],
 
 void split(double* input, double* output, int number_of_samples){
 
-    double temp[NUM_STAGES] = {0}; //temporary store of the "fall-through" value
     double* z = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
     double* a = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
 
@@ -255,10 +254,10 @@ void split(double* input, double* output, int number_of_samples){
         a[i] = out;
     }
 
-    z[0] = a[0];
-    z[1] = a[1] + a[0]*new_order1[14];
-    z[2] = a[2] + a[1]*new_order1[14] + a[0]*new_order1[15];
-    z[3] = a[3] + a[2]*new_order1[14] + a[1]*new_order1[15];
+    output[0] = a[0];
+    output[1] = a[1] + a[0]*new_order1[14];
+    output[2] = a[2] + a[1]*new_order1[14] + a[0]*new_order1[15];
+    output[3] = a[3] + a[2]*new_order1[14] + a[1]*new_order1[15];
     coef_1 = _mm256_set1_pd(new_order1[14]);
     coef_2 = _mm256_set1_pd(new_order1[15]);
     vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
@@ -278,7 +277,7 @@ void split(double* input, double* output, int number_of_samples){
     for(; i < number_of_samples; i++)
     {
         double out = a[i] + a[i-1]*new_order1[14] + a[i-2]*new_order1[15];
-        z[i] = out; // could also be different
+        output[i] = out; // could also be different
     }
 
     free(z);
@@ -1090,6 +1089,25 @@ void slowperformance(double* input, double* output, int number_of_samples) {
     double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp_x = 0; //temporary store of the "fall-through" value
     double z; //temporary output from first SOS-stage
+    for (int i = 0; i < number_of_samples; i++)
+    {
+        z = input[i];
+        for(int j = 0; j < NUM_STAGES; j++){
+            temp_x = z*filter_coefficients[6*j+3] - x[j]*filter_coefficients[6*j+4] - y[j]*filter_coefficients[6*j+5];
+            z = temp_x*filter_coefficients[6*j] + x[j]*filter_coefficients[6*j+1] + y[j]*filter_coefficients[6*j+2];
+            y[j] = x[j];
+            x[j] = temp_x;
+        }
+        output[i] = z;
+    }
+
+}
+
+void slowperformanceFloat(float* input, float* output, int number_of_samples) {
+    float x[NUM_STAGES] = {0}; //z-1 buffers
+    float y[NUM_STAGES] = {0}; //z-2 buffers
+    float temp_x = 0; //temporary store of the "fall-through" value
+    float z; //temporary output from first SOS-stage
     for (int i = 0; i < number_of_samples; i++)
     {
         z = input[i];
