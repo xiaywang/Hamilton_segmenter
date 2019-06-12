@@ -86,6 +86,8 @@ void slowperformance_macro_lp_deri_hp_ptr_half_div(float* input, float* output, 
 
 
 void slowperformance2(float* datum, float* filtOutput, int sampleLength);
+void slowperformance2_threshholding(float* datum, float* filtOutput, int sampleLength);
+
 void blocking(float* input, float* output, int samples_to_process);
 void blocking_no_divisions1(float* input, float* output, int samples_to_process);
 void blocking_no_divisions2(float* input, float* output, int samples_to_process);
@@ -116,35 +118,36 @@ void register_functions()
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 
 	add_function(&slowperformance, "Slow Performance", cost_analysis);
-	add_function(&qrsfilt_opt_400_50_1, "RENAME", cost_analysis);
+	// add_function(&qrsfilt_opt_400_50_1, "RENAME", cost_analysis);
 
-	add_function(&slowperformance_macro_test, "Slow Performance with macro", cost_analysis);
-	add_function(&slowperformance_macro_lp, "Slow Performance with macro lp", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri, "Slow Performance with macro lp derI", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp, "Slow Performance with macro lp derI hp", cost_analysis);
+	// add_function(&slowperformance_macro_test, "Slow Performance with macro", cost_analysis);
+	// add_function(&slowperformance_macro_lp, "Slow Performance with macro lp", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri, "Slow Performance with macro lp derI", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp, "Slow Performance with macro lp derI hp", cost_analysis);
 
-	add_function(&slowperformance_macro_lp_deri_hp_half, "Slow Performance with macro lp derI hp half", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies, "Slow Performance with macro lp derI hp half dependencies", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_half_dependencies_div, "Slow Performance with macro lp derI hp half dependencies no div", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_half_div, "Slow Performance with macro lp derI hp half no div", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_half_div_const_replace, "Slow Performance with macro lp derI hp half no div and const replaced", cost_analysis_blocking_no_division);
+	// add_function(&slowperformance_macro_lp_deri_hp_half, "Slow Performance with macro lp derI hp half", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_half_dependencies, "Slow Performance with macro lp derI hp half dependencies", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_half_dependencies_div, "Slow Performance with macro lp derI hp half dependencies no div", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_half_div, "Slow Performance with macro lp derI hp half no div", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_half_div_const_replace, "Slow Performance with macro lp derI hp half no div and const replaced", cost_analysis_blocking_no_division);
 	
-	add_function(&slowperformance_macro_lp_deri_hp_ptr, "Slow Performance with macro lp derI hp ptr", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_ptr_half, "Slow Performance with macro lp derI hp ptr half", cost_analysis);
-	add_function(&slowperformance_macro_lp_deri_hp_ptr_half_div, "Slow Performance with macro lp derI hp ptr half div", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_ptr, "Slow Performance with macro lp derI hp ptr", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_ptr_half, "Slow Performance with macro lp derI hp ptr half", cost_analysis);
+	// add_function(&slowperformance_macro_lp_deri_hp_ptr_half_div, "Slow Performance with macro lp derI hp ptr half div", cost_analysis);
 
 
 	add_function(&slowperformance2, "Slow Performance2", cost_analysis);
+	add_function(&slowperformance2_threshholding, "Slow Performance2 threshholding", cost_analysis);
 	
 
-	add_function(&blocking, "Blocking", cost_analysis);
-	add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
-	add_function(&blocking_no_divisions2, "Blocking precomp div and constant", cost_analysis_blocking_no_division);
-	add_function(&blocking_no_divisions2_derI, "Blocking precomp div and constant, derI short", cost_analysis_blocking_no_division);
-	add_function(&blocking_no_divisions2_derI_precomp_sum, "Blocking precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
-	add_function(&no_divisions2_derI_precomp_sum, "Precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
-	add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
-	add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
+	// add_function(&blocking, "Blocking", cost_analysis);
+	// add_function(&blocking_no_divisions1, "Blocking precomp div only", cost_analysis);
+	// add_function(&blocking_no_divisions2, "Blocking precomp div and constant", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions2_derI, "Blocking precomp div and constant, derI short", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions2_derI_precomp_sum, "Blocking precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
+	// add_function(&no_divisions2_derI_precomp_sum, "Precomp div and constant, derI short and precomp sum", cost_analysis_blocking_no_division);
+	// add_function(&no_division, "Precomp div", cost_analysis_blocking_no_division);
+	// add_function(&blocking_no_divisions_factorized, "Blocking precomp div and x*2 -y*2 -> (x-y)*2", cost_analysis_blocking_no_division_fact);
 	// add_function(&blocking_no_divisions_unrolled, "Blocking precomp div and unrolled loop by 2", cost_analysis_blocking_no_division);
 }
 

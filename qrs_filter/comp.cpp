@@ -5,6 +5,7 @@
 #include "matlab_data.h"
 #include "../hamilton_inline/qrsdet.h"
 #include <emmintrin.h>
+#include <immintrin.h>
 
 #define UNROLL_MACRO_TEST(index) {\
         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;\
@@ -447,32 +448,37 @@
         }\
         }
 
-#define RENAME_UNROLL_MACRO_LP_DERI_HP_PTR_HALF_DIV(index,lp_ptr,derI,hp_ptr,ptr,halfPtr1,halfPtr2) {\
-        y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr1]*2.0f) + lp_data[lp_ptr] ;\
-        y2 = y1;\
-        y1 = y0;\
-        fdatum = y0 * lpbuffer_sqr_div_4;\
-        lp_data[lp_ptr] = datum[index] ;           \
-        \
-        hp_y += fdatum - hp_data[hp_ptr];\
-        hp_data[hp_ptr] = fdatum ;\
-        fdatum = hp_data[halfPtr2] - (hp_y * HPBUFFER_LGTH_INV);\
-        y = fdatum - derBuff[derI] ;\
-        derBuff[derI] = fdatum;\
-        fdatum = y;\
-        fdatum = fabs(fdatum) ;            \
-        sum -= data[ptr] ;\
-        data[ptr] = fdatum ;\
-        sum += fdatum ;\
-        sum_temp = sum * WINDOW_WIDTH_INV;\
-        if((sum_temp) > 32000.f)\
-        {\
-            filtOutput[index] = 32000.f ;\
-        } \
-        else \
-        {\
-            filtOutput[index] = sum_temp ;\
-        }\
+#define THRESHHOLDING(index) {\
+            halfPtr = ptr_array[0] - lpbuffer_lgth_half ;\
+            if(halfPtr < 0)\
+                halfPtr += LPBUFFER_LGTH ;\
+            \
+            y0 = (y1*2.0f) - y2 + datum[index] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;\
+            y2 = y1;\
+            y1 = y0;\
+            fdatum = y0 * lpbuffer_sqr_div_4;\
+            lp_data[ptr_array[0]] = datum[index] ;\
+            \
+            hp_y += fdatum - hp_data[ptr_array[1]];\
+            halfPtr = ptr_array[1] - hpbuffer_lgth_half ;\
+            if(halfPtr < 0)\
+                halfPtr += HPBUFFER_LGTH ;\
+            hp_data[ptr_array[1]] = fdatum ;\
+            fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);\
+            y = fdatum - derBuff[ptr_array[2]] ;\
+            derBuff[ptr_array[2]] = fdatum;\
+            fdatum = y;\
+            fdatum = fabs(fdatum) ;\
+            sum += fdatum - data[ptr_array[3]] ;\
+            data[ptr_array[3]] = fdatum ;\
+            \
+            __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);\
+            __m128i ptr_vec = _mm_castps_si128(ptr_vecf);\
+            __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);\
+            __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);\
+            __m128i result =  _mm_and_si128(onePlus, ltmask);\
+            __m128 resultf = _mm_castsi128_ps(result);\
+            _mm_store_ps((float*)ptr_array, resultf);\
         }
 
 
@@ -515,32 +521,32 @@ void slowperformance(float* input, float* output, int samples_to_process)
     {
         halfPtr = lp_ptr-(LPBUFFER_LGTH/2) ;    // Use halfPtr to index
         if(halfPtr < 0)                         // to x[n-6].
-            halfPtr += LPBUFFER_LGTH ;
+            halfPtr += LPBUFFER_LGTH ;                                                                             
 
-        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;
+        y0 = (y1*2.0f) - y2 + input[index] - (lp_data[halfPtr]*2.0f) + lp_data[lp_ptr] ;        //2mul, 4add            total of 10add 3mul 4div 1comp
         y2 = y1;
         y1 = y0;
-        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);
+        fdatum = y0 / ((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))/4.0f);                   //1mul, 2div
         lp_data[lp_ptr] = input[index] ;            // Stick most recent sample into
         
-        hp_y += fdatum - hp_data[hp_ptr];
+        hp_y += fdatum - hp_data[hp_ptr];                                                       //2add
         halfPtr = hp_ptr-(HPBUFFER_LGTH/2) ;
         if(halfPtr < 0)
             halfPtr += HPBUFFER_LGTH ;
         hp_data[hp_ptr] = fdatum ;
-        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);
-        y = fdatum - derBuff[derI] ;
+        fdatum = hp_data[halfPtr] - (hp_y / (float)HPBUFFER_LGTH);                              //1add, 1div
+        y = fdatum - derBuff[derI] ;                                                            //1add
         derBuff[derI] = fdatum;
         fdatum = y;
         fdatum = fabs(fdatum) ;             // Take the absolute value.
-        sum += fdatum ;
-        sum -= data[ptr] ;
+        sum += fdatum ;                                                                         //1add
+        sum -= data[ptr] ;                                                                      //1add
         data[ptr] = fdatum ;
 
         // #ifdef OPERATION_COUNTER
         // float_comp_counter++;
         // #endif
-        if((sum / (float)WINDOW_WIDTH) > 32000.f)
+        if((sum / (float)WINDOW_WIDTH) > 32000.f)                                               //1div, 1comp
         {
             output_temp = 32000.f ;
         } 
@@ -569,7 +575,7 @@ void slowperformance(float* input, float* output, int samples_to_process)
         output[index] = output_temp;
     }
 }
-
+/*
 void slowperformance_macro_test(float* input, float* output, int samples_to_process) 
 {
     // std::cout << "loop length "<< samples_to_process<<"\n";
@@ -3023,7 +3029,7 @@ void slowperformance_macro_lp_deri_hp_ptr_half_div(float* input, float* output, 
             ptr = 0 ;
     }
 }
-
+*/
 
 void slowperformance2(float* datum, float* filtOutput, int sampleLength) 
 {
@@ -3186,6 +3192,147 @@ void slowperformance2(float* datum, float* filtOutput, int sampleLength)
     }
 }
 
+
+
+void slowperformance2_threshholding(float* datum, float* filtOutput, int sampleLength) 
+{
+    // data buffer for lpfilt
+    static float lp_data[LPBUFFER_LGTH];
+    // data buffer for hpfilt
+    static float hp_data[HPBUFFER_LGTH];
+    // data buffer for derivative
+    static float derBuff[DERIV_LENGTH] ;
+    // data buffer for moving window average
+    static float data[WINDOW_WIDTH];
+        
+    // ------- initialize filters ------- //
+    //lpfilt
+    for(int i_init = 0; i_init < LPBUFFER_LGTH; ++i_init)
+        lp_data[i_init] = 0.f;
+    //hpfilt
+    for(int i_init = 0; i_init < HPBUFFER_LGTH; ++i_init)
+        hp_data[i_init] = 0.f;
+    //derivative
+    for(int i_init = 0; i_init < DERIV_LENGTH; ++i_init)
+        derBuff[i_init] = 0 ;
+    //movint window integration
+    for(int i_init = 0; i_init < WINDOW_WIDTH ; ++i_init)
+        data[i_init] = 0 ;
+        
+    static float y1 = 0.0, y2 = 0.0, hp_y = 0.0, sum = 0.0;
+    static int ptr_array[4] = {0}; // lp_ptr = 0, hp_ptr = 0, derI = 0, ptr = 0;
+    int halfPtr, index;
+    float fdatum, y0, z, y;
+    static float lpbuffer_sqr_div_4 = 1/((((float)LPBUFFER_LGTH)*((float)LPBUFFER_LGTH))*0.25);
+    static float hpbuffer_lgth_inv = 1/(float)HPBUFFER_LGTH;
+    static float window_width_inv = 1/ (float)WINDOW_WIDTH;
+    static int lpbuffer_lgth_half = (LPBUFFER_LGTH/2);
+    static int hpbuffer_lgth_half = (HPBUFFER_LGTH/2);
+
+    float output_temp[8] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    #ifdef OPERATION_COUNTER
+    float_div_counter+=3;
+    float_mul_counter+=2;
+    #endif
+
+    __m128i maxMask = _mm_set_epi32(WINDOW_WIDTH, DERIV_LENGTH, HPBUFFER_LGTH, LPBUFFER_LGTH);
+    __m128i oneVec = _mm_set_epi32(1, 1, 1, 1);
+
+    __m256 output_temp_vec;
+    __m256 output_threshhold = _mm256_set_ps(32000.0, 32000.0, 32000.0, 32000.0, 32000.0, 32000.0, 32000.0, 32000.0);
+    __m256 output_mask;
+
+    int i;
+    for(i=0; i < sampleLength-7; i+=8)
+    {
+        THRESHHOLDING(i)
+        output_temp[0] = sum * window_width_inv ;
+        THRESHHOLDING(i+1)
+        output_temp[1] = sum * window_width_inv ;
+        THRESHHOLDING(i+2)
+        output_temp[2] = sum * window_width_inv ;
+        THRESHHOLDING(i+3)
+        output_temp[3] = sum * window_width_inv ;
+        THRESHHOLDING(i+4)
+        output_temp[4] = sum * window_width_inv ;
+        THRESHHOLDING(i+5)
+        output_temp[5] = sum * window_width_inv ;
+        THRESHHOLDING(i+6)
+        output_temp[6] = sum * window_width_inv ;
+        THRESHHOLDING(i+7)
+        output_temp[7] = sum * window_width_inv ;
+                // std::cout<<"in loop after array 7"<<std::endl;
+
+
+        output_temp_vec = _mm256_load_ps((float*)output_temp);
+                // std::cout<<"in loop after mmload"<<std::endl;
+
+        output_temp_vec = _mm256_min_ps(output_temp_vec, output_threshhold);
+                // std::cout<<"in loop after mmmin"<<std::endl;
+
+        _mm256_store_ps(filtOutput + i, output_temp_vec);
+                // std::cout<<"in loop after mmstore"<<std::endl;
+
+    }
+    for(i; i<sampleLength; i++)
+    {
+        halfPtr = ptr_array[0] - lpbuffer_lgth_half ;    // Use halfPtr to index
+        if(halfPtr < 0)                         // to x[n-6].
+            halfPtr += LPBUFFER_LGTH ;
+
+        y0 = (y1*2.0f) - y2 + datum[i] - (lp_data[halfPtr]*2.0f) + lp_data[ptr_array[0]] ;
+        y2 = y1;
+        y1 = y0;
+        fdatum = y0 * lpbuffer_sqr_div_4;
+        lp_data[ptr_array[0]] = datum[i] ;            // Stick most recent sample into
+        
+        hp_y += fdatum - hp_data[ptr_array[1]];
+        halfPtr = ptr_array[1] - hpbuffer_lgth_half ;
+        if(halfPtr < 0)
+            halfPtr += HPBUFFER_LGTH ;
+        hp_data[ptr_array[1]] = fdatum ;
+        fdatum = hp_data[halfPtr] - (hp_y * hpbuffer_lgth_inv);
+        y = fdatum - derBuff[ptr_array[2]] ;
+        derBuff[ptr_array[2]] = fdatum;
+        fdatum = y;
+        fdatum = fabs(fdatum) ;             // Take the absolute value.
+        sum += fdatum - data[ptr_array[3]] ;
+        data[ptr_array[3]] = fdatum ;
+
+        #ifdef OPERATION_COUNTER
+        float_comp_counter++;
+        float_mul_counter++;
+        #endif
+        if((sum * window_width_inv) > 32000.f)
+        {
+            output_temp[0] = 32000.f ;
+        } 
+        else 
+        {
+            output_temp[0] = sum * window_width_inv ;
+            #ifdef OPERATION_COUNTER
+            float_mul_counter += 1;
+            #endif
+        }
+
+        __m128 ptr_vecf = _mm_load_ps((float*)ptr_array);
+        __m128i ptr_vec = _mm_castps_si128(ptr_vecf);
+        __m128i onePlus = _mm_add_epi32(oneVec, ptr_vec);
+        __m128i ltmask = _mm_cmplt_epi32(onePlus, maxMask);
+        __m128i result =  _mm_and_si128(onePlus, ltmask);
+        __m128 resultf = _mm_castsi128_ps(result);
+        _mm_store_ps((float*)ptr_array, resultf);
+        
+        #ifdef OPERATION_COUNTER
+            float_add_counter += 10;
+            float_mul_counter+=4;
+        #endif
+        filtOutput[i] = output_temp[0];
+    }
+}
+
+/*
 void blocking(float* input, float* output, int samples_to_process) 
 {
     // data buffer for lpfilt
@@ -4342,3 +4489,4 @@ void qrsfilt_opt_400_50_1(float* datum, float* filtOutput, int sampleLength)
     }
 
 }
+*/
