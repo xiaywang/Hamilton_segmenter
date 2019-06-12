@@ -1,0 +1,18 @@
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    2922521
+performance:      0.180801
+performance (w/ comp):      0.208446
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    3101847
+performance:      0.170349
+performance (w/ comp):      0.196396

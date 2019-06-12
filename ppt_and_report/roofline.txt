@@ -1,0 +1,6 @@
+Blocking						cost 18		opint	4.5
+Blocking precomp_const					cost 16		opint 	4
+Blocking precomp_const vect_pointer			cost 16		opint 	4
+Unrolledx50 precomp_const				cost 17		opint 	4.25
+Unrolledx400						cost 18		opint	4.5
+Unrolledx50 blocking + precomp_const vect_pointer	cost 16		opint	4

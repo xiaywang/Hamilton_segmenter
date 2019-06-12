@@ -100,11 +100,268 @@ new_order1[7]-new_order1[5],
 new_order1[3]-new_order1[1],
 };
 
-void paper(double* input, double* output, int number_of_samples){
-    double A[2][2] = {filter_coefficients[4], filter_coefficients[5], 1, 0};
-    double B[2] = {1, 0};
-    double C[2] = {filter_coefficients[4], filter_coefficients[5]};
-    double D = 1;
+void splitFloat(float* input, float* output, int number_of_samples) {
+    float* z = (float*) aligned_alloc(8*sizeof(float), number_of_samples*sizeof(float)); //temporary output from first SOS-stage
+    float* a = (float*) aligned_alloc(8*sizeof(float), number_of_samples*sizeof(float)); //temporary output from first SOS-stage
+
+    float t_x[4] ={0} , t_y[4] = {0};
+    float temp_x, temp_z;
+
+    int i = 0;
+
+    float x = 0.f, y = 0.f;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        a[i] = input[i] - x*filter_coefficients[4] - y*filter_coefficients[5];
+        y = x;
+        x = a[i];
+    }
+
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*filter_coefficients[1];
+    z[2] = a[2] + a[1]*filter_coefficients[1] + a[0]*filter_coefficients[2];
+    z[3] = a[3] + a[2]*filter_coefficients[1] + a[1]*filter_coefficients[2];
+    z[4] = a[4] + a[3]*filter_coefficients[1] + a[2]*filter_coefficients[2];
+    z[5] = a[5] + a[4]*filter_coefficients[1] + a[3]*filter_coefficients[2];
+    z[6] = a[6] + a[5]*filter_coefficients[1] + a[4]*filter_coefficients[2];
+    z[7] = a[7] + a[6]*filter_coefficients[1] + a[5]*filter_coefficients[2];
+
+    __m256 coef_1 = _mm256_set1_ps(filter_coefficients[1]);
+    __m256 coef_2 = _mm256_set1_ps(filter_coefficients[2]);
+    for(i = 8; i < number_of_samples -7; i+=8)
+    {
+        float test_arr[8];
+        __m256 vec1 = _mm256_loadu_ps(a+i);
+        __m256 vec2 = _mm256_loadu_ps(a+i-1);
+        __m256 vec3 = _mm256_loadu_ps(a+i-2);
+        __m256 mul1 = _mm256_mul_ps(vec2, coef_1);
+        __m256 mul2 = _mm256_mul_ps(vec3, coef_2);
+        __m256 add1 = _mm256_add_ps(mul1, vec1);
+        __m256 out = _mm256_add_ps(mul2, add1);
+        _mm256_storeu_ps(z+i, out);
+
+        // z[i  ] = a[i  ] + a[i-1]*filter_coefficients[1] + a[i-2]*filter_coefficients[2];
+        // z[i+1] = a[i+1] + a[i  ]*filter_coefficients[1] + a[i-1]*filter_coefficients[2];
+        // z[i+2] = a[i+2] + a[i+1]*filter_coefficients[1] + a[i  ]*filter_coefficients[2];
+        // z[i+3] = a[i+3] + a[i+2]*filter_coefficients[1] + a[i+1]*filter_coefficients[2];
+        // z[i+4] = a[i+4] + a[i+3]*filter_coefficients[1] + a[i+2]*filter_coefficients[2];
+        // z[i+5] = a[i+5] + a[i+4]*filter_coefficients[1] + a[i+3]*filter_coefficients[2];
+        // z[i+6] = a[i+6] + a[i+5]*filter_coefficients[1] + a[i+4]*filter_coefficients[2];
+        // z[i+7] = a[i+7] + a[i+6]*filter_coefficients[1] + a[i+5]*filter_coefficients[2];
+    }
+    for(; i < number_of_samples; i++)
+    {
+        float out = a[i] + a[i-1]*filter_coefficients[1] + a[i-2]*filter_coefficients[2];
+        z[i] = out; // could also be different
+    }
+
+    for (int i = 0; i < number_of_samples; i++)
+    {
+        float temp_1 = z[i] - t_x[1]*filter_coefficients[10] - t_y[1]*filter_coefficients[11];
+        float z_1 = temp_1 + t_x[1]*filter_coefficients[7] + t_y[1]*filter_coefficients[8];
+        t_y[1] = t_x[1];
+        t_x[1] = temp_1;
+
+        float temp_2 = z_1 - t_x[2]*filter_coefficients[16] - t_y[2]*filter_coefficients[17];
+        float z_2 = temp_2 + t_x[2]*filter_coefficients[13] + t_y[2]*filter_coefficients[14];
+        t_y[2] = t_x[2];
+        t_x[2] = temp_2;
+
+        float temp_3 = z_2 - t_x[3]*filter_coefficients[22] - t_y[3]*filter_coefficients[23];
+        float z_3 = temp_3 + t_x[3]*filter_coefficients[19] + t_y[3]*filter_coefficients[20];
+        t_y[3] = t_x[3];
+        t_x[3] = temp_3;
+
+        output[i] = z_3;
+    }
+
+    free(a);
+    free(z);
+
+}
+
+void split(double* input, double* output, int number_of_samples){
+
+    double* z = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
+    double* a = (double*) aligned_alloc(4*sizeof(double), number_of_samples*sizeof(double)); //temporary output from first SOS-stage
+
+    double y = 0, x = 0;
+    int i;
+
+    for(i = 0; i < number_of_samples; i++)
+    {
+        a[i] = input[i] - x*new_order1[0] - y*new_order1[1];
+        y = x;
+        x = a[i];
+    }
+
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[2];
+    z[2] = a[2] + a[1]*new_order1[2] + a[0]*new_order1[3];
+    z[3] = a[3] + a[2]*new_order1[2] + a[1]*new_order1[3];
+    __m256d coef_1 = _mm256_set1_pd(new_order1[2]);
+    __m256d coef_2 = _mm256_set1_pd(new_order1[3]);
+    __m256d vec2V;
+    __m256d vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    // double vec2[4];
+    // double vec3[4] = {a[2],a[3],a[0],a[2]};
+    // double vec1[4];
+    for(i = 4; i < number_of_samples -3; i+=4)
+    {
+        // double vec1[4] = {a[i],a[i+1],a[i+2],a[i+3]}; // 0 1 2 3
+        // double vec1[4] = {a[i],a[i],a[i],a[i]}; // 0 1 2 3
+        // double vec0[4] = {a[i-4],a[i-3],a[i-2],a[i-1]}; // -4 -3 -2 -1
+        // double vec0[4] = {a[i],a[i],a[i],a[i]};
+        // double out[4];
+        // vec2[0] = vec3[0];
+        // vec2[1] = vec3[1];
+        // vec2[2] = vec3[2];
+        // vec2[3] = vec3[3]; // -2 -1 -4 -3
+        // vec3[0] = vec1[2]; // 2 3 0 1 same as above, but from last run
+        // vec3[1] = vec1[3];
+        // vec3[2] = vec1[0];
+        // vec3[3] = vec1[1];
+        // double vec4[4] = {vec2[0],vec2[1],vec3[2],vec3[3]}; // -2 -1 0 1 needed for the second mult
+        // double vec5[4] = {vec1[0], vec4[1], vec1[2],vec4[3]}; // 0 -1 2 1
+        // double vec6[4] = {vec5[1],vec5[0],vec5[3], vec5[2]}; // -1 0 1 2
+
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+        
+        // out[0] = vec1[0] + vec6[0]*new_order1[2] + vec4[0]*new_order1[3]; // 0 -1 -2
+        // out[1] = vec1[1] + vec6[1]*new_order1[2] + vec4[1]*new_order1[3]; // 1 0 -1
+        // out[2] = vec1[2] + vec6[2]*new_order1[2] + vec4[2]*new_order1[3]; // 2 1 0
+        // out[3] = vec1[3] + vec6[3]*new_order1[2] + vec4[3]*new_order1[3]; // 3 2 1
+
+        // vec2V = vec3V;
+        // z[i] = out[0]; // could also be different
+        // z[i+1] = out[1]; // could also be different
+        // z[i+2] = out[2]; // could also be different
+        // z[i+3] = out[3]; // could also be different
+    }
+
+    for(; i < number_of_samples; i++)
+    {
+        double out = a[i] + a[i-1]*new_order1[2] + a[i-2]*new_order1[3];
+        z[i] = out; // could also be different
+    }
+
+    x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[4] - y*new_order1[5];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[6];
+    z[2] = a[2] + a[1]*new_order1[6] + a[0]*new_order1[7];
+    z[3] = a[3] + a[2]*new_order1[6] + a[1]*new_order1[7];
+    coef_1 = _mm256_set1_pd(new_order1[6]);
+    coef_2 = _mm256_set1_pd(new_order1[7]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+    }
+    for(; i < number_of_samples; i++)
+    {
+        double out = a[i] + a[i-1]*new_order1[6] + a[i-2]*new_order1[7];
+        z[i] = out; // could also be different
+    }
+
+    x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[8] - y*new_order1[9];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    z[0] = a[0];
+    z[1] = a[1] + a[0]*new_order1[10];
+    z[2] = a[2] + a[1]*new_order1[10] + a[0]*new_order1[11];
+    z[3] = a[3] + a[2]*new_order1[10] + a[1]*new_order1[11];
+    coef_1 = _mm256_set1_pd(new_order1[10]);
+    coef_2 = _mm256_set1_pd(new_order1[11]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(z+i, outV);
+    }
+    for(; i < number_of_samples; i++)
+    {
+        double out = a[i] + a[i-1]*new_order1[10] + a[i-2]*new_order1[11];
+        z[i] = out; // could also be different
+    }
+
+    x = 0, y = 0;
+    for(i = 0; i < number_of_samples; i++)
+    {
+        double out = z[i] - x*new_order1[12] - y*new_order1[13];
+        y = x;
+        x = out;
+        a[i] = out;
+    }
+
+    output[0] = a[0];
+    output[1] = a[1] + a[0]*new_order1[14];
+    output[2] = a[2] + a[1]*new_order1[14] + a[0]*new_order1[15];
+    output[3] = a[3] + a[2]*new_order1[14] + a[1]*new_order1[15];
+    coef_1 = _mm256_set1_pd(new_order1[14]);
+    coef_2 = _mm256_set1_pd(new_order1[15]);
+    vec3V =  _mm256_setr_pd(a[2], a[3], a[0], a[1]);
+    for(i = 4; i < number_of_samples - 3; i+=4){
+        __m256d vec1V = _mm256_load_pd(a+i);
+        vec2V = vec3V;
+        vec3V = _mm256_permute2f128_pd (vec1V, vec1V, 0x01);
+        __m256d vec4V = _mm256_blend_pd(vec2V,vec3V, 0b1100);
+        __m256d vec5V = _mm256_blend_pd(vec1V,vec4V, 0b1010);
+        __m256d vec6V = _mm256_permute_pd(vec5V,0b0101);
+        __m256d intermed = _mm256_mul_pd(vec4V, coef_2);
+        __m256d intermed2 = _mm256_mul_pd(vec6V, coef_1);
+        __m256d intermed3 = _mm256_add_pd(intermed, vec1V);
+        __m256d outV = _mm256_add_pd(intermed3, intermed2);
+        _mm256_store_pd(output+i, outV);
+    }
+    for(; i < number_of_samples; i++)
+    {
+        double out = a[i] + a[i-1]*new_order1[14] + a[i-2]*new_order1[15];
+        output[i] = out; // could also be different
+    }
+
+    free(z);
+    free(a);
 }
 
 void newHope0(double* input, double* output, int number_of_samples){
@@ -912,6 +1169,25 @@ void slowperformance(double* input, double* output, int number_of_samples) {
     double y[NUM_STAGES] = {0}; //z-2 buffers
     double temp_x = 0; //temporary store of the "fall-through" value
     double z; //temporary output from first SOS-stage
+    for (int i = 0; i < number_of_samples; i++)
+    {
+        z = input[i];
+        for(int j = 0; j < NUM_STAGES; j++){
+            temp_x = z*filter_coefficients[6*j+3] - x[j]*filter_coefficients[6*j+4] - y[j]*filter_coefficients[6*j+5];
+            z = temp_x*filter_coefficients[6*j] + x[j]*filter_coefficients[6*j+1] + y[j]*filter_coefficients[6*j+2];
+            y[j] = x[j];
+            x[j] = temp_x;
+        }
+        output[i] = z;
+    }
+
+}
+
+void slowperformanceFloat(float* input, float* output, int number_of_samples) {
+    float x[NUM_STAGES] = {0}; //z-1 buffers
+    float y[NUM_STAGES] = {0}; //z-2 buffers
+    float temp_x = 0; //temporary store of the "fall-through" value
+    float z; //temporary output from first SOS-stage
     for (int i = 0; i < number_of_samples; i++)
     {
         z = input[i];

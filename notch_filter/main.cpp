@@ -42,7 +42,11 @@
 #include "matlab_data.h"
 
 /* prototype of the function you need to optimize */
+#ifdef DOUBLE
 typedef void(*comp_func)(double *, double *, int);
+#else
+typedef void(*comp_func)(float *, float *, int);
+#endif
 
 #define cost_analysis 40.0
 #define CYCLES_REQUIRED 1e7
@@ -52,6 +56,8 @@ typedef void(*comp_func)(double *, double *, int);
 #define EPS (1e-3)
 
 using namespace std;
+
+// #define DOUBLE
 
 //headers
 double get_perf_score(comp_func f);
@@ -71,7 +77,10 @@ void pipelined2(double* input, double* output, int number_of_samples);
 void matrixStyle(double* input, double* output, int number_of_samples);
 void matrixStyle2(double* input, double* output, int number_of_samples);
 void newHope0(double* input, double* output, int number_of_samples);
-void paper(double* input, double* output, int number_of_samples);
+void split(double* input, double* output, int number_of_samples);
+
+void slowperformanceFloat(float* input, float* output, int number_of_samples);
+void splitFloat(float* input, float* output, int number_of_samples);
 
 void add_function(comp_func f, string name, int flop);
 
@@ -88,24 +97,29 @@ int numFuncs = 0;
 */
 void register_functions()
 {
+	#ifdef DOUBLE
 	add_function(&slowperformance, "Slow Performance", 32);
-	add_function(&slowperformance2, "Slow Performance2", 32);
-	add_function(&slowperformance3, "Slow Performance3", 32);
-	add_function(&reversed, "reversed", 32);
-	add_function(&reversed2, "reversed2", 32);
-	add_function(&reversed3, "reversed3", 32);
+	//add_function(&slowperformance2, "Slow Performance2", 32);
+	//add_function(&slowperformance3, "Slow Performance3", 32);
+	//add_function(&reversed, "reversed", 32);
+	//add_function(&reversed2, "reversed2", 32);
+	//add_function(&reversed3, "reversed3", 32);
 	add_function(&pipelined0, "pipelined0", 32);
-	add_function(&pipelined1, "pipelined1", 32);
+	//add_function(&pipelined1, "pipelined1", 32);
 	//add_function(&pipelined2, "pipelined2", 38);
-	add_function(&matrixStyle, "matrixStyle", 32);
-	add_function(&matrixStyle2, "matrixStyle2", 32);
+	//add_function(&matrixStyle, "matrixStyle", 32);
+	//add_function(&matrixStyle2, "matrixStyle2", 32);
 	//add_function(&newHope0, "newHope0", 32);
-	//add_function(&paper, "paper", 32);
-
+	add_function(&split, "split", 32);
+	#else
+	add_function(&slowperformanceFloat, "slowperformance float", 32);
+	add_function(&splitFloat, "split", 32);
+	#endif
 	// Add your functions here
 	// add_function(&your_function, "function: Optimization X", flops per iteration);
 }
 
+#ifdef DOUBLE
 double nrm_sqr_diff(double *x, double *y, int n) {
     double nrm_sqr = 0.0;
     for(int i = 0; i < n; i++) {
@@ -117,6 +131,20 @@ double nrm_sqr_diff(double *x, double *y, int n) {
     }
     return nrm_sqr;
 }
+#else
+double nrm_sqr_diff(float *x, float *y, int n) {
+    double nrm_sqr = 0.0;
+    for(int i = 0; i < n; i++) {
+    	// printf("%f matlab %f\n",x[i],y[i] );
+        nrm_sqr += (x[i] - y[i]) * (x[i] - y[i]);
+        if(nrm_sqr > EPS){
+        	printf("error threshhold over in sample %i\n", i);
+        	return nrm_sqr;
+        }
+    }
+    return nrm_sqr;
+}
+#endif
 
 /*
 * Main driver routine - calls register_funcs to get student functions, then
@@ -148,23 +176,46 @@ int main(int argc, char **argv)
 	}
 	cout << numFuncs << " functions registered." << endl;
    
-    //Check validity of functions. 
+    //Check validity of functions.
+    #ifdef DOUBLE
     double output[sample_length];
     double output_old[sample_length];
+    #else
+    float output[sample_length];
+    float output_old[sample_length];
+    #endif
 
     //initialize to 0 (first few output samples will be 0, depending on #coefficients)
     for (int i = 0; i < sample_length; i++)
     {
     	output_old[i] = 0.0;
     }
+    
+    #ifdef DOUBLE
     double exampleOut[sample_length];
+    #else
+    float exampleOut[sample_length];
+    #endif
+
 	for (i = 0; i < numFuncs; i++)
 	{
+		#ifdef DOUBLE
 		memcpy(output, output_old, sample_length*sizeof(double));
+		#else
+		memcpy(output, output_old, sample_length*sizeof(float));
+		#endif
 		comp_func f = userFuncs[i];
+		#ifdef DOUBLE
 		f(matlab_input, output, n);
+		#else
+		f(matlab_input_float, output, n);
+		#endif
 		if(i == 0){
+			#ifdef DOUBLE
 			memcpy(exampleOut, output, sample_length*sizeof(double));
+			#else
+			memcpy(exampleOut, output, sample_length*sizeof(float));
+			#endif
 		} else {
 			double error = nrm_sqr_diff(output, exampleOut, sample_length);
 			if (error > EPS)
@@ -174,12 +225,12 @@ int main(int argc, char **argv)
 
 
 
-	for (i = 0; i < numFuncs; i++)
-	{
-        cout << endl << "Running: " << funcNames[i] << endl;
-		perf = perf_test(userFuncs[i], funcNames[i], funcFlops[i]);
-        cout << perf << " flops per cycle" << endl;
-	}
+	// for (i = 0; i < numFuncs; i++)
+	// {
+ //        cout << endl << "Running: " << funcNames[i] << endl;
+	// 	perf = perf_test(userFuncs[i], funcNames[i], funcFlops[i]);
+ //        cout << perf << " flops per cycle" << endl;
+	// }
 
 	return 0;
 }
@@ -214,10 +265,15 @@ double perf_test(comp_func f, string desc, int flops)
 	myInt64 start, end;
 
 	//new variables, n for #loop iterations
-	double output[sample_length];
+	#ifdef DOUBLE
+		double output[sample_length];
+	#else
+		float output[sample_length];
+	#endif
+
 	int n;
 
-	for (int i = 5000; i<=120000; i+=5000)
+	for (int i = 5000; i<=100000; i+=5000)
 	{
 		n = i;
 
@@ -228,7 +284,11 @@ double perf_test(comp_func f, string desc, int flops)
 			num_runs = num_runs * multiplier;
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; i++) {
+				#ifdef DOUBLE
 				f(matlab_input, output, n);
+				#else
+				f(matlab_input_float, output, n);
+				#endif
 			}
 			end = stop_tsc(start);
 
@@ -246,7 +306,11 @@ double perf_test(comp_func f, string desc, int flops)
 
 			start = start_tsc();
 			for (size_t i = 0; i < num_runs; ++i) {
+				#ifdef DOUBLE
 				f(matlab_input, output, n);
+				#else
+				f(matlab_input_float, output, n);
+				#endif
 			}
 			end = stop_tsc(start);
 
@@ -260,6 +324,7 @@ double perf_test(comp_func f, string desc, int flops)
 		cyclesList.sort();
 		cycles = cyclesList.front();
 		printf("N: %i, perf: %f\n", n, (flops * (n)) / cycles);
+		printf("N: %i, cycles: %f\n", n, cycles);
 	}
 	
 	return  (flops * (n)) / cycles;
