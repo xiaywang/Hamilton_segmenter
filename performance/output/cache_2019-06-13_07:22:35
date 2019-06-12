@@ -1,0 +1,147 @@
+optimization step: 0
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   2943056
+QRSfilt runtime:   474864
+Classify runtime: 439588
+total runtime:    5927432
+performance:      0.093741
+performance (w/ comp):      0.106499
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+           853'821      icache.hit                                                  
+            17'657      icache.misses                                               
+
+       0.003744687 seconds time elapsed
+
+optimization step: 1
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    1697404
+performance:      0.319789
+performance (w/ comp):      0.367392
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           349'380      icache.hit                                                  
+            21'622      icache.misses                                               
+
+       0.002253997 seconds time elapsed
+
+optimization step: 2
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    2016460
+performance:      0.269182
+performance (w/ comp):      0.309249
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           349'874      icache.hit                                                  
+            21'562      icache.misses                                               
+
+       0.002492093 seconds time elapsed
+
+optimization step: 3
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    1937140
+performance:      0.272771
+performance (w/ comp):      0.314479
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           348'750      icache.hit                                                  
+            21'911      icache.misses                                               
+
+       0.002428296 seconds time elapsed
+
+optimization step: 4
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2311540
+performance:      0.231705
+performance (w/ comp):      0.266657
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           419'988      icache.hit                                                  
+            22'741      icache.misses                                               
+
+       0.002412595 seconds time elapsed
+
+optimization step: 5
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2115212
+performance:      0.253211
+performance (w/ comp):      0.291408
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           410'071      icache.hit                                                  
+            21'817      icache.misses                                               
+
+       0.002324697 seconds time elapsed
+
+optimization step: 6
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2180804
+performance:      0.242965
+performance (w/ comp):      0.280079
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           419'808      icache.hit                                                  
+            22'399      icache.misses                                               
+
+       0.002517608 seconds time elapsed
+
+optimization step: 7
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2159560
+performance:      0.245355
+performance (w/ comp):      0.282834
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           419'479      icache.hit                                                  
+            22'571      icache.misses                                               
+
+       0.002545727 seconds time elapsed
+

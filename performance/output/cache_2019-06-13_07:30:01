@@ -1,0 +1,799 @@
+optimization step: 0
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   2943912
+QRSfilt runtime:   474724
+Classify runtime: 439336
+total runtime:    5919356
+performance:      0.093869
+performance (w/ comp):      0.106645
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+         1'275'989      L1-dcache-loads                                               (98.04%)
+            15'734      L1-dcache-load-misses     #    1.23% of all L1-dcache hits  
+         1'098'818      L1-dcache-stores                                              (1.96%)
+
+       0.003673645 seconds time elapsed
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   2939608
+QRSfilt runtime:   472640
+Classify runtime: 528500
+total runtime:    6084192
+performance:      0.091326
+performance (w/ comp):      0.103755
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+         1'304'158      dTLB-loads                                                  
+             2'114      dTLB-load-misses          #    0.16% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.003791300 seconds time elapsed
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   2941316
+QRSfilt runtime:   473784
+Classify runtime: 441668
+total runtime:    5969376
+performance:      0.093082
+performance (w/ comp):      0.105751
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+            12'748      LLC-loads                                                     (40.39%)
+   <not supported>      LLC-load-misses                                             
+             2'914      LLC-stores                                                  
+             2'953      LLC-prefetches                                                (59.61%)
+
+       0.003768959 seconds time elapsed
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   2939116
+QRSfilt runtime:   472080
+Classify runtime: 438900
+total runtime:    5920324
+performance:      0.093853
+performance (w/ comp):      0.106627
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+         8'745'263      cycles                                                      
+         5'196'962      instructions              #    0.59  insn per cycle                                            
+            17'224      cache-references                                            
+             4'322      cache-misses              #   25.093 % of all cache refs    
+           258'812      bus-cycles                                                  
+
+       0.003793192 seconds time elapsed
+
+float adds:		304960
+float mult:		209668
+float div:		41015
+float comp:		75624
+float total only math:	555643
+float total with comp:	631267
+QRSdet runtime:   5619830
+QRSfilt runtime:   901999
+Classify runtime: 833155
+total runtime:    11297232
+performance:      0.049184
+performance (w/ comp):      0.055878
+
+ Performance counter stats for '../../hamilton_float/ourtest':
+
+           853'994      icache.hit                                                  
+            18'023      icache.misses                                               
+
+       0.006051621 seconds time elapsed
+
+optimization step: 1
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    1760396
+performance:      0.308346
+performance (w/ comp):      0.354246
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           693'559      L1-dcache-loads                                             
+            21'489      L1-dcache-load-misses     #    3.10% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002360832 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    1685528
+performance:      0.322042
+performance (w/ comp):      0.369981
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           705'055      dTLB-loads                                                  
+             2'391      dTLB-load-misses          #    0.34% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002400374 seconds time elapsed
+
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    1757162
+performance:      0.308913
+performance (w/ comp):      0.354898
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+            14'779      LLC-loads                                                     (33.83%)
+   <not supported>      LLC-load-misses                                             
+             4'918      LLC-stores                                                  
+             4'508      LLC-prefetches                                                (66.17%)
+
+       0.002468271 seconds time elapsed
+
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    3152632
+performance:      0.172177
+performance (w/ comp):      0.197807
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'722'494      cycles                                                      
+         3'283'972      instructions              #    1.21  insn per cycle                                            
+            21'097      cache-references                                            
+             4'568      cache-misses              #   21.652 % of all cache refs    
+           168'318      bus-cycles                                                  
+
+       0.003194043 seconds time elapsed
+
+float adds:		297740
+float mult:		209664
+float div:		35407
+float comp:		80802
+float total only math:	542811
+float total with comp:	623613
+total runtime:    2779638
+performance:      0.195281
+performance (w/ comp):      0.224350
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           353'504      icache.hit                                                  
+            21'558      icache.misses                                               
+
+       0.003048341 seconds time elapsed
+
+optimization step: 2
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    2003916
+performance:      0.270867
+performance (w/ comp):      0.311185
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           695'834      L1-dcache-loads                                             
+            20'638      L1-dcache-load-misses     #    2.97% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002553987 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    1989156
+performance:      0.272877
+performance (w/ comp):      0.313494
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           685'298      dTLB-loads                                                  
+             2'260      dTLB-load-misses          #    0.33% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002425164 seconds time elapsed
+
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    2047540
+performance:      0.265096
+performance (w/ comp):      0.304555
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+             9'019      LLC-loads                                                     (67.13%)
+   <not supported>      LLC-load-misses                                             
+             4'396      LLC-stores                                                  
+             5'751      LLC-prefetches                                                (32.87%)
+
+       0.002442744 seconds time elapsed
+
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    1994020
+performance:      0.272211
+performance (w/ comp):      0.312730
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'985'492      cycles                                                      
+         3'305'291      instructions              #    1.11  insn per cycle                                            
+            23'207      cache-references                                            
+             5'726      cache-misses              #   24.674 % of all cache refs    
+            88'616      bus-cycles                                                  
+
+       0.002433549 seconds time elapsed
+
+float adds:		297730
+float mult:		209662
+float div:		35403
+float comp:		80794
+float total only math:	542795
+float total with comp:	623589
+total runtime:    1991836
+performance:      0.272510
+performance (w/ comp):      0.313072
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           344'901      icache.hit                                                  
+            21'709      icache.misses                                               
+
+       0.002387537 seconds time elapsed
+
+optimization step: 3
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    1938656
+performance:      0.272557
+performance (w/ comp):      0.314233
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           718'293      L1-dcache-loads                                             
+            20'103      L1-dcache-load-misses     #    2.80% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002335744 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    1941124
+performance:      0.272211
+performance (w/ comp):      0.313833
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           717'462      dTLB-loads                                                  
+             2'267      dTLB-load-misses          #    0.32% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002415591 seconds time elapsed
+
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    1966188
+performance:      0.268741
+performance (w/ comp):      0.309833
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+             9'616      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+             4'502      LLC-stores                                                  
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002415002 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    1965288
+performance:      0.268864
+performance (w/ comp):      0.309974
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'991'369      cycles                                                      
+         3'312'089      instructions              #    1.11  insn per cycle                                            
+            23'606      cache-references                                            
+             5'788      cache-misses              #   24.519 % of all cache refs    
+            88'208      bus-cycles                                                  
+
+       0.002324867 seconds time elapsed
+
+float adds:		340930
+float mult:		152062
+float div:		35403
+float comp:		80794
+float total only math:	528395
+float total with comp:	609189
+total runtime:    2283446
+performance:      0.231402
+performance (w/ comp):      0.266785
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           356'643      icache.hit                                                  
+            21'304      icache.misses                                               
+
+       0.002229862 seconds time elapsed
+
+optimization step: 4
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2221604
+performance:      0.241085
+performance (w/ comp):      0.277452
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           710'785      L1-dcache-loads                                             
+            17'831      L1-dcache-load-misses     #    2.51% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002577691 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2202880
+performance:      0.243134
+performance (w/ comp):      0.279811
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           708'080      dTLB-loads                                                  
+             2'354      dTLB-load-misses          #    0.33% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002412354 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2283096
+performance:      0.234592
+performance (w/ comp):      0.269979
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+            11'493      LLC-loads                                                     (50.71%)
+   <not supported>      LLC-load-misses                                             
+             3'390      LLC-stores                                                  
+             3'993      LLC-prefetches                                                (49.29%)
+
+       0.002511539 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2233044
+performance:      0.239850
+performance (w/ comp):      0.276031
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'948'702      cycles                                                      
+         3'138'291      instructions              #    1.06  insn per cycle                                            
+            20'723      cache-references                                            
+             4'522      cache-misses              #   21.821 % of all cache refs    
+            89'918      bus-cycles                                                  
+
+       0.002513910 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    3529211
+performance:      0.151761
+performance (w/ comp):      0.174653
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           438'457      icache.hit                                                  
+            23'946      icache.misses                                               
+
+       0.003247888 seconds time elapsed
+
+optimization step: 5
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2184720
+performance:      0.245155
+performance (w/ comp):      0.282136
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           706'326      L1-dcache-loads                                             
+            18'031      L1-dcache-load-misses     #    2.55% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002537839 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2173918
+performance:      0.246373
+performance (w/ comp):      0.283538
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           704'006      dTLB-loads                                                  
+             2'250      dTLB-load-misses          #    0.32% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002450513 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    3010689
+performance:      0.177898
+performance (w/ comp):      0.204734
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+            12'512      LLC-loads                                                     (39.91%)
+   <not supported>      LLC-load-misses                                             
+             3'525      LLC-stores                                                  
+             4'255      LLC-prefetches                                                (60.09%)
+
+       0.002852159 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2208264
+performance:      0.242541
+performance (w/ comp):      0.279128
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'914'582      cycles                                                      
+         3'113'143      instructions              #    1.07  insn per cycle                                            
+            20'484      cache-references                                            
+             4'381      cache-misses              #   21.387 % of all cache refs    
+            88'989      bus-cycles                                                  
+
+       0.002480509 seconds time elapsed
+
+float adds:		340930
+float mult:		180862
+float div:		13803
+float comp:		80794
+float total only math:	535595
+float total with comp:	616389
+total runtime:    2189528
+performance:      0.244617
+performance (w/ comp):      0.281517
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           417'525      icache.hit                                                  
+            22'311      icache.misses                                               
+
+       0.002493401 seconds time elapsed
+
+optimization step: 6
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2327548
+performance:      0.227647
+performance (w/ comp):      0.262421
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           704'913      L1-dcache-loads                                             
+            18'000      L1-dcache-load-misses     #    2.55% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002541451 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2392336
+performance:      0.221482
+performance (w/ comp):      0.255314
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           701'616      dTLB-loads                                                  
+             2'186      dTLB-load-misses          #    0.31% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002434279 seconds time elapsed
+
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2371796
+performance:      0.223400
+performance (w/ comp):      0.257525
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+             8'032      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+             3'416      LLC-stores                                                  
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002486614 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2517194
+performance:      0.210496
+performance (w/ comp):      0.242650
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'942'071      cycles                                                      
+         3'111'022      instructions              #    1.06  insn per cycle                                            
+            22'621      cache-references                                            
+             4'492      cache-misses              #   19.858 % of all cache refs    
+            89'596      bus-cycles                                                  
+
+       0.002431299 seconds time elapsed
+
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2395960
+performance:      0.221147
+performance (w/ comp):      0.254928
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           413'085      icache.hit                                                  
+            22'055      icache.misses                                               
+
+       0.002415429 seconds time elapsed
+
+optimization step: 7
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2154896
+performance:      0.245886
+performance (w/ comp):      0.283446
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           702'428      L1-dcache-loads                                             
+            17'739      L1-dcache-load-misses     #    2.53% of all L1-dcache hits  
+     <not counted>      L1-dcache-stores                                              (0.00%)
+
+       0.002529222 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2161252
+performance:      0.245163
+performance (w/ comp):      0.282613
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           698'717      dTLB-loads                                                  
+             2'195      dTLB-load-misses          #    0.31% of all dTLB cache hits 
+   <not supported>      dTLB-prefetch-misses                                        
+
+       0.002477383 seconds time elapsed
+
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2153596
+performance:      0.246035
+performance (w/ comp):      0.283617
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+             7'798      LLC-loads                                                   
+   <not supported>      LLC-load-misses                                             
+             3'306      LLC-stores                                                  
+     <not counted>      LLC-prefetches                                                (0.00%)
+
+       0.002481477 seconds time elapsed
+
+Some events weren't counted. Try disabling the NMI watchdog:
+	echo 0 > /proc/sys/kernel/nmi_watchdog
+	perf stat ...
+	echo 1 > /proc/sys/kernel/nmi_watchdog
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2150828
+performance:      0.246351
+performance (w/ comp):      0.283982
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+         2'927'083      cycles                                                      
+         3'115'139      instructions              #    1.06  insn per cycle                                            
+            21'188      cache-references                                            
+             4'435      cache-misses              #   20.932 % of all cache refs    
+            87'848      bus-cycles                                                  
+
+       0.002392090 seconds time elapsed
+
+float adds:		338050
+float mult:		180862
+float div:		10947
+float comp:		80938
+float total only math:	529859
+float total with comp:	610797
+total runtime:    2272888
+performance:      0.233121
+performance (w/ comp):      0.268732
+
+ Performance counter stats for '../../hamilton_inline/ourtest':
+
+           423'434      icache.hit                                                  
+            23'237      icache.misses                                               
+
+       0.002477930 seconds time elapsed
+
