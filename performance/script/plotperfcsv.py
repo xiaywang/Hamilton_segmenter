@@ -13,6 +13,8 @@ import csv
 
 filetime=sys.argv[1]
 
+print("entered with {}".format(filetime))
+
 optimizatino_flag=[" ",
 					"#define MAIN_BLOCK_SIZE 1000",
 					"#define INIT_INLINE 1",
@@ -115,6 +117,7 @@ for plot_index, metrics in enumerate(metrics_list):
 		perf_dataframe=pd.DataFrame.from_dict(value)
 		# print(perf_dataframe)
 		perf_dataframe.to_csv(('only_step%s_%s.csv')%(key, filetime), index=False)
+		print("saved only_step{}_{}.csv".format(key, filetime));
 
 
 	
